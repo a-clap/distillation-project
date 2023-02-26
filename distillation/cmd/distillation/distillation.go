@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -30,7 +31,7 @@ func main() {
 	for _, pt := range pts {
 		pt.Enabled = true
 		pt.Samples = 10
-		if err := distil.PTHandler.ConfigureSensor(pt); err != nil {
+		if _, err := distil.PTHandler.Configure(pt); err != nil {
 			log.Println(err)
 		}
 	}
@@ -62,37 +63,41 @@ func (p *PTHandler) Get() ([]embedded.PTSensorConfig, error) {
 	return ret, err
 }
 
-func (p *PTHandler) Set(s embedded.PTSensorConfig) error {
+func (p *PTHandler) Configure(cfg embedded.PTSensorConfig) (embedded.PTSensorConfig, error) {
 	ctx := context.Background()
 	timeout := 1 * time.Second
 	reqContext, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-
-	b, err := json.Marshal(&s)
+	c := embedded.PTSensorConfig{}
+	b, err := json.Marshal(&cfg)
 	if err != nil {
-		return err
+		return c, err
 	}
 	byteReader := bytes.NewReader(b)
 	r, err := http.NewRequestWithContext(reqContext, http.MethodPut, EmbeddedAddr+embedded.RoutesConfigPT100Sensor, byteReader)
 	if err != nil {
-		return err
+		return c, err
 	}
-	// Important to set
 	r.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(r)
 	if err != nil {
-		return err
+		return c, err
 	}
 
 	if res.StatusCode == 200 {
-		return nil
+		return c, nil
 	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return c, err
 	}
-	return errors.New(string(body))
+
+	if err := json.Unmarshal(body, &c); err != nil {
+		return c, fmt.Errorf("%w: %s", err, errors.New(string(body)))
+	}
+
+	return c, nil
 }
 
 func (p *PTHandler) Temperatures() ([]embedded.PTTemperature, error) {
