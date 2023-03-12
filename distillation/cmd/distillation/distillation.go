@@ -25,15 +25,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	pts := distil.PTHandler.GetSensors()
-	for _, pt := range pts {
-		pt.Enabled = true
-		pt.Samples = 10
-		if _, err := distil.PTHandler.Configure(pt); err != nil {
-			log.Println(err)
-		}
-	}
-
 	err = distil.Run("localhost:8081")
 	log.Println(err)
 }
