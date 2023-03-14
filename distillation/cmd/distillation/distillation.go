@@ -16,7 +16,7 @@ import (
 const EmbeddedAddr = "http://localhost:8080"
 
 func main() {
-	distil, err := distillation.New(
+	handler, err := distillation.New(
 		distillation.WithPT(embedded.NewPTClient(EmbeddedAddr, 1*time.Second)),
 		distillation.WithDS(embedded.NewDS18B20Client(EmbeddedAddr, 1*time.Second)),
 		distillation.WithHeaters(embedded.NewHeaterClient(EmbeddedAddr, 1*time.Second)),
@@ -25,6 +25,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = distil.Run("localhost:8081")
+	err = handler.Run("localhost:8081")
 	log.Println(err)
 }
