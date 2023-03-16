@@ -7,6 +7,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/a-clap/iot/internal/distillation"
@@ -16,6 +17,11 @@ import (
 const EmbeddedAddr = "http://localhost:8080"
 
 func main() {
+	err := WaitForEmbedded(EmbeddedAddr, 30*time.Second)
+	if err != nil {
+		log.Fatalln("Couldn't connect to ", EmbeddedAddr)
+	}
+
 	handler, err := distillation.New(
 		distillation.WithPT(embedded.NewPTClient(EmbeddedAddr, 1*time.Second)),
 		distillation.WithDS(embedded.NewDS18B20Client(EmbeddedAddr, 1*time.Second)),
@@ -27,4 +33,19 @@ func main() {
 	}
 	err = handler.Run("localhost:8081")
 	log.Println(err)
+}
+
+func WaitForEmbedded(addr string, timeout time.Duration) error {
+	var err error
+	deadLine := time.Now().Add(timeout)
+	for deadLine.After(time.Now()) {
+		_, err := http.Get(addr)
+		if err == nil {
+			break
+		}
+		<-time.After(100 * time.Millisecond)
+	}
+
+	return err
+
 }
