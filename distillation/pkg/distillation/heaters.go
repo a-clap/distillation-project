@@ -9,8 +9,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	
-	"github.com/a-clap/iot/pkg/embedded"
+
+	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/gin-gonic/gin"
 )
 
@@ -75,7 +75,7 @@ func (h *Handler) configEnabledHeater() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		cfg, err := h.HeatersHandler.Configure(cfg)
 		if err != nil {
 			e := &Error{
@@ -185,7 +185,7 @@ func (h *HeatersHandler) init() error {
 	if err != nil {
 		return err
 	}
-	
+
 	for _, heater := range heaters {
 		id := heater.ID
 		cfg := HeaterConfig{
@@ -199,12 +199,12 @@ func (h *HeatersHandler) init() error {
 				Power:   0,
 			},
 		}
-		
+
 		h.heaters[id] = &cfg
 		if _, err = h.Configure(cfg); err != nil {
 			return err
 		}
-		
+
 	}
 	return nil
 }
@@ -223,7 +223,7 @@ func (h *HeatersHandler) ConfigureGlobal(cfg HeaterConfigGlobal) (HeaterConfigGl
 	if !ok {
 		return c, &HeaterError{ID: cfg.ID, Op: "ConfigureGlobal", Err: ErrNoSuchID.Error()}
 	}
-	
+
 	if maybeHeater.global.Enabled != cfg.Enabled {
 		maybeHeater.global.Enabled = cfg.Enabled
 		// Do we need to disable heater?
@@ -276,6 +276,6 @@ func (h *HeatersHandler) Configure(cfg HeaterConfig) (HeaterConfig, error) {
 	if err != nil {
 		maybeHeater.HeaterConfig = newConfig
 	}
-	
+
 	return *maybeHeater, err
 }

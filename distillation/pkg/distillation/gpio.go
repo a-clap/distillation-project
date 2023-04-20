@@ -9,8 +9,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	
-	"github.com/a-clap/iot/pkg/embedded"
+
+	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/gin-gonic/gin"
 )
 
@@ -81,7 +81,7 @@ func (h *Handler) configureGPIO() gin.HandlerFunc {
 			h.respond(ctx, http.StatusInternalServerError, e)
 			return
 		}
-		
+
 		cfg := GPIOConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			e := &Error{
@@ -93,7 +93,7 @@ func (h *Handler) configureGPIO() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		newCfg, err := h.GPIOHandler.Configure(cfg)
 		if err != nil {
 			e := &Error{
@@ -141,18 +141,18 @@ func (g *GPIOHandler) Configure(cfg GPIOConfig) (GPIOConfig, error) {
 	}
 	io.GPIOConfig = newcfg
 	return *io, nil
-	
+
 }
 func (g *GPIOHandler) init() error {
 	if g.GPIO == nil {
 		return &GPIOError{Op: "init", Err: ErrNoGPIOInterface.Error()}
 	}
-	
+
 	ios, err := g.GPIO.Get()
 	if err != nil {
 		return &GPIOError{Op: "init.Get", Err: err.Error()}
 	}
-	
+
 	for _, io := range ios {
 		log.Debug("Adding gpio: ", io.ID)
 		g.io[io.ID] = &GPIOConfig{GPIOConfig: io}

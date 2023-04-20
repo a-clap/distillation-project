@@ -9,9 +9,9 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	
-	"github.com/a-clap/iot/pkg/ds18b20"
-	"github.com/a-clap/iot/pkg/embedded"
+
+	"github.com/a-clap/embedded/pkg/ds18b20"
+	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/gin-gonic/gin"
 )
 
@@ -128,7 +128,7 @@ func (h *Handler) configureDS() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		newcfg, err := h.DSHandler.ConfigureSensor(cfg)
 		if err != nil {
 			e := &Error{
@@ -191,7 +191,7 @@ func (d *DSHandler) History() []embedded.DSTemperature {
 		}
 		var data []ds18b20.Readings
 		data, v.temps.Readings = v.temps.Readings[0:length-1], v.temps.Readings[length-1:]
-		
+
 		t = append(t, embedded.DSTemperature{
 			Readings: data,
 		})
@@ -218,7 +218,7 @@ func (d *DSHandler) Temperature(id string) (float64, error) {
 	if !ok {
 		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoSuchID.Error()}
 	}
-	
+
 	size := len(ds.temps.Readings)
 	if size == 0 {
 		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoTemps.Error()}
@@ -265,7 +265,7 @@ func (d *DSHandler) init() error {
 	if err != nil {
 		return &DSError{Op: "init.Get", Err: err.Error()}
 	}
-	
+
 	for _, ds := range sensors {
 		id := ds.ID
 		cfg := &DSConfig{

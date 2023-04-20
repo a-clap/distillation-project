@@ -9,8 +9,8 @@ import (
 	"errors"
 	"testing"
 	"time"
-	
-	"github.com/a-clap/iot/pkg/distillation/process"
+
+	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -23,21 +23,21 @@ func TestProcess(t *testing.T) {
 }
 func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 	t := pts.Require()
-	
+
 	heaterMock := new(HeaterMock)
 	heaterMock.On("ID").Return("h1")
 	heaters := []process.Heater{heaterMock}
-	
+
 	sensorMock := new(SensorMock)
 	sensorMock.On("ID").Return("s1")
 	sensors := []process.Sensor{sensorMock}
-	
+
 	outputMock := new(OutputMock)
 	outputMock.On("ID").Return("o1")
 	outputs := []process.Output{outputMock}
-	
+
 	clockMock := new(ClockMock)
-	
+
 	p, err := process.New(
 		process.WithSensors(sensors),
 		process.WithHeaters(heaters),
@@ -46,7 +46,7 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 	)
 	t.Nil(err)
 	t.NotNil(p)
-	
+
 	cfg := process.Config{
 		PhaseNumber: 2,
 		Phases: []process.PhaseConfig{
@@ -151,7 +151,7 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Second time, just to move time
 	retTime = 5
 	clockMock.On("Unix").Return(retTime).Once()
@@ -196,14 +196,14 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Now, lets modify config and see what happens
 	phase := cfg.Phases[0]
 	phase.GPIO[0].Inverted = true
 	phase.Heaters[0].Power = 56
 	phase.Next.SecondsToMove = 500
 	t.Nil(p.ConfigurePhase(0, phase))
-	
+
 	// We expect that GPIO should be set now - it is inverted
 	// Power of heater should be 56
 	retTime = 10
@@ -249,7 +249,7 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Move to second phase
 	retTime = 501
 	clockMock.On("Unix").Return(retTime).Once()
@@ -296,7 +296,7 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Now, lets modify config - TemperatureHoldSeconds and see what happens
 	phase = cfg.Phases[1]
 	phase.Next.TemperatureHoldSeconds = 500
@@ -346,7 +346,7 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Now some time elapsed, and we are changing hold again
 	phase = cfg.Phases[1]
 	phase.Next.TemperatureHoldSeconds = 800
@@ -396,25 +396,25 @@ func (pts *ProcessTestSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 }
 func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	t := pts.Require()
-	
+
 	heaterMock := new(HeaterMock)
 	heaterMock.On("ID").Return("h1")
 	heaters := []process.Heater{heaterMock}
-	
+
 	sensorMock := new(SensorMock)
 	sensorMock.On("ID").Return("s1")
 	sensors := []process.Sensor{sensorMock}
-	
+
 	outputMock := new(OutputMock)
 	outputMock.On("ID").Return("o1")
 	outputs := []process.Output{outputMock}
-	
+
 	clockMock := new(ClockMock)
-	
+
 	p, err := process.New(
 		process.WithSensors(sensors),
 		process.WithHeaters(heaters),
@@ -423,7 +423,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	)
 	t.Nil(err)
 	t.NotNil(p)
-	
+
 	cfg := process.Config{
 		PhaseNumber: 1,
 		Phases: []process.PhaseConfig{
@@ -454,7 +454,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 			},
 		},
 	}
-	
+
 	t.Nil(p.Configure(cfg))
 	retTime := int64(0)
 	// We expect:
@@ -504,7 +504,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Second: gpio should be set
 	retTime = 5
 	clockMock.On("Unix").Return(retTime).Once()
@@ -549,7 +549,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Third call, gpio should still be set
 	retTime = 17
 	clockMock.On("Unix").Return(retTime).Once()
@@ -594,7 +594,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Fourth call, gpio should still be set
 	retTime = 17
 	clockMock.On("Unix").Return(retTime).Once()
@@ -639,7 +639,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Fifth call, gpio should be off
 	retTime = 17
 	clockMock.On("Unix").Return(retTime).Once()
@@ -684,7 +684,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Sixth call, gpio still off
 	retTime = 17
 	clockMock.On("Unix").Return(retTime).Once()
@@ -729,7 +729,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Seventh call, gpio ON
 	retTime = 17
 	clockMock.On("Unix").Return(retTime).Once()
@@ -774,7 +774,7 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// FourthCall - finished
 	retTime = 101
 	clockMock.On("Unix").Return(retTime).Once()
@@ -823,17 +823,17 @@ func (pts *ProcessTestSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 }
 func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 	t := pts.Require()
-	
+
 	heaterMock := new(HeaterMock)
 	heaterMock.On("ID").Return("h1")
 	heaters := []process.Heater{heaterMock}
-	
+
 	sensorMock := new(SensorMock)
 	sensorMock.On("ID").Return("s1")
 	sensors := []process.Sensor{sensorMock}
-	
+
 	clockMock := new(ClockMock)
-	
+
 	p, err := process.New(
 		process.WithSensors(sensors),
 		process.WithHeaters(heaters),
@@ -841,7 +841,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 	)
 	t.Nil(err)
 	t.NotNil(p)
-	
+
 	cfg := process.Config{
 		PhaseNumber: 1,
 		Phases: []process.PhaseConfig{
@@ -863,7 +863,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 			},
 		},
 	}
-	
+
 	t.Nil(p.Configure(cfg))
 	retTime := int64(0)
 	// We expect:
@@ -908,7 +908,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// On second Process we just expect single calls, except Temperature, which is called via ByTemperature
 	retTime = 5
 	clockMock.On("Unix").Return(retTime).Once()
@@ -949,7 +949,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Third call, temperature over threshold
 	retTime = 99
 	clockMock.On("Unix").Return(retTime).Once()
@@ -990,7 +990,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// FourthCall - temperature over threshold, time not elapsed
 	retTime = 101
 	clockMock.On("Unix").Return(retTime).Once()
@@ -1031,7 +1031,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Fifth - temperature under threshold, timeleft should be back to 10
 	retTime = 103
 	clockMock.On("Unix").Return(retTime).Once()
@@ -1072,7 +1072,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Sixth - temperature over threshold
 	retTime = 150
 	clockMock.On("Unix").Return(retTime).Once()
@@ -1113,7 +1113,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Seventh - temperature over threshold, time elapsed
 	retTime = 160
 	clockMock.On("Unix").Return(retTime).Once()
@@ -1158,17 +1158,17 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTemperature() {
 }
 func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTime() {
 	t := pts.Require()
-	
+
 	heaterMock := new(HeaterMock)
 	heaterMock.On("ID").Return("h1")
 	heaters := []process.Heater{heaterMock}
-	
+
 	sensorMock := new(SensorMock)
 	sensorMock.On("ID").Return("s1")
 	sensors := []process.Sensor{sensorMock}
-	
+
 	clockMock := new(ClockMock)
-	
+
 	p, err := process.New(
 		process.WithSensors(sensors),
 		process.WithHeaters(heaters),
@@ -1176,7 +1176,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTime() {
 	)
 	t.Nil(err)
 	t.NotNil(p)
-	
+
 	cfg := process.Config{
 		PhaseNumber: 1,
 		Phases: []process.PhaseConfig{
@@ -1198,7 +1198,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTime() {
 			},
 		},
 	}
-	
+
 	t.Nil(p.Configure(cfg))
 	retTime := int64(0)
 	// We expect:
@@ -1241,7 +1241,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTime() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// On second Process we just expect single calls
 	retTime = 5
 	clockMock.On("Unix").Return(retTime).Once()
@@ -1280,7 +1280,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTime() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-	
+
 	// Third call, err on SetPower
 	retTime = 99
 	pwrErr := errors.New("hello there")
@@ -1321,7 +1321,7 @@ func (pts *ProcessTestSuite) TestHappyPath_SinglePhaseByTime() {
 	t.EqualValues(expectedStatus, s)
 	t.Len(errs, 1)
 	t.Contains(errs[0], pwrErr.Error())
-	
+
 	// FourthCall - finished
 	retTime = 101
 	clockMock.On("Unix").Return(retTime).Once()

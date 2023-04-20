@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	
-	"github.com/a-clap/iot/pkg/distillation/process"
-	"github.com/a-clap/iot/pkg/embedded"
+
+	"github.com/a-clap/distillation/pkg/distillation/process"
+	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/gin-gonic/gin"
 )
 
@@ -57,7 +57,7 @@ func (h *Handler) configureProcess() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		if !h.Process.Running() {
 			// Not possible if process is not running
 			if cfg.MoveToNext || cfg.Disable {
@@ -89,7 +89,7 @@ func (h *Handler) configureProcess() gin.HandlerFunc {
 				return
 			}
 		}
-		
+
 		if cfg.MoveToNext {
 			s, err := h.Process.MoveToNext()
 			if err != nil {
@@ -122,7 +122,7 @@ func (h *Handler) configureProcess() gin.HandlerFunc {
 			h.respond(ctx, http.StatusOK, cfg)
 			return
 		}
-		
+
 		e := &Error{
 			Title:     "Nothing to do",
 			Detail:    "Not single command to execute",
@@ -171,7 +171,7 @@ func (h *Handler) configurePhaseCount() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		if err := h.Process.SetPhases(cfg.PhaseNumber); err != nil {
 			e := &Error{
 				Title:     "Failed to SetPhases",
@@ -182,11 +182,11 @@ func (h *Handler) configurePhaseCount() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		config := h.Process.GetConfig()
 		s := ProcessPhaseCount{PhaseNumber: config.PhaseNumber}
 		h.respond(ctx, http.StatusOK, s)
-		
+
 	}
 }
 
@@ -244,7 +244,7 @@ func (h *Handler) setProcessConfig() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		if err := h.configurePhase(int(id), cfg); err != nil {
 			e := &Error{
 				Title:     "Failed to configurePhase",
@@ -255,7 +255,7 @@ func (h *Handler) setProcessConfig() gin.HandlerFunc {
 			h.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		config := h.Process.GetConfig()
 		h.respond(ctx, http.StatusOK, config.Phases[id])
 	}
@@ -267,7 +267,7 @@ func (h *Handler) configurePhase(number int, config ProcessPhaseConfig) error {
 		h.updateProcess()
 	}
 	return h.Process.ConfigurePhase(number, config.PhaseConfig)
-	
+
 }
 
 func (h *Handler) updateProcess() {
@@ -296,7 +296,7 @@ func (h *Handler) updateSensors() {
 	if h.DSHandler == nil && h.PTHandler == nil {
 		return
 	}
-	
+
 	getTempDS := func(id string) func() float64 {
 		return func() float64 {
 			t, err := h.DSHandler.Temperature(id)
@@ -306,7 +306,7 @@ func (h *Handler) updateSensors() {
 			return t
 		}
 	}
-	
+
 	getTempPT := func(id string) func() float64 {
 		return func() float64 {
 			t, err := h.PTHandler.Temperature(id)
@@ -340,7 +340,7 @@ func (h *Handler) updateSensors() {
 		}
 	}
 	h.Process.ConfigureSensors(sensors)
-	
+
 }
 func (h *Handler) updateOutputs() {
 	if h.GPIOHandler == nil {
@@ -358,7 +358,7 @@ func (h *Handler) updateOutputs() {
 			return err
 		}
 	}
-	
+
 	var outputs []process.Output
 	for _, out := range h.GPIOHandler.Config() {
 		o := &processOutput{
@@ -368,14 +368,14 @@ func (h *Handler) updateOutputs() {
 		outputs = append(outputs, o)
 	}
 	h.Process.ConfigureOutputs(outputs)
-	
+
 }
 
 func (h *Handler) updateHeaters() {
 	if h.HeatersHandler == nil {
 		return
 	}
-	
+
 	setPwr := func(id string) func(pwr int) error {
 		return func(pwr int) error {
 			cfg := HeaterConfig{
@@ -389,7 +389,7 @@ func (h *Handler) updateHeaters() {
 			return err
 		}
 	}
-	
+
 	var heaters []process.Heater
 	for _, heater := range h.HeatersHandler.ConfigsGlobal() {
 		if heater.Enabled {

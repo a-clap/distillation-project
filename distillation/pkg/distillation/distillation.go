@@ -9,8 +9,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	
-	"github.com/a-clap/iot/pkg/distillation/process"
+
+	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +38,7 @@ func New(opts ...Option) (*Handler, error) {
 		runInterval:   1 * time.Second,
 		lastStatusMtx: sync.Mutex{},
 	}
-	
+
 	// Options
 	for _, opt := range opts {
 		if err := opt(h); err != nil {
@@ -49,22 +49,22 @@ func New(opts ...Option) (*Handler, error) {
 	if h.Process, err = process.New(); err != nil {
 		panic(err)
 	}
-	
+
 	h.routes()
-	
+
 	return h, nil
 }
 
 func (h *Handler) Run(addr ...string) error {
 	h.running.Store(true)
 	go h.updateTemperatures()
-	
+
 	err := h.Engine.Run(addr...)
 	h.running.Store(false)
 	close(h.finish)
 	for range h.finished {
 	}
-	
+
 	return err
 }
 
@@ -123,7 +123,7 @@ func (h *Handler) handleProcess() {
 			}
 		}
 	}()
-	
+
 }
 
 func (h *Handler) updateStatus(s process.Status) {

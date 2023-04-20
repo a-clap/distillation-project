@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/a-clap/iot/pkg/wifi"
+	"github.com/a-clap/distillation/pkg/wifi"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

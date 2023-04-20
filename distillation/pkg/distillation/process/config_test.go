@@ -7,8 +7,8 @@ package process_test
 
 import (
 	"testing"
-	
-	"github.com/a-clap/iot/pkg/distillation/process"
+
+	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -38,7 +38,7 @@ func TestProcessConfig(t *testing.T) {
 }
 func (ps *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 	t := ps.Require()
-	
+
 	args := []struct {
 		name       string
 		gpio       []string
@@ -77,7 +77,7 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 			gpioConfig: nil,
 			err:        process.ErrDifferentGPIOSConfig,
 		},
-		
+
 		{
 			name:    "all good",
 			gpio:    []string{"h1"},
@@ -109,33 +109,33 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 		heaterMock := new(HeaterMock)
 		heaterMock.On("ID").Return("h1")
 		heaters := append(make([]process.Heater, 0, 1), heaterMock)
-		
+
 		opts := []process.Option{process.WithHeaters(heaters)}
-		
+
 		var gpios []process.Output
 		for _, id := range arg.gpio {
 			m := new(OutputMock)
 			m.On("ID").Return(id)
 			gpios = append(gpios, m)
 		}
-		
+
 		if len(gpios) > 0 {
 			opts = append(opts, process.WithOutputs(gpios))
 		}
-		
+
 		var sensors []process.Sensor
 		for _, id := range arg.sensors {
 			m := new(SensorMock)
 			m.On("ID").Return(id)
 			sensors = append(sensors, m)
 		}
-		
+
 		if len(sensors) > 0 {
 			opts = append(opts, process.WithSensors(sensors))
 		}
-		
+
 		p, err := process.New(opts...)
-		
+
 		t.Nil(err, arg.name)
 		t.NotNil(p, arg.name)
 		phaseConfig.GPIO = arg.gpioConfig
@@ -150,12 +150,12 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 		t.Nil(err, arg.name)
 		cfg := p.GetConfig()
 		t.EqualValues(phaseConfig, cfg.Phases[0], arg.name)
-		
+
 	}
 }
 func (ps *ProcessConfigSuite) TestConfigurePhase_SensorsError() {
 	t := ps.Require()
-	
+
 	args := []struct {
 		name             string
 		moveToNextConfig process.MoveToNextConfig
@@ -250,29 +250,29 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_SensorsError() {
 			},
 			GPIO: nil,
 		}
-		
+
 		heaterMock := new(HeaterMock)
 		heaterMock.On("ID").Return("h1")
 		heaters := append(make([]process.Heater, 0, 1), heaterMock)
-		
+
 		sensors := make([]process.Sensor, len(arg.sensorsIDs))
 		for i, sensor := range arg.sensorsIDs {
 			h := new(SensorMock)
 			h.On("ID").Return(sensor)
 			sensors[i] = h
 		}
-		
+
 		phaseConfig.Next = arg.moveToNextConfig
 		p, err := process.New(
 			process.WithHeaters(heaters),
 			process.WithSensors(sensors))
-		
+
 		t.Nil(err)
 		t.NotNil(p)
-		
+
 		t.Nil(p.SetPhases(1), arg.name)
 		t.Nil(p.ConfigurePhase(0, phaseConfig))
-		
+
 		err = p.Validate()
 		if arg.err != nil {
 			t.NotNil(err, arg.name)
@@ -287,7 +287,7 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_SensorsError() {
 
 func (ps *ProcessConfigSuite) TestConfigurePhase_PhaseCount() {
 	t := ps.Require()
-	
+
 	args := []struct {
 		name                string
 		phaseCount          int
@@ -320,22 +320,22 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_PhaseCount() {
 			Heaters: nil,
 			GPIO:    nil,
 		}
-		
+
 		heaterMock := new(HeaterMock)
 		heaterMock.On("ID").Return("s1")
 		heaters := append(make([]process.Heater, 0, 1), heaterMock)
-		
+
 		sensorMock := new(SensorMock)
 		sensorMock.On("ID").Return("s1")
 		sensors := append(make([]process.Sensor, 0, 1), sensorMock)
-		
+
 		p, err := process.New(
 			process.WithHeaters(heaters),
 			process.WithSensors(sensors))
-		
+
 		t.Nil(err)
 		t.NotNil(p)
-		
+
 		t.Nil(p.SetPhases(arg.phaseCount), arg.name)
 		err = p.ConfigurePhase(arg.phaseNumberToConfig, phaseConfig)
 		t.NotNil(err, arg.name)
@@ -344,7 +344,7 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_PhaseCount() {
 }
 func (ps *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 	t := ps.Require()
-	
+
 	args := []struct {
 		name   string
 		heater []struct {
@@ -393,7 +393,7 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 			heatersConfig: nil,
 			err:           process.ErrHeaterConfigDiffersFromHeatersLen,
 		},
-		
+
 		{
 			name: "all good",
 			heater: []struct{ id string }{
@@ -423,26 +423,26 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 			Heaters: nil,
 			GPIO:    nil,
 		}
-		
+
 		heaters := make([]process.Heater, len(arg.heater))
 		for i, heater := range arg.heater {
 			h := new(HeaterMock)
 			h.On("ID").Return(heater.id)
 			heaters[i] = h
 		}
-		
+
 		sensorMock := new(SensorMock)
 		sensorMock.On("ID").Return("s1")
 		sensors := append(make([]process.Sensor, 0, 1), sensorMock)
-		
+
 		phaseConfig.Heaters = arg.heatersConfig
 		p, err := process.New(
 			process.WithHeaters(heaters),
 			process.WithSensors(sensors))
-		
+
 		t.Nil(err)
 		t.NotNil(p)
-		
+
 		t.Nil(p.SetPhases(1), arg.name)
 		t.Nil(p.ConfigurePhase(0, phaseConfig))
 		err = p.Validate()
@@ -459,20 +459,20 @@ func (ps *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 
 func (ps *ProcessConfigSuite) TestSetPhases_ReflectsBuffer() {
 	t := ps.Require()
-	
+
 	heaterMock := new(HeaterMock)
 	heaterMock.On("ID").Return("h1")
-	
+
 	sensorMock := new(SensorMock)
 	sensorMock.On("ID").Return("s1")
-	
+
 	heaters := []process.Heater{heaterMock}
 	sensors := []process.Sensor{sensorMock}
-	
+
 	p, err := process.New(process.WithHeaters(heaters), process.WithSensors(sensors))
 	t.Nil(err)
 	t.NotNil(p)
-	
+
 	args := []struct {
 		name       string
 		newLen     int
@@ -516,17 +516,17 @@ func (ps *ProcessConfigSuite) TestSetPhases_ReflectsBuffer() {
 		t.EqualValues(arg.newLen, len(cfg.Phases), arg.name)
 		t.LessOrEqual(arg.notLessCap, cap(cfg.Phases), arg.name)
 	}
-	
+
 }
 func (ps *ProcessConfigSuite) TestSetPhases_Errors() {
 	t := ps.Require()
-	
+
 	heaterMock := new(HeaterMock)
 	heaterMock.On("ID").Return("h1")
-	
+
 	sensorMock := new(SensorMock)
 	sensorMock.On("ID").Return("s1")
-	
+
 	heaters := []process.Heater{heaterMock}
 	sensors := []process.Sensor{sensorMock}
 	p, err := process.New(process.WithHeaters(heaters), process.WithSensors(sensors))
@@ -544,12 +544,12 @@ func (ps *ProcessConfigSuite) TestSetPhases_Errors() {
 		err := p.SetPhases(1)
 		t.Nil(err, "all good")
 	}
-	
+
 }
 
 func (ps *ProcessConfigSuite) TestNew() {
 	t := ps.Require()
-	
+
 	args := []struct {
 		name      string
 		heaters   []*HeaterMock
@@ -621,7 +621,7 @@ func (ps *ProcessConfigSuite) TestNew() {
 		t.EqualValues(len(arg.heaters), len(arg.heatersID), arg.name)
 		t.EqualValues(len(arg.sensors), len(arg.sensorsID), arg.name)
 		t.EqualValues(len(arg.outputs), len(arg.outputs), arg.name)
-		
+
 		cfg := process.Config{
 			PhaseNumber: 1,
 			Phases: []process.PhaseConfig{
@@ -638,7 +638,7 @@ func (ps *ProcessConfigSuite) TestNew() {
 				},
 			},
 		}
-		
+
 		heaters := make([]process.Heater, len(arg.heaters))
 		for i := range arg.heaters {
 			arg.heaters[i].On("ID").Return(arg.heatersID[i])
@@ -666,33 +666,33 @@ func (ps *ProcessConfigSuite) TestNew() {
 				Inverted:   false,
 			})
 		}
-		
+
 		options := []process.Option{
 			process.WithHeaters(heaters),
 			process.WithSensors(sensors),
 			process.WithOutputs(outputs),
 		}
-		
+
 		if arg.clock != nil {
 			options = append(options, process.WithClock(arg.clock))
 		}
-		
+
 		p, err := process.New(options...)
 		t.NotNil(p, arg.name)
 		t.Nil(err, arg.name)
-		
+
 		t.Nil(p.Configure(cfg))
 		err = p.Validate()
-		
+
 		if arg.err != nil {
 			t.NotNil(err, arg.name)
 			t.ErrorContains(err, arg.err.Error(), arg.name)
 			continue
 		}
 		t.Nil(err, arg.name)
-		
+
 	}
-	
+
 }
 
 func (m *ClockMock) Unix() int64 {
