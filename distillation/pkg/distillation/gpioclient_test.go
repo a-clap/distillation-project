@@ -11,10 +11,10 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
+	
 	"github.com/a-clap/distillation/pkg/distillation"
 	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/a-clap/embedded/pkg/embedded/gpio"
+	"github.com/a-clap/embedded/pkg/gpio"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -57,23 +57,23 @@ func (p *GPIOClientSuite) Test_Configure() {
 	h, _ := distillation.New(distillation.WithGPIO(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
-
+	
 	gp := distillation.NewGPIOClient(srv.URL, 1*time.Second)
-
+	
 	// GPIO doesn't exist
 	// Expected error - gpio doesn't exist
 	_, err := gp.Configure(distillation.GPIOConfig{})
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.ErrNoSuchID.Error())
 	t.ErrorContains(err, distillation.RoutesConfigureGPIO)
-
+	
 	// Error on set
 	errSet := errors.New("hello world")
 	m.On("Configure", mock.Anything).Return(onGet[0], errSet).Once()
 	_, err = gp.Configure(distillation.GPIOConfig{GPIOConfig: onGet[0]})
 	t.NotNil(err)
 	t.ErrorContains(err, errSet.Error())
-
+	
 	// All good
 	m.On("Configure", mock.Anything).Return(onGet[0], nil).Once()
 	cfg, err := gp.Configure(distillation.GPIOConfig{GPIOConfig: onGet[0]})
@@ -86,14 +86,14 @@ func (p *GPIOClientSuite) Test_NotImplemented() {
 	h, _ := distillation.New()
 	srv := httptest.NewServer(h)
 	defer srv.Close()
-
+	
 	hc := distillation.NewGPIOClient(srv.URL, 1*time.Second)
-
+	
 	_, err := hc.Get()
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.ErrNotImplemented.Error())
 	t.ErrorContains(err, distillation.RoutesGetGPIO)
-
+	
 	_, err = hc.Configure(distillation.GPIOConfig{})
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.ErrNotImplemented.Error())

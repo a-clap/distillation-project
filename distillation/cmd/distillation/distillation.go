@@ -7,26 +7,51 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"net"
 	"time"
-
+	
 	"github.com/a-clap/distillation/pkg/distillation"
 	"github.com/a-clap/embedded/pkg/embedded"
 )
 
-const EmbeddedAddr = "http://localhost:8080"
+const EmbeddedAddr = "localhost:50001"
 
 func main() {
 	err := WaitForEmbedded(EmbeddedAddr, 30*time.Second)
+	
 	if err != nil {
 		log.Fatalln("Couldn't connect to ", EmbeddedAddr)
 	}
-
+	
+	heaterClient, err := embedded.NewHeaterRPCCLient(EmbeddedAddr, 1*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer heaterClient.Close()
+	
+	ptClient, err := embedded.NewPTRPCClient(EmbeddedAddr, 1*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ptClient.Close()
+	
+	dsClient, err := embedded.NewDSRPCClient(EmbeddedAddr, 1*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer dsClient.Close()
+	
+	gpioClient, err := embedded.NewGPIORPCClient(EmbeddedAddr, time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer gpioClient.Close()
+	
 	handler, err := distillation.New(
-		distillation.WithPT(embedded.NewPTClient(EmbeddedAddr, 1*time.Second)),
-		distillation.WithDS(embedded.NewDS18B20Client(EmbeddedAddr, 1*time.Second)),
-		distillation.WithHeaters(embedded.NewHeaterClient(EmbeddedAddr, 1*time.Second)),
-		distillation.WithGPIO(embedded.NewGPIOClient(EmbeddedAddr, 1*time.Second)),
+		distillation.WithPT(ptClient),
+		distillation.WithDS(dsClient),
+		distillation.WithHeaters(heaterClient),
+		distillation.WithGPIO(gpioClient),
 	)
 	if err != nil {
 		log.Fatalln(err)
@@ -39,13 +64,15 @@ func WaitForEmbedded(addr string, timeout time.Duration) error {
 	var err error
 	deadLine := time.Now().Add(timeout)
 	for deadLine.After(time.Now()) {
-		_, err := http.Get(addr)
-		if err == nil {
-			break
+		conn, err := net.Dial("tcp", addr)
+		if err != nil {
+			<-time.After(100 * time.Millisecond)
+			continue
 		}
-		<-time.After(100 * time.Millisecond)
+		_ = conn.Close()
+		break
 	}
-
+	
 	return err
-
+	
 }
