@@ -7,11 +7,8 @@ package distillation
 
 import (
 	"errors"
-	"net/http"
-	"time"
 	
 	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -48,66 +45,6 @@ type GPIOConfig struct {
 type GPIOHandler struct {
 	GPIO GPIO
 	io   map[string]*GPIOConfig
-}
-
-func (h *Handler) getGPIO() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var gpios []GPIOConfig
-		if h.GPIOHandler != nil {
-			gpios = h.GPIOHandler.Config()
-		}
-		if len(gpios) == 0 {
-			e := &Error{
-				Title:     "Failed to get Config",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesGetGPIO,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, gpios)
-	}
-}
-func (h *Handler) configureGPIO() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		if h.GPIOHandler == nil {
-			e := &Error{
-				Title:     "Failed to ConfigGPIO",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesConfigureGPIO,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		
-		cfg := GPIOConfig{}
-		if err := ctx.ShouldBind(&cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to bind GPIOConfig",
-				Detail:    err.Error(),
-				Instance:  RoutesConfigureGPIO,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-		
-		newCfg, err := h.GPIOHandler.Configure(cfg)
-		if err != nil {
-			e := &Error{
-				Title:     "Failed to Configure",
-				Detail:    err.Error(),
-				Instance:  RoutesConfigureGPIO,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, newCfg)
-		h.safeUpdateOutputs()
-	}
 }
 
 func NewGPIOHandler(io GPIO) (*GPIOHandler, error) {

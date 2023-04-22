@@ -12,15 +12,13 @@ import (
 	
 	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/logging"
-	"github.com/gin-gonic/gin"
 )
 
 var (
 	logger = logging.GetLogger()
 )
 
-type Handler struct {
-	*gin.Engine
+type Distillation struct {
 	HeatersHandler *HeatersHandler
 	DSHandler      *DSHandler
 	PTHandler      *PTHandler
@@ -34,9 +32,8 @@ type Handler struct {
 	lastStatusMtx  sync.Mutex
 }
 
-func New(opts ...Option) (*Handler, error) {
-	h := &Handler{
-		Engine:        gin.Default(),
+func New(opts ...Option) (*Distillation, error) {
+	h := &Distillation{
 		running:       atomic.Bool{},
 		finish:        make(chan struct{}),
 		finished:      make(chan struct{}),
@@ -55,25 +52,10 @@ func New(opts ...Option) (*Handler, error) {
 		panic(err)
 	}
 	
-	h.routes()
-	
 	return h, nil
 }
 
-func (h *Handler) Run(addr ...string) error {
-	h.running.Store(true)
-	go h.updateTemperatures()
-	
-	err := h.Engine.Run(addr...)
-	h.running.Store(false)
-	close(h.finish)
-	for range h.finished {
-	}
-	
-	return err
-}
-
-func (h *Handler) updateTemperatures() {
+func (h *Distillation) updateTemperatures() {
 	var wg sync.WaitGroup
 	if h.PTHandler != nil {
 		wg.Add(1)
@@ -113,7 +95,7 @@ func (h *Handler) updateTemperatures() {
 	close(h.finish)
 }
 
-func (h *Handler) handleProcess() {
+func (h *Distillation) handleProcess() {
 	go func() {
 		for h.Process.Running() {
 			select {
@@ -130,7 +112,7 @@ func (h *Handler) handleProcess() {
 	
 }
 
-func (h *Handler) updateStatus(s process.Status) {
+func (h *Distillation) updateStatus(s process.Status) {
 	h.lastStatusMtx.Lock()
 	h.lastStatus.Status = s
 	h.lastStatusMtx.Unlock()

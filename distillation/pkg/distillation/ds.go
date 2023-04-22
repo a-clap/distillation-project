@@ -7,12 +7,9 @@ package distillation
 
 import (
 	"errors"
-	"net/http"
-	"time"
-
+	
 	"github.com/a-clap/embedded/pkg/ds18b20"
 	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -65,86 +62,6 @@ type DSTemperature struct {
 	Temperature float64 `json:"temperature"`
 }
 
-func (h *Handler) getDS() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var sensors []DSConfig
-		if h.DSHandler != nil {
-			sensors = h.DSHandler.GetSensors()
-		}
-		if len(sensors) == 0 {
-			e := &Error{
-				Title:     "Failed to GetSensors",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesGetDS,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, sensors)
-	}
-}
-
-func (h *Handler) getDSTemperatures() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var temperatures []DSTemperature
-		if h.DSHandler != nil {
-			temperatures = h.DSHandler.Temperatures()
-		}
-		if len(temperatures) == 0 {
-			e := &Error{
-				Title:     "Failed to get Temperatures",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesGetDSTemperatures,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, temperatures)
-	}
-}
-
-func (h *Handler) configureDS() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		if h.DSHandler == nil {
-			e := &Error{
-				Title:     "Failed to ConfigureSensor",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesConfigureDS,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		cfg := DSConfig{}
-		if err := ctx.ShouldBind(&cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to bind DSConfig",
-				Detail:    err.Error(),
-				Instance:  RoutesConfigureDS,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-
-		newcfg, err := h.DSHandler.ConfigureSensor(cfg)
-		if err != nil {
-			e := &Error{
-				Title:     "Failed to ConfigureSensor",
-				Detail:    err.Error(),
-				Instance:  RoutesConfigureDS,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, newcfg)
-		h.safeUpdateSensors()
-	}
-}
-
 // NewDSHandler creates new DSHandler with provided DS interface
 func NewDSHandler(ds DS) (*DSHandler, error) {
 	d := &DSHandler{
@@ -191,7 +108,7 @@ func (d *DSHandler) History() []embedded.DSTemperature {
 		}
 		var data []ds18b20.Readings
 		data, v.temps.Readings = v.temps.Readings[0:length-1], v.temps.Readings[length-1:]
-
+		
 		t = append(t, embedded.DSTemperature{
 			Readings: data,
 		})
@@ -218,7 +135,7 @@ func (d *DSHandler) Temperature(id string) (float64, error) {
 	if !ok {
 		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoSuchID.Error()}
 	}
-
+	
 	size := len(ds.temps.Readings)
 	if size == 0 {
 		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoTemps.Error()}
@@ -265,7 +182,7 @@ func (d *DSHandler) init() error {
 	if err != nil {
 		return &DSError{Op: "init.Get", Err: err.Error()}
 	}
-
+	
 	for _, ds := range sensors {
 		id := ds.ID
 		cfg := &DSConfig{

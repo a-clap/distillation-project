@@ -6,14 +6,8 @@
 package distillation
 
 import (
-	"fmt"
-	"net/http"
-	"strconv"
-	"time"
-
 	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/gin-gonic/gin"
 )
 
 // ProcessPhaseCount is JSON wrapper for process.PhaseNumber
@@ -44,259 +38,42 @@ type ProcessStatus struct {
 	process.Status
 }
 
-func (h *Handler) configureProcess() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		cfg := ProcessConfig{}
-		if err := ctx.ShouldBind(&cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to bind ProcessConfig",
-				Detail:    err.Error(),
-				Instance:  RoutesProcess,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-
-		if !h.Process.Running() {
-			// Not possible if process is not running
-			if cfg.MoveToNext || cfg.Disable {
-				e := &Error{
-					Title:     "Process is not running",
-					Detail:    "Can't disable or move to next if process is not running",
-					Instance:  RoutesProcess,
-					Timestamp: time.Now(),
-				}
-				h.respond(ctx, http.StatusBadRequest, e)
-				return
-			}
-			// If user wants to enable process
-			if cfg.Enable {
-				s, err := h.Process.Run()
-				if err != nil {
-					e := &Error{
-						Title:     "Error on enabling Process",
-						Detail:    err.Error(),
-						Instance:  RoutesProcess,
-						Timestamp: time.Now(),
-					}
-					h.respond(ctx, http.StatusInternalServerError, e)
-					return
-				}
-				h.updateStatus(s)
-				h.handleProcess()
-				h.respond(ctx, http.StatusOK, cfg)
-				return
-			}
-		}
-
-		if cfg.MoveToNext {
-			s, err := h.Process.MoveToNext()
-			if err != nil {
-				e := &Error{
-					Title:     "Error on MoveToNext",
-					Detail:    err.Error(),
-					Instance:  RoutesProcess,
-					Timestamp: time.Now(),
-				}
-				h.respond(ctx, http.StatusInternalServerError, e)
-				return
-			}
-			h.updateStatus(s)
-			h.respond(ctx, http.StatusOK, cfg)
-			return
-		} else if cfg.Disable {
-			s, err := h.Process.Finish()
-			if err != nil {
-				e := &Error{
-					Title:     "Error on Finish",
-					Detail:    err.Error(),
-					Instance:  RoutesProcess,
-					Timestamp: time.Now(),
-				}
-				h.respond(ctx, http.StatusInternalServerError, e)
-				return
-			}
-			close(h.finish)
-			h.updateStatus(s)
-			h.respond(ctx, http.StatusOK, cfg)
-			return
-		}
-
-		e := &Error{
-			Title:     "Nothing to do",
-			Detail:    "Not single command to execute",
-			Instance:  RoutesProcess,
-			Timestamp: time.Now(),
-		}
-		h.respond(ctx, http.StatusBadRequest, e)
-	}
-}
-
-func (h *Handler) getProcessStatus() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		h.respond(ctx, http.StatusOK, h.lastStatus)
-	}
-}
-func (h *Handler) getConfigValidation() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		v := ProcessConfigValidation{Valid: true}
-		err := h.Process.Validate()
-		if err != nil {
-			v.Valid = false
-			v.Error = err.Error()
-		}
-		h.respond(ctx, http.StatusOK, v)
-	}
-}
-
-func (h *Handler) getPhaseCount() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		cfg := h.Process.GetConfig()
-		s := ProcessPhaseCount{PhaseNumber: cfg.PhaseNumber}
-		h.respond(ctx, http.StatusOK, s)
-	}
-}
-
-func (h *Handler) configurePhaseCount() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		cfg := ProcessPhaseCount{}
-		if err := ctx.ShouldBind(&cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to bind ProcessPhaseCount",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessPhases,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-
-		if err := h.Process.SetPhases(cfg.PhaseNumber); err != nil {
-			e := &Error{
-				Title:     "Failed to SetPhases",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessPhases,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-
-		config := h.Process.GetConfig()
-		s := ProcessPhaseCount{PhaseNumber: config.PhaseNumber}
-		h.respond(ctx, http.StatusOK, s)
-
-	}
-}
-
-func (h *Handler) getProcessConfig() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		param := ctx.Param("id")
-		id, err := strconv.ParseInt(param, 10, 32)
-		if err != nil {
-			e := &Error{
-				Title:     "Failed to parse \"id\"",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessConfigPhase,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-		cfg := h.Process.GetConfig()
-		if int(id) >= cfg.PhaseNumber {
-			e := &Error{
-				Title:     "Phase doesn't exist",
-				Detail:    fmt.Errorf("requested phase %v doesn't exist", id).Error(),
-				Instance:  RoutesProcessConfigPhase,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, cfg.Phases[id])
-	}
-}
-
-func (h *Handler) setProcessConfig() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		param := ctx.Param("id")
-		id, err := strconv.ParseInt(param, 10, 32)
-		if err != nil {
-			e := &Error{
-				Title:     "Failed to parse \"id\"",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessConfigPhase,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-		cfg := ProcessPhaseConfig{}
-		if err := ctx.ShouldBind(&cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to bind ProcessPhaseConfig",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessConfigPhase,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-
-		if err := h.configurePhase(int(id), cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to configurePhase",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessConfigPhase,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-
-		config := h.Process.GetConfig()
-		h.respond(ctx, http.StatusOK, config.Phases[id])
-	}
-}
-
-func (h *Handler) configurePhase(number int, config ProcessPhaseConfig) error {
+func (h *Distillation) configurePhase(number int, config ProcessPhaseConfig) error {
 	// Update ios, if process is not running
 	if h.Process.Running() == false {
 		h.updateProcess()
 	}
 	return h.Process.ConfigurePhase(number, config.PhaseConfig)
-
+	
 }
 
-func (h *Handler) updateProcess() {
+func (h *Distillation) updateProcess() {
 	h.updateHeaters()
 	h.updateOutputs()
 	h.updateSensors()
 }
 
-func (h *Handler) safeUpdateSensors() {
+func (h *Distillation) safeUpdateSensors() {
 	if h.Process.Running() == false {
 		h.updateSensors()
 	}
 }
-func (h *Handler) safeUpdateHeaters() {
+func (h *Distillation) safeUpdateHeaters() {
 	if h.Process.Running() == false {
 		h.updateHeaters()
 	}
 }
-func (h *Handler) safeUpdateOutputs() {
+func (h *Distillation) safeUpdateOutputs() {
 	if h.Process.Running() == false {
 		h.updateOutputs()
 	}
 }
 
-func (h *Handler) updateSensors() {
+func (h *Distillation) updateSensors() {
 	if h.DSHandler == nil && h.PTHandler == nil {
 		return
 	}
-
+	
 	getTempDS := func(id string) func() float64 {
 		return func() float64 {
 			t, err := h.DSHandler.Temperature(id)
@@ -306,7 +83,7 @@ func (h *Handler) updateSensors() {
 			return t
 		}
 	}
-
+	
 	getTempPT := func(id string) func() float64 {
 		return func() float64 {
 			t, err := h.PTHandler.Temperature(id)
@@ -340,9 +117,9 @@ func (h *Handler) updateSensors() {
 		}
 	}
 	h.Process.ConfigureSensors(sensors)
-
+	
 }
-func (h *Handler) updateOutputs() {
+func (h *Distillation) updateOutputs() {
 	if h.GPIOHandler == nil {
 		return
 	}
@@ -358,7 +135,7 @@ func (h *Handler) updateOutputs() {
 			return err
 		}
 	}
-
+	
 	var outputs []process.Output
 	for _, out := range h.GPIOHandler.Config() {
 		o := &processOutput{
@@ -368,14 +145,14 @@ func (h *Handler) updateOutputs() {
 		outputs = append(outputs, o)
 	}
 	h.Process.ConfigureOutputs(outputs)
-
+	
 }
 
-func (h *Handler) updateHeaters() {
+func (h *Distillation) updateHeaters() {
 	if h.HeatersHandler == nil {
 		return
 	}
-
+	
 	setPwr := func(id string) func(pwr int) error {
 		return func(pwr int) error {
 			cfg := HeaterConfig{
@@ -389,7 +166,7 @@ func (h *Handler) updateHeaters() {
 			return err
 		}
 	}
-
+	
 	var heaters []process.Heater
 	for _, heater := range h.HeatersHandler.ConfigsGlobal() {
 		if heater.Enabled {

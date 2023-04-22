@@ -7,12 +7,10 @@ package distillation
 
 import (
 	"errors"
-	"net/http"
 	"time"
 	
 	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/a-clap/embedded/pkg/max31865"
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -61,87 +59,6 @@ type PTHandler struct {
 type PTTemperature struct {
 	ID          string  `json:"ID"`
 	Temperature float64 `json:"temperature"`
-}
-
-func (h *Handler) getPT() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var sensors []PTConfig
-		if h.PTHandler != nil {
-			sensors = h.PTHandler.GetSensors()
-		}
-		if len(sensors) == 0 {
-			e := &Error{
-				Title:     "Failed to GetSensors",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesGetPT,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, sensors)
-	}
-}
-
-func (h *Handler) getPTTemperatures() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var temperatures []PTTemperature
-		if h.PTHandler != nil {
-			temperatures = h.PTHandler.Temperatures()
-		}
-		if len(temperatures) == 0 {
-			e := &Error{
-				Title:     "Failed to get Temperatures",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesGetPTTemperatures,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, temperatures)
-	}
-}
-
-func (h *Handler) configurePT() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		if h.PTHandler == nil {
-			e := &Error{
-				Title:     "Failed to ConfigurePT",
-				Detail:    ErrNotImplemented.Error(),
-				Instance:  RoutesConfigurePT,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		
-		cfg := PTConfig{}
-		if err := ctx.ShouldBind(&cfg); err != nil {
-			e := &Error{
-				Title:     "Failed to bind PTConfig",
-				Detail:    err.Error(),
-				Instance:  RoutesConfigurePT,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
-		
-		c, err := h.PTHandler.Configure(cfg)
-		if err != nil {
-			e := &Error{
-				Title:     "Failed to Configure",
-				Detail:    err.Error(),
-				Instance:  RoutesConfigurePT,
-				Timestamp: time.Now(),
-			}
-			h.respond(ctx, http.StatusInternalServerError, e)
-			return
-		}
-		h.respond(ctx, http.StatusOK, c)
-		h.safeUpdateSensors()
-	}
 }
 
 // NewPTHandler creates new PTHandler with provided PT interface

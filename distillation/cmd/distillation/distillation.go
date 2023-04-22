@@ -47,7 +47,7 @@ func main() {
 	}
 	defer gpioClient.Close()
 	
-	handler, err := distillation.New(
+	handler, err := distillation.NewRest(
 		distillation.WithPT(ptClient),
 		distillation.WithDS(dsClient),
 		distillation.WithHeaters(heaterClient),
