@@ -9,9 +9,14 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
+	
 	"github.com/a-clap/distillation/pkg/distillation/process"
+	"github.com/a-clap/logging"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	logger = logging.GetLogger()
 )
 
 type Handler struct {
@@ -38,33 +43,33 @@ func New(opts ...Option) (*Handler, error) {
 		runInterval:   1 * time.Second,
 		lastStatusMtx: sync.Mutex{},
 	}
-
+	
 	// Options
 	for _, opt := range opts {
 		if err := opt(h); err != nil {
-			log.Error(err)
+			logger.Error("Option failed", logging.String("error", err.Error()))
 		}
 	}
 	var err error
 	if h.Process, err = process.New(); err != nil {
 		panic(err)
 	}
-
+	
 	h.routes()
-
+	
 	return h, nil
 }
 
 func (h *Handler) Run(addr ...string) error {
 	h.running.Store(true)
 	go h.updateTemperatures()
-
+	
 	err := h.Engine.Run(addr...)
 	h.running.Store(false)
 	close(h.finish)
 	for range h.finished {
 	}
-
+	
 	return err
 }
 
@@ -80,7 +85,7 @@ func (h *Handler) updateTemperatures() {
 				case <-time.After(h.runInterval):
 					errs := h.PTHandler.Update()
 					if errs != nil {
-						log.Debug(errs)
+						logger.Error("PTUpdateTemperatures failed", logging.Reflect("error", errs))
 					}
 				}
 			}
@@ -97,7 +102,7 @@ func (h *Handler) updateTemperatures() {
 				case <-time.After(h.runInterval):
 					errs := h.DSHandler.Update()
 					if errs != nil {
-						log.Debug(errs)
+						logger.Error("DSUpdateTemperatures failed", logging.Reflect("error", errs))
 					}
 				}
 			}
@@ -114,16 +119,15 @@ func (h *Handler) handleProcess() {
 			select {
 			case <-time.After(h.runInterval):
 				s, err := h.Process.Process()
-				log.Debug(s)
 				if err != nil {
-					log.Error(err)
+					logger.Error("HandleProcess", logging.String("error", err.Error()))
 				} else {
 					h.updateStatus(s)
 				}
 			}
 		}
 	}()
-
+	
 }
 
 func (h *Handler) updateStatus(s process.Status) {
