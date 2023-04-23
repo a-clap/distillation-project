@@ -47,12 +47,12 @@ func main() {
 	}
 	defer gpioClient.Close()
 	
-	handler, err := distillation.NewRest(
+	handler, err := distillation.NewRPC(
 		distillation.WithPT(ptClient),
 		distillation.WithDS(dsClient),
 		distillation.WithHeaters(heaterClient),
 		distillation.WithGPIO(gpioClient),
-		distillation.WithURL("localhost:8081"),
+		distillation.WithURL("localhost:50002"),
 	)
 	if err != nil {
 		log.Fatalln(err)
