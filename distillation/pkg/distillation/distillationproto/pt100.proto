@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/a-clap/distillation/pkg/distillation/distillationproto";
+option java_multiple_files = true;
+
+package distillationproto;
+
+service PT {
+  rpc PTGet (google.protobuf.Empty) returns (PTConfigs) {}
+  rpc PTConfigure(PTConfig) returns (PTConfig) {}
+  rpc PTGetTemperatures(google.protobuf.Empty) returns (PTTemperatures) {}
+}
+
+message PTConfigs {
+  repeated PTConfig configs = 1;
+}
+message PTConfig {
+  string ID = 1;
+  string Name = 2;
+  float Correction = 3;
+  int32 PollInterval = 5;
+  uint32 Samples = 6;
+  bool Enabled = 7;
+  bool Async = 8;
+}
+
+message PTTemperatures {
+  repeated PTTemperature temps = 1;
+}
+
+message PTTemperature {
+  string ID = 1;
+  float Temperature = 2;
+}

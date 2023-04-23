@@ -13,6 +13,7 @@ type RPC struct {
 	distillationproto.UnimplementedHeaterServer
 	distillationproto.UnimplementedGPIOServer
 	distillationproto.UnimplementedDSServer
+	distillationproto.UnimplementedPTServer
 	*Distillation
 }
 
@@ -37,6 +38,7 @@ func (r *RPC) Run() error {
 	distillationproto.RegisterGPIOServer(s, r)
 	distillationproto.RegisterDSServer(s, r)
 	distillationproto.RegisterHeaterServer(s, r)
+	distillationproto.RegisterPTServer(s, r)
 	
 	r.Distillation.Run()
 	defer r.Distillation.Close()
@@ -114,4 +116,31 @@ func (r *RPC) HeaterConfigure(ctx context.Context, config *distillationproto.Hea
 	}
 	
 	return heaterConfigToRPC(&newCfg), nil
+}
+
+func (r *RPC) PTGet(ctx context.Context, e *empty.Empty) (*distillationproto.PTConfigs, error) {
+	logger.Debug("PTGet")
+	g := r.Distillation.PTHandler.GetSensors()
+	
+	configs := make([]*distillationproto.PTConfig, len(g))
+	for i, elem := range g {
+		configs[i] = ptConfigToRPC(&elem)
+	}
+	return &distillationproto.PTConfigs{Configs: configs}, nil
+}
+
+func (r *RPC) PTConfigure(ctx context.Context, config *distillationproto.PTConfig) (*distillationproto.PTConfig, error) {
+	logger.Debug("PTConfigure")
+	cfg := rpcToPTConfig(config)
+	newCfg, err := r.Distillation.PTHandler.Configure(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return ptConfigToRPC(&newCfg), nil
+}
+
+func (r *RPC) PTGetTemperatures(ctx context.Context, e *empty.Empty) (*distillationproto.PTTemperatures, error) {
+	logger.Debug("PTGetTemperatures")
+	t := r.Distillation.PTHandler.Temperatures()
+	return ptTemperatureToRPC(t), nil
 }

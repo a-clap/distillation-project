@@ -12,6 +12,7 @@ import (
 	"github.com/a-clap/embedded/pkg/ds18b20"
 	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/a-clap/embedded/pkg/gpio"
+	"github.com/a-clap/embedded/pkg/max31865"
 )
 
 func gpioConfigToRPC(config *GPIOConfig) *distillationproto.GPIOConfig {
@@ -98,4 +99,56 @@ func rpcToHeaterConfig(config *distillationproto.HeaterConfig) HeaterConfigGloba
 		ID:      config.ID,
 		Enabled: config.Enabled,
 	}
+}
+
+func rpcToPTConfig(elem *distillationproto.PTConfig) PTConfig {
+	return PTConfig{
+		PTSensorConfig: embedded.PTSensorConfig{
+			Enabled: elem.Enabled,
+			SensorConfig: max31865.SensorConfig{
+				Name:         elem.Name,
+				ID:           elem.ID,
+				Correction:   float64(elem.Correction),
+				ASyncPoll:    elem.Async,
+				PollInterval: time.Duration(elem.PollInterval),
+				Samples:      uint(elem.Samples),
+			},
+		},
+		temps: embedded.PTTemperature{},
+	}
+}
+
+func ptConfigToRPC(d *PTConfig) *distillationproto.PTConfig {
+	return &distillationproto.PTConfig{
+		ID:           d.ID,
+		Name:         d.Name,
+		Correction:   float32(d.Correction),
+		PollInterval: int32(d.PollInterval),
+		Samples:      uint32(d.Samples),
+		Enabled:      d.Enabled,
+		Async:        d.ASyncPoll,
+	}
+}
+
+func rpcToPTTemperature(r *distillationproto.PTTemperatures) []PTTemperature {
+	temperatures := make([]PTTemperature, len(r.Temps))
+	for i, temp := range r.Temps {
+		temperatures[i] = PTTemperature{
+			ID:          temp.ID,
+			Temperature: float64(temp.Temperature),
+		}
+	}
+	return temperatures
+}
+
+func ptTemperatureToRPC(t []PTTemperature) *distillationproto.PTTemperatures {
+	temperatures := &distillationproto.PTTemperatures{}
+	temperatures.Temps = make([]*distillationproto.PTTemperature, len(t))
+	for i, temp := range t {
+		temperatures.Temps[i] = &distillationproto.PTTemperature{
+			ID:          temp.ID,
+			Temperature: float32(temp.Temperature),
+		}
+	}
+	return temperatures
 }
