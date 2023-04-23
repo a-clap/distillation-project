@@ -52,11 +52,12 @@ func main() {
 		distillation.WithDS(dsClient),
 		distillation.WithHeaters(heaterClient),
 		distillation.WithGPIO(gpioClient),
+		distillation.WithURL("localhost:8081"),
 	)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = handler.Run("localhost:8081")
+	err = handler.Run()
 	log.Println(err)
 }
 

@@ -44,6 +44,8 @@ type DS interface {
 	Temperatures() ([]embedded.DSTemperature, error)
 }
 
+type dsConfigureCallback func()
+
 // DSConfig simple wrapper for sensor configuration
 type DSConfig struct {
 	embedded.DSSensorConfig
@@ -54,6 +56,7 @@ type DSConfig struct {
 type DSHandler struct {
 	DS      DS
 	sensors map[string]*DSConfig
+	clients []dsConfigureCallback
 }
 
 // DSTemperature - json returned from rest API
@@ -67,6 +70,7 @@ func NewDSHandler(ds DS) (*DSHandler, error) {
 	d := &DSHandler{
 		DS:      ds,
 		sensors: make(map[string]*DSConfig),
+		clients: make([]dsConfigureCallback, 0),
 	}
 	if err := d.init(); err != nil {
 		return nil, err
@@ -155,6 +159,7 @@ func (d *DSHandler) ConfigureSensor(cfg DSConfig) (DSConfig, error) {
 		return newConfig, &DSError{ID: cfg.ID, Op: "ConfigureSensor.Set", Err: err.Error()}
 	}
 	ds.DSSensorConfig = newCfg
+	d.notify()
 	return *ds, nil
 }
 
@@ -193,4 +198,14 @@ func (d *DSHandler) init() error {
 		// TODO: Should we configure them on startup?
 	}
 	return nil
+}
+
+func (d *DSHandler) subscribe(cb dsConfigureCallback) {
+	d.clients = append(d.clients, cb)
+}
+
+func (d *DSHandler) notify() {
+	for _, cb := range d.clients {
+		cb()
+	}
 }

@@ -43,14 +43,18 @@ type GPIOConfig struct {
 }
 
 type GPIOHandler struct {
-	GPIO GPIO
-	io   map[string]*GPIOConfig
+	GPIO    GPIO
+	io      map[string]*GPIOConfig
+	clients []gpioCallback
 }
+
+type gpioCallback func()
 
 func NewGPIOHandler(io GPIO) (*GPIOHandler, error) {
 	g := &GPIOHandler{
-		GPIO: io,
-		io:   make(map[string]*GPIOConfig, 0),
+		GPIO:    io,
+		io:      make(map[string]*GPIOConfig, 0),
+		clients: make([]gpioCallback, 0),
 	}
 	if err := g.init(); err != nil {
 		return nil, err
@@ -77,6 +81,7 @@ func (g *GPIOHandler) Configure(cfg GPIOConfig) (GPIOConfig, error) {
 		return c, &GPIOError{ID: cfg.ID, Op: "Configure", Err: err.Error()}
 	}
 	io.GPIOConfig = newcfg
+	g.notify()
 	return *io, nil
 	
 }
@@ -94,4 +99,13 @@ func (g *GPIOHandler) init() error {
 		g.io[io.ID] = &GPIOConfig{GPIOConfig: io}
 	}
 	return nil
+}
+
+func (g *GPIOHandler) subscribe(cb gpioCallback) {
+	g.clients = append(g.clients, cb)
+}
+func (g *GPIOHandler) notify() {
+	for _, client := range g.clients {
+		client()
+	}
 }

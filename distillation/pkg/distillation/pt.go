@@ -53,6 +53,7 @@ type PTHandler struct {
 	PT           PT
 	sensors      map[string]*PTConfig
 	pollInterval time.Duration
+	clients      []ptCallback
 }
 
 // PTTemperature - json returned from rest API
@@ -61,11 +62,14 @@ type PTTemperature struct {
 	Temperature float64 `json:"temperature"`
 }
 
+type ptCallback func()
+
 // NewPTHandler creates new PTHandler with provided PT interface
 func NewPTHandler(pt PT) (*PTHandler, error) {
 	d := &PTHandler{
 		PT:      pt,
 		sensors: make(map[string]*PTConfig),
+		clients: make([]ptCallback, 0),
 	}
 	if err := d.init(); err != nil {
 		return nil, err
@@ -154,6 +158,7 @@ func (p *PTHandler) Configure(cfg PTConfig) (PTConfig, error) {
 		return c, &PTError{ID: cfg.ID, Op: "Configure.Set", Err: err.Error()}
 	}
 	pt.PTSensorConfig = newCfg
+	p.notify()
 	return *pt, nil
 }
 
@@ -192,4 +197,13 @@ func (p *PTHandler) init() error {
 		p.sensors[id] = cfg
 	}
 	return nil
+}
+
+func (p *PTHandler) subscribe(cb ptCallback) {
+	p.clients = append(p.clients, cb)
+}
+func (p *PTHandler) notify() {
+	for _, client := range p.clients {
+		client()
+	}
 }

@@ -30,6 +30,7 @@ type Distillation struct {
 	Process        *process.Process
 	lastStatus     ProcessStatus
 	lastStatusMtx  sync.Mutex
+	url            string
 }
 
 func New(opts ...Option) (*Distillation, error) {
@@ -55,17 +56,17 @@ func New(opts ...Option) (*Distillation, error) {
 	return h, nil
 }
 
-func (h *Distillation) updateTemperatures() {
+func (d *Distillation) updateTemperatures() {
 	var wg sync.WaitGroup
-	if h.PTHandler != nil {
+	if d.PTHandler != nil {
 		wg.Add(1)
 		go func() {
-			for h.running.Load() {
+			for d.running.Load() {
 				select {
-				case <-h.finish:
+				case <-d.finish:
 					break
-				case <-time.After(h.runInterval):
-					errs := h.PTHandler.Update()
+				case <-time.After(d.runInterval):
+					errs := d.PTHandler.Update()
 					if errs != nil {
 						logger.Error("PTUpdateTemperatures failed", logging.Reflect("error", errs))
 					}
@@ -74,15 +75,15 @@ func (h *Distillation) updateTemperatures() {
 			wg.Done()
 		}()
 	}
-	if h.DSHandler != nil {
+	if d.DSHandler != nil {
 		wg.Add(1)
 		go func() {
-			for h.running.Load() {
+			for d.running.Load() {
 				select {
-				case <-h.finish:
+				case <-d.finish:
 					break
-				case <-time.After(h.runInterval):
-					errs := h.DSHandler.Update()
+				case <-time.After(d.runInterval):
+					errs := d.DSHandler.Update()
 					if errs != nil {
 						logger.Error("DSUpdateTemperatures failed", logging.Reflect("error", errs))
 					}
@@ -92,19 +93,19 @@ func (h *Distillation) updateTemperatures() {
 		}()
 	}
 	wg.Wait()
-	close(h.finish)
+	close(d.finish)
 }
 
-func (h *Distillation) handleProcess() {
+func (d *Distillation) handleProcess() {
 	go func() {
-		for h.Process.Running() {
+		for d.Process.Running() {
 			select {
-			case <-time.After(h.runInterval):
-				s, err := h.Process.Process()
+			case <-time.After(d.runInterval):
+				s, err := d.Process.Process()
 				if err != nil {
 					logger.Error("HandleProcess", logging.String("error", err.Error()))
 				} else {
-					h.updateStatus(s)
+					d.updateStatus(s)
 				}
 			}
 		}
@@ -112,8 +113,8 @@ func (h *Distillation) handleProcess() {
 	
 }
 
-func (h *Distillation) updateStatus(s process.Status) {
-	h.lastStatusMtx.Lock()
-	h.lastStatus.Status = s
-	h.lastStatusMtx.Unlock()
+func (d *Distillation) updateStatus(s process.Status) {
+	d.lastStatusMtx.Lock()
+	d.lastStatus.Status = s
+	d.lastStatusMtx.Unlock()
 }

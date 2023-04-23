@@ -29,6 +29,7 @@ type HeaterConfig struct {
 type HeatersHandler struct {
 	Heaters Heaters
 	heaters map[string]*HeaterConfig
+	clients []heaterCallback
 }
 
 type HeaterError struct {
@@ -36,6 +37,8 @@ type HeaterError struct {
 	Op  string `json:"op"`
 	Err string `json:"error"`
 }
+
+type heaterCallback func()
 
 func (e *HeaterError) Error() string {
 	if e.Err == "" {
@@ -53,6 +56,7 @@ func NewHandlerHeaters(heaters Heaters) (*HeatersHandler, error) {
 	h := &HeatersHandler{
 		Heaters: heaters,
 		heaters: make(map[string]*HeaterConfig),
+		clients: make([]heaterCallback, 0),
 	}
 	if err := h.init(); err != nil {
 		return nil, &HeaterError{ID: "", Op: "NewHandlerHeaters.init", Err: err.Error()}
@@ -117,6 +121,7 @@ func (h *HeatersHandler) ConfigureGlobal(cfg HeaterConfigGlobal) (HeaterConfigGl
 			}
 		}
 	}
+	h.notify()
 	return maybeHeater.global, nil
 }
 
@@ -161,4 +166,13 @@ func (h *HeatersHandler) Configure(cfg HeaterConfig) (HeaterConfig, error) {
 	}
 	
 	return *maybeHeater, err
+}
+
+func (h *HeatersHandler) subscribe(cb heaterCallback) {
+	h.clients = append(h.clients, cb)
+}
+func (h *HeatersHandler) notify() {
+	for _, client := range h.clients {
+		client()
+	}
 }

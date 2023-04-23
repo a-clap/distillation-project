@@ -6,6 +6,8 @@
 package distillation
 
 import (
+	"errors"
+	
 	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/embedded/pkg/embedded"
 )
@@ -38,45 +40,98 @@ type ProcessStatus struct {
 	process.Status
 }
 
-func (h *Distillation) configurePhase(number int, config ProcessPhaseConfig) error {
-	// Update ios, if process is not running
-	if h.Process.Running() == false {
-		h.updateProcess()
+func (d *Distillation) Status() ProcessStatus {
+	d.lastStatusMtx.Lock()
+	defer d.lastStatusMtx.Unlock()
+	return d.lastStatus
+	
+}
+func (d *Distillation) ValidateConfig() ProcessConfigValidation {
+	v := ProcessConfigValidation{Valid: true}
+	err := d.Process.Validate()
+	if err != nil {
+		v.Valid = false
+		v.Error = err.Error()
 	}
-	return h.Process.ConfigurePhase(number, config.PhaseConfig)
+	return v
+}
+func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
+	if !d.Process.Running() {
+		// Not possible if process is not running
+		if cfg.MoveToNext || cfg.Disable {
+			return errors.New("process is not running")
+			
+		}
+		// If user wants to enable process
+		if cfg.Enable {
+			s, err := d.Process.Run()
+			if err != nil {
+				return err
+			}
+			d.updateStatus(s)
+			d.handleProcess()
+			return nil
+		}
+	}
+	
+	if cfg.MoveToNext {
+		s, err := d.Process.MoveToNext()
+		if err != nil {
+			return err
+		}
+		d.updateStatus(s)
+		return nil
+	} else if cfg.Disable {
+		s, err := d.Process.Finish()
+		if err != nil {
+			return err
+		}
+		close(d.finish)
+		d.updateStatus(s)
+		return nil
+	}
+	return errors.New("nothing to do")
+}
+
+func (d *Distillation) configurePhase(number int, config ProcessPhaseConfig) error {
+	// Update ios, if process is not running
+	if d.Process.Running() == false {
+		d.updateProcess()
+	}
+	return d.Process.ConfigurePhase(number, config.PhaseConfig)
 	
 }
 
-func (h *Distillation) updateProcess() {
-	h.updateHeaters()
-	h.updateOutputs()
-	h.updateSensors()
+func (d *Distillation) updateProcess() {
+	d.updateHeaters()
+	d.updateOutputs()
+	d.updateSensors()
 }
 
-func (h *Distillation) safeUpdateSensors() {
-	if h.Process.Running() == false {
-		h.updateSensors()
+func (d *Distillation) safeUpdateSensors() {
+	if d.Process.Running() == false {
+		d.updateSensors()
 	}
 }
-func (h *Distillation) safeUpdateHeaters() {
-	if h.Process.Running() == false {
-		h.updateHeaters()
+func (d *Distillation) safeUpdateHeaters() {
+	if d.Process.Running() == false {
+		d.updateHeaters()
 	}
 }
-func (h *Distillation) safeUpdateOutputs() {
-	if h.Process.Running() == false {
-		h.updateOutputs()
+func (d *Distillation) safeUpdateOutputs() {
+	if d.Process.Running() == false {
+		d.updateOutputs()
 	}
 }
 
-func (h *Distillation) updateSensors() {
-	if h.DSHandler == nil && h.PTHandler == nil {
+func (d *Distillation) updateSensors() {
+	if d.DSHandler == nil && d.PTHandler == nil {
 		return
 	}
 	
 	getTempDS := func(id string) func() float64 {
 		return func() float64 {
-			t, err := h.DSHandler.Temperature(id)
+			t, err := d.DSHandler.Temperature(id)
 			if err != nil {
 				return -1
 			}
@@ -86,7 +141,7 @@ func (h *Distillation) updateSensors() {
 	
 	getTempPT := func(id string) func() float64 {
 		return func() float64 {
-			t, err := h.PTHandler.Temperature(id)
+			t, err := d.PTHandler.Temperature(id)
 			if err != nil {
 				return -1
 			}
@@ -94,8 +149,8 @@ func (h *Distillation) updateSensors() {
 		}
 	}
 	var sensors []process.Sensor
-	if h.DSHandler != nil {
-		for _, ds := range h.DSHandler.GetSensors() {
+	if d.DSHandler != nil {
+		for _, ds := range d.DSHandler.GetSensors() {
 			if ds.Enabled {
 				s := &processSensor{
 					id:      ds.ID,
@@ -105,8 +160,8 @@ func (h *Distillation) updateSensors() {
 			}
 		}
 	}
-	if h.PTHandler != nil {
-		for _, pt := range h.PTHandler.GetSensors() {
+	if d.PTHandler != nil {
+		for _, pt := range d.PTHandler.GetSensors() {
 			if pt.Enabled {
 				s := &processSensor{
 					id:      pt.ID,
@@ -116,40 +171,40 @@ func (h *Distillation) updateSensors() {
 			}
 		}
 	}
-	h.Process.ConfigureSensors(sensors)
+	d.Process.ConfigureSensors(sensors)
 	
 }
-func (h *Distillation) updateOutputs() {
-	if h.GPIOHandler == nil {
+func (d *Distillation) updateOutputs() {
+	if d.GPIOHandler == nil {
 		return
 	}
 	setValue := func(id string) func(value bool) error {
 		return func(value bool) error {
-			o, ok := h.GPIOHandler.io[id]
+			o, ok := d.GPIOHandler.io[id]
 			if !ok {
 				return ErrNoSuchID
 			}
 			cfg := *o
 			cfg.Value = value
-			_, err := h.GPIOHandler.Configure(cfg)
+			_, err := d.GPIOHandler.Configure(cfg)
 			return err
 		}
 	}
 	
 	var outputs []process.Output
-	for _, out := range h.GPIOHandler.Config() {
+	for _, out := range d.GPIOHandler.Config() {
 		o := &processOutput{
 			id:       out.ID,
 			setValue: setValue(out.ID),
 		}
 		outputs = append(outputs, o)
 	}
-	h.Process.ConfigureOutputs(outputs)
+	d.Process.ConfigureOutputs(outputs)
 	
 }
 
-func (h *Distillation) updateHeaters() {
-	if h.HeatersHandler == nil {
+func (d *Distillation) updateHeaters() {
+	if d.HeatersHandler == nil {
 		return
 	}
 	
@@ -162,13 +217,13 @@ func (h *Distillation) updateHeaters() {
 					Power:   uint(pwr),
 				},
 			}
-			_, err := h.HeatersHandler.Configure(cfg)
+			_, err := d.HeatersHandler.Configure(cfg)
 			return err
 		}
 	}
 	
 	var heaters []process.Heater
-	for _, heater := range h.HeatersHandler.ConfigsGlobal() {
+	for _, heater := range d.HeatersHandler.ConfigsGlobal() {
 		if heater.Enabled {
 			h := &processHeater{
 				id:     heater.ID,
@@ -176,7 +231,7 @@ func (h *Distillation) updateHeaters() {
 			heaters = append(heaters, h)
 		}
 	}
-	h.Process.ConfigureHeaters(heaters)
+	d.Process.ConfigureHeaters(heaters)
 }
 
 // processHeater fulfills process.Heater interface

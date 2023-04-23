@@ -59,11 +59,11 @@ func NewRest(opts ...Option) (*Rest, error) {
 	return r, nil
 }
 
-func (r *Rest) Run(addr ...string) error {
+func (r *Rest) Run() error {
 	r.Distillation.running.Store(true)
 	go r.Distillation.updateTemperatures()
 	
-	err := r.Engine.Run(addr...)
+	err := r.Engine.Run(r.Distillation.url)
 	r.Distillation.running.Store(false)
 	close(r.Distillation.finish)
 	for range r.Distillation.finished {
@@ -179,7 +179,6 @@ func (r *Rest) enableHeater() gin.HandlerFunc {
 			return
 		}
 		r.respond(ctx, http.StatusOK, newCfg)
-		r.Distillation.safeUpdateHeaters()
 	}
 }
 
@@ -296,7 +295,6 @@ func (r *Rest) configureDS() gin.HandlerFunc {
 			return
 		}
 		r.respond(ctx, http.StatusOK, newcfg)
-		r.Distillation.safeUpdateSensors()
 	}
 }
 
@@ -377,7 +375,6 @@ func (r *Rest) configurePT() gin.HandlerFunc {
 			return
 		}
 		r.respond(ctx, http.StatusOK, c)
-		r.Distillation.safeUpdateSensors()
 	}
 }
 
@@ -437,7 +434,6 @@ func (r *Rest) configureGPIO() gin.HandlerFunc {
 			return
 		}
 		r.respond(ctx, http.StatusOK, newCfg)
-		r.Distillation.safeUpdateOutputs()
 	}
 }
 
@@ -454,95 +450,28 @@ func (r *Rest) configureProcess() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
-		if !r.Distillation.Process.Running() {
-			// Not possible if process is not running
-			if cfg.MoveToNext || cfg.Disable {
-				e := &Error{
-					Title:     "Process is not running",
-					Detail:    "Can't disable or move to next if process is not running",
-					Instance:  RoutesProcess,
-					Timestamp: time.Now(),
-				}
-				r.respond(ctx, http.StatusBadRequest, e)
-				return
+		if err := r.Distillation.ConfigureProcess(cfg); err != nil {
+			e := &Error{
+				Title:     "Failed ConfigureProcess",
+				Detail:    err.Error(),
+				Instance:  RoutesProcess,
+				Timestamp: time.Now(),
 			}
-			// If user wants to enable process
-			if cfg.Enable {
-				s, err := r.Distillation.Process.Run()
-				if err != nil {
-					e := &Error{
-						Title:     "Error on enabling Process",
-						Detail:    err.Error(),
-						Instance:  RoutesProcess,
-						Timestamp: time.Now(),
-					}
-					r.respond(ctx, http.StatusInternalServerError, e)
-					return
-				}
-				r.Distillation.updateStatus(s)
-				r.Distillation.handleProcess()
-				r.respond(ctx, http.StatusOK, cfg)
-				return
-			}
-		}
-		
-		if cfg.MoveToNext {
-			s, err := r.Distillation.Process.MoveToNext()
-			if err != nil {
-				e := &Error{
-					Title:     "Error on MoveToNext",
-					Detail:    err.Error(),
-					Instance:  RoutesProcess,
-					Timestamp: time.Now(),
-				}
-				r.respond(ctx, http.StatusInternalServerError, e)
-				return
-			}
-			r.Distillation.updateStatus(s)
-			r.respond(ctx, http.StatusOK, cfg)
-			return
-		} else if cfg.Disable {
-			s, err := r.Distillation.Process.Finish()
-			if err != nil {
-				e := &Error{
-					Title:     "Error on Finish",
-					Detail:    err.Error(),
-					Instance:  RoutesProcess,
-					Timestamp: time.Now(),
-				}
-				r.respond(ctx, http.StatusInternalServerError, e)
-				return
-			}
-			close(r.Distillation.finish)
-			r.Distillation.updateStatus(s)
-			r.respond(ctx, http.StatusOK, cfg)
+			r.respond(ctx, http.StatusInternalServerError, e)
 			return
 		}
-		
-		e := &Error{
-			Title:     "Nothing to do",
-			Detail:    "Not single command to execute",
-			Instance:  RoutesProcess,
-			Timestamp: time.Now(),
-		}
-		r.respond(ctx, http.StatusBadRequest, e)
+		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
 
 func (r *Rest) getProcessStatus() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		r.respond(ctx, http.StatusOK, r.Distillation.lastStatus)
+		r.respond(ctx, http.StatusOK, r.Distillation.Status())
 	}
 }
 func (r *Rest) getConfigValidation() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		v := ProcessConfigValidation{Valid: true}
-		err := r.Distillation.Process.Validate()
-		if err != nil {
-			v.Valid = false
-			v.Error = err.Error()
-		}
+		v := r.Distillation.ValidateConfig()
 		r.respond(ctx, http.StatusOK, v)
 	}
 }
