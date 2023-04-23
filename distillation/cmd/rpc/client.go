@@ -8,8 +8,40 @@ import (
 	"github.com/a-clap/distillation/pkg/distillation"
 )
 
+const addr = "localhost:50002"
+
+func testds() {
+	client, err := distillation.NewDSRPCClient(addr, time.Second)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	
+	// Contact the server and print out its response.
+	for {
+		<-time.After(1 * time.Second)
+		r, err := client.Get()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		for _, elem := range r {
+			log.Println(elem)
+			elem.Enabled = true
+			_, err := client.Configure(elem)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		
+		t, err := client.Temperatures()
+		log.Println(t, err)
+		
+	}
+	
+}
+
 func testGpio() {
-	client, err := distillation.NewGPIORPCClient("localhost:50002", time.Second)
+	client, err := distillation.NewGPIORPCClient(addr, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -40,7 +72,7 @@ func testGpio() {
 
 func main() {
 	// go testpt()
-	// go testds()
-	testGpio()
+	testds()
+	// testGpio()
 	// testHeaters()
 }

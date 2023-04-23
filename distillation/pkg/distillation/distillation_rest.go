@@ -60,14 +60,9 @@ func NewRest(opts ...Option) (*Rest, error) {
 }
 
 func (r *Rest) Run() error {
-	r.Distillation.running.Store(true)
-	go r.Distillation.updateTemperatures()
-	
+	r.Distillation.Run()
+	defer r.Distillation.Close()
 	err := r.Engine.Run(r.Distillation.url)
-	r.Distillation.running.Store(false)
-	close(r.Distillation.finish)
-	for range r.Distillation.finished {
-	}
 	
 	return err
 }

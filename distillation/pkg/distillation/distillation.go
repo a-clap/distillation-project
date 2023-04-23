@@ -56,6 +56,19 @@ func New(opts ...Option) (*Distillation, error) {
 	return h, nil
 }
 
+func (d *Distillation) Run() {
+	d.running.Store(true)
+	go d.updateTemperatures()
+}
+
+func (d *Distillation) Close() {
+	d.running.Store(false)
+	close(d.finish)
+	for range d.finished {
+	}
+	
+}
+
 func (d *Distillation) updateTemperatures() {
 	var wg sync.WaitGroup
 	if d.PTHandler != nil {

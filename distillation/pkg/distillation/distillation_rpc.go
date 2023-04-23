@@ -11,6 +11,7 @@ import (
 
 type RPC struct {
 	distillationproto.UnimplementedGPIOServer
+	distillationproto.UnimplementedDSServer
 	*Distillation
 }
 
@@ -33,7 +34,10 @@ func (r *RPC) Run() error {
 	}
 	s := grpc.NewServer()
 	distillationproto.RegisterGPIOServer(s, r)
+	distillationproto.RegisterDSServer(s, r)
 	
+	r.Distillation.Run()
+	defer r.Distillation.Close()
 	return s.Serve(listener)
 }
 
@@ -59,4 +63,31 @@ func (r *RPC) GPIOConfigure(ctx context.Context, cfg *distillationproto.GPIOConf
 	}
 	cfg = gpioConfigToRPC(&newCfg)
 	return cfg, nil
+}
+
+func (r *RPC) DSGet(ctx context.Context, e *empty.Empty) (*distillationproto.DSConfigs, error) {
+	logger.Debug("DSGet")
+	g := r.Distillation.DSHandler.GetSensors()
+	
+	configs := make([]*distillationproto.DSConfig, len(g))
+	for i, elem := range g {
+		configs[i] = dsConfigToRPC(&elem)
+	}
+	return &distillationproto.DSConfigs{Configs: configs}, nil
+}
+
+func (r *RPC) DSConfigure(ctx context.Context, config *distillationproto.DSConfig) (*distillationproto.DSConfig, error) {
+	logger.Debug("DSConfigure")
+	cfg := rpcToDSConfig(config)
+	newCfg, err := r.Distillation.DSHandler.ConfigureSensor(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return dsConfigToRPC(&newCfg), nil
+}
+
+func (r *RPC) DSGetTemperatures(ctx context.Context, e *empty.Empty) (*distillationproto.DSTemperatures, error) {
+	logger.Debug("DSGetTemperatures")
+	t := r.Distillation.DSHandler.Temperatures()
+	return dsTemperatureToRPC(t), nil
 }
