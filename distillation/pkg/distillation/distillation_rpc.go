@@ -2,6 +2,7 @@ package distillation
 
 import (
 	"context"
+	"errors"
 	"net"
 	
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
@@ -14,6 +15,7 @@ type RPC struct {
 	distillationproto.UnimplementedGPIOServer
 	distillationproto.UnimplementedDSServer
 	distillationproto.UnimplementedPTServer
+	distillationproto.UnimplementedProcessServer
 	*Distillation
 }
 
@@ -39,6 +41,7 @@ func (r *RPC) Run() error {
 	distillationproto.RegisterDSServer(s, r)
 	distillationproto.RegisterHeaterServer(s, r)
 	distillationproto.RegisterPTServer(s, r)
+	distillationproto.RegisterProcessServer(s, r)
 	
 	r.Distillation.Run()
 	defer r.Distillation.Close()
@@ -143,4 +146,62 @@ func (r *RPC) PTGetTemperatures(ctx context.Context, e *empty.Empty) (*distillat
 	logger.Debug("PTGetTemperatures")
 	t := r.Distillation.PTHandler.Temperatures()
 	return ptTemperatureToRPC(t), nil
+}
+
+func (r *RPC) GetPhaseCount(ctx context.Context, e *empty.Empty) (*distillationproto.ProcessPhaseCount, error) {
+	logger.Debug("GetPhaseCount")
+	cfg := r.Distillation.Process.GetConfig()
+	s := &distillationproto.ProcessPhaseCount{Count: int32(cfg.PhaseNumber)}
+	return s, nil
+	
+}
+
+func (r *RPC) GetPhaseConfig(ctx context.Context, number *distillationproto.PhaseNumber) (*distillationproto.ProcessPhaseConfig, error) {
+	logger.Debug("GetPhaseConfig")
+	cfg := r.Distillation.Process.GetConfig()
+	if int(number.Number) >= cfg.PhaseNumber {
+		return nil, errors.New("wrong phase number")
+	}
+	
+	c := ProcessPhaseConfig{PhaseConfig: cfg.Phases[number.Number]}
+	return processPhaseConfigToRpc(int(number.Number), c), nil
+}
+
+func (r *RPC) ConfigurePhaseCount(ctx context.Context, count *distillationproto.ProcessPhaseCount) (*distillationproto.ProcessPhaseCount, error) {
+	logger.Debug("ConfigurePhaseCount")
+	if err := r.Distillation.Process.SetPhases(int(count.Count)); err != nil {
+		return nil, err
+	}
+	return count, nil
+}
+
+func (r *RPC) ConfigurePhase(ctx context.Context, config *distillationproto.ProcessPhaseConfig) (*distillationproto.ProcessPhaseConfig, error) {
+	logger.Debug("ConfigurePhaseCount")
+	
+	conf := rpcToProcessPhaseConfig(config)
+	if err := r.Distillation.configurePhase(int(config.Number.Number), conf); err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
+func (r *RPC) ValidateConfig(ctx context.Context, e *empty.Empty) (*distillationproto.ProcessConfigValidation, error) {
+	logger.Debug("ValidateConfig")
+	v := r.Distillation.ValidateConfig()
+	return &distillationproto.ProcessConfigValidation{Valid: v.Valid, Error: v.Error}, nil
+}
+
+func (r *RPC) ConfigureProcess(ctx context.Context, config *distillationproto.ProcessConfig) (*distillationproto.ProcessConfig, error) {
+	logger.Debug("ConfigureProcess")
+	conf := rpcToProcessConfig(config)
+	if err := r.Distillation.ConfigureProcess(conf); err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
+func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.ProcessStatus, error) {
+	logger.Debug("Status")
+	status := r.Distillation.Status()
+	return processStatusToRPC(status), nil
 }

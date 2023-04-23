@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/a-clap/distillation/pkg/distillation/distillationproto";
+option java_multiple_files = true;
+
+package distillationproto;
+
+service Process {
+  rpc GetPhaseCount(google.protobuf.Empty) returns (ProcessPhaseCount) {}
+  rpc GetPhaseConfig(PhaseNumber) returns (ProcessPhaseConfig) {}
+  rpc ConfigurePhaseCount(ProcessPhaseCount) returns (ProcessPhaseCount) {}
+  rpc ConfigurePhase(ProcessPhaseConfig) returns (ProcessPhaseConfig) {}
+  rpc ValidateConfig(google.protobuf.Empty) returns (ProcessConfigValidation) {}
+  rpc ConfigureProcess(ProcessConfig) returns (ProcessConfig) {}
+  rpc Status(google.protobuf.Empty)returns  (ProcessStatus) {}
+}
+
+message ProcessPhaseCount {
+  int32 Count = 1;
+}
+
+message PhaseNumber {
+  int32 Number = 1;
+}
+message ProcessPhaseConfig {
+  PhaseNumber Number = 1;
+  MoveToNextConfig Next = 2;
+  repeated HeaterPhaseConfig Heaters = 3;
+  repeated GPIOPhaseConfig GPIO = 4;
+}
+message  ProcessConfigValidation{
+  bool Valid = 1;
+  string Error = 2;
+}
+
+message MoveToNextConfig {
+  int32 Type = 1;
+  string SensorID = 2;
+  float SensorThreshold = 3;
+  int64 TemperatureHoldSeconds = 4;
+  int64 SecondsToMove = 5;
+}
+
+message HeaterPhaseConfig {
+  string ID = 1;
+  int32 Power = 2;
+}
+
+message GPIOPhaseConfig {
+  string ID = 1;
+  string SensorID = 2;
+  float TLow = 3;
+  float THigh = 4;
+  float Hysteresis = 5;
+  bool Inverted = 6;
+}
+
+message ProcessConfig{
+  bool Enable = 1;
+  bool MoveToNext = 2;
+  bool Disable = 3;
+}
+
+message ProcessStatus{
+  bool Running = 1;
+  bool Done = 2;
+  int32 PhaseNumber = 3;
+  int64 StartTime = 4;
+  int64 EndTime = 5;
+  MoveToNextStatus Next = 6;
+  repeated HeaterPhaseStatus Heaters = 7;
+  repeated TemperaturePhaseStatus Temperature = 8;
+  repeated GPIOPhaseStatus GPIO = 9;
+  repeated string Errors = 10;
+}
+
+message TemperaturePhaseStatus {
+  string  ID = 1;
+  float Temperature = 2;
+}
+
+message GPIOPhaseStatus {
+  string ID = 1;
+  bool   State = 2;
+}
+
+message HeaterPhaseStatus {
+  string ID = 1;
+  int32  Power = 2;
+}
+
+message MoveToNextStatusTime {
+  int64 TimeLeft = 1;
+}
+
+message MoveToNextStatusTemperature {
+  string SensorID = 1;
+  float SensorThreshold = 2;
+  int64 TimeLeft = 3;
+}
+
+message MoveToNextStatus {
+  int32 Type = 1;
+  MoveToNextStatusTime Time = 2;
+  MoveToNextStatusTemperature Temperature = 3;
+}

@@ -9,6 +9,7 @@ import (
 	"time"
 	
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
+	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/embedded/pkg/ds18b20"
 	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/a-clap/embedded/pkg/gpio"
@@ -151,4 +152,183 @@ func ptTemperatureToRPC(t []PTTemperature) *distillationproto.PTTemperatures {
 		}
 	}
 	return temperatures
+}
+
+func rpcToProcessPhaseCount(cnt *distillationproto.ProcessPhaseCount) ProcessPhaseCount {
+	return ProcessPhaseCount{PhaseNumber: int(cnt.Count)}
+}
+
+func rpcToProcessPhaseConfig(cfg *distillationproto.ProcessPhaseConfig) ProcessPhaseConfig {
+	c := ProcessPhaseConfig{PhaseConfig: process.PhaseConfig{
+		Next: process.MoveToNextConfig{
+			Type:                   process.MoveToNextType(cfg.Next.Type),
+			SensorID:               cfg.Next.SensorID,
+			SensorThreshold:        float64(cfg.Next.SensorThreshold),
+			TemperatureHoldSeconds: cfg.Next.TemperatureHoldSeconds,
+			SecondsToMove:          cfg.Next.SecondsToMove,
+		},
+		Heaters: make([]process.HeaterPhaseConfig, len(cfg.Heaters)),
+		GPIO:    make([]process.GPIOPhaseConfig, len(cfg.GPIO)),
+	},
+	}
+	for i, heater := range cfg.Heaters {
+		c.Heaters[i] = process.HeaterPhaseConfig{
+			ID:    heater.ID,
+			Power: int(heater.Power),
+		}
+	}
+	for i, gp := range cfg.GPIO {
+		c.GPIO[i] = process.GPIOPhaseConfig{
+			ID:         gp.ID,
+			SensorID:   gp.SensorID,
+			TLow:       float64(gp.TLow),
+			THigh:      float64(gp.THigh),
+			Hysteresis: float64(gp.Hysteresis),
+			Inverted:   gp.Inverted,
+		}
+	}
+	return c
+}
+
+func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillationproto.ProcessPhaseConfig {
+	cfg := &distillationproto.ProcessPhaseConfig{
+		Number: &distillationproto.PhaseNumber{Number: int32(number)},
+		Next: &distillationproto.MoveToNextConfig{
+			Type:                   int32(config.Next.Type),
+			SensorID:               config.Next.SensorID,
+			SensorThreshold:        float32(config.Next.SensorThreshold),
+			TemperatureHoldSeconds: config.Next.TemperatureHoldSeconds,
+			SecondsToMove:          config.Next.SecondsToMove,
+		},
+		Heaters: make([]*distillationproto.HeaterPhaseConfig, len(config.Heaters)),
+		GPIO:    make([]*distillationproto.GPIOPhaseConfig, len(config.GPIO)),
+	}
+	for i, heater := range config.Heaters {
+		cfg.Heaters[i].ID = heater.ID
+		cfg.Heaters[i].Power = int32(heater.Power)
+	}
+	for i, gp := range config.GPIO {
+		cfg.GPIO[i] = &distillationproto.GPIOPhaseConfig{
+			ID:         gp.ID,
+			SensorID:   gp.SensorID,
+			TLow:       float32(gp.TLow),
+			THigh:      float32(gp.THigh),
+			Hysteresis: float32(gp.Hysteresis),
+			Inverted:   gp.Inverted,
+		}
+	}
+	
+	return cfg
+}
+
+func processConfigToRpc(cfg ProcessConfig) *distillationproto.ProcessConfig {
+	return &distillationproto.ProcessConfig{
+		Enable:     cfg.Enable,
+		MoveToNext: cfg.MoveToNext,
+		Disable:    cfg.Disable,
+	}
+}
+
+func rpcToProcessConfig(conf *distillationproto.ProcessConfig) ProcessConfig {
+	return ProcessConfig{
+		Enable:     conf.Enable,
+		MoveToNext: conf.MoveToNext,
+		Disable:    conf.Disable,
+	}
+}
+
+func rpcToProcessStatus(status *distillationproto.ProcessStatus) ProcessStatus {
+	s := ProcessStatus{process.Status{
+		Running:     status.Running,
+		Done:        status.Done,
+		PhaseNumber: int(status.PhaseNumber),
+		StartTime:   time.Unix(status.StartTime, 0),
+		EndTime:     time.Unix(status.EndTime, 0),
+		Next: process.MoveToNextStatus{
+			Type: process.MoveToNextType(status.Next.Type),
+			Time: process.MoveToNextStatusTime{
+				TimeLeft: status.Next.Time.TimeLeft,
+			},
+			Temperature: process.MoveToNextStatusTemperature{
+				SensorID:        status.Next.Temperature.SensorID,
+				SensorThreshold: float64(status.Next.Temperature.SensorThreshold),
+				TimeLeft:        status.Next.Temperature.TimeLeft,
+			},
+		},
+		Heaters:     make([]process.HeaterPhaseStatus, len(status.Heaters)),
+		Temperature: make([]process.TemperaturePhaseStatus, len(status.Heaters)),
+		GPIO:        make([]process.GPIOPhaseStatus, len(status.Heaters)),
+		Errors:      make([]string, len(status.Heaters)),
+	}}
+	for i, heater := range status.Heaters {
+		s.Heaters[i] = process.HeaterPhaseStatus{HeaterPhaseConfig: process.HeaterPhaseConfig{
+			ID:    heater.ID,
+			Power: int(heater.Power),
+		}}
+	}
+	for i, t := range status.Temperature {
+		s.Temperature[i] = process.TemperaturePhaseStatus{
+			ID:          t.ID,
+			Temperature: float64(t.Temperature),
+		}
+	}
+	
+	for i, io := range status.GPIO {
+		s.GPIO[i] = process.GPIOPhaseStatus{
+			ID:    io.ID,
+			State: io.State,
+		}
+	}
+	for i, err := range status.Errors {
+		s.Errors[i] = err
+	}
+	return s
+}
+
+func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
+	s := &distillationproto.ProcessStatus{
+		Running:     status.Running,
+		Done:        status.Done,
+		PhaseNumber: int32(status.PhaseNumber),
+		StartTime:   status.StartTime.Unix(),
+		EndTime:     status.StartTime.Unix(),
+		Next: &distillationproto.MoveToNextStatus{
+			Type: int32(status.Next.Type),
+			Time: &distillationproto.MoveToNextStatusTime{TimeLeft: status.Next.Time.TimeLeft},
+			Temperature: &distillationproto.MoveToNextStatusTemperature{
+				SensorID:        status.Next.Temperature.SensorID,
+				SensorThreshold: float32(status.Next.Temperature.SensorThreshold),
+				TimeLeft:        status.Next.Temperature.TimeLeft,
+			}},
+		Heaters:     make([]*distillationproto.HeaterPhaseStatus, len(status.Heaters)),
+		Temperature: make([]*distillationproto.TemperaturePhaseStatus, len(status.Temperature)),
+		GPIO:        make([]*distillationproto.GPIOPhaseStatus, len(status.GPIO)),
+		Errors:      make([]string, len(status.Heaters)),
+	}
+	for i, heater := range status.Heaters {
+		s.Heaters[i] = &distillationproto.HeaterPhaseStatus{
+			ID:    heater.ID,
+			Power: int32(heater.Power),
+		}
+	}
+	
+	for i, t := range status.Temperature {
+		s.Temperature[i] = &distillationproto.TemperaturePhaseStatus{
+			ID:          t.ID,
+			Temperature: float32(t.Temperature),
+		}
+	}
+	
+	for i, io := range status.GPIO {
+		s.GPIO[i] = &distillationproto.GPIOPhaseStatus{
+			ID:    io.ID,
+			State: io.State,
+		}
+	}
+	
+	for i, err := range status.Errors {
+		s.Errors[i] = err
+	}
+	return s
+	
 }

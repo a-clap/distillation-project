@@ -6,11 +6,16 @@
 package distillation
 
 import (
+	"context"
 	"strconv"
 	"strings"
 	"time"
-
+	
+	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
 	"github.com/a-clap/embedded/pkg/restclient"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type ProcessClient struct {
@@ -52,4 +57,96 @@ func (h *ProcessClient) ConfigureProcess(cfg ProcessConfig) (ProcessConfig, erro
 
 func (h *ProcessClient) Status() (ProcessStatus, error) {
 	return restclient.Get[ProcessStatus, *Error](h.addr+RoutesProcessStatus, h.timeout)
+}
+
+type ProcessRPCClient struct {
+	timeout time.Duration
+	conn    *grpc.ClientConn
+	client  distillationproto.ProcessClient
+}
+
+func NewProcessRPCClient(addr string, timeout time.Duration) (*ProcessRPCClient, error) {
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	return &ProcessRPCClient{timeout: timeout, conn: conn, client: distillationproto.NewProcessClient(conn)}, nil
+}
+
+func (p *ProcessRPCClient) GetPhaseCount() (ProcessPhaseCount, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	cnt, err := p.client.GetPhaseCount(ctx, &emptypb.Empty{})
+	if err != nil {
+		return ProcessPhaseCount{}, err
+	}
+	return rpcToProcessPhaseCount(cnt), err
+}
+
+func (p *ProcessRPCClient) GetPhaseConfig(phaseNumber int) (ProcessPhaseConfig, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	cfg, err := p.client.GetPhaseConfig(ctx, &distillationproto.PhaseNumber{Number: int32(phaseNumber)})
+	if err != nil {
+		return ProcessPhaseConfig{}, err
+	}
+	return rpcToProcessPhaseConfig(cfg), nil
+	
+}
+
+func (p *ProcessRPCClient) ConfigurePhaseCount(count ProcessPhaseCount) (ProcessPhaseCount, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	cfg, err := p.client.ConfigurePhaseCount(ctx, &distillationproto.ProcessPhaseCount{Count: int32(count.PhaseNumber)})
+	if err != nil {
+		return ProcessPhaseCount{}, err
+	}
+	return ProcessPhaseCount{PhaseNumber: int(cfg.Count)}, nil
+}
+
+func (p *ProcessRPCClient) ConfigurePhase(phaseNumber int, setConfig ProcessPhaseConfig) (ProcessPhaseConfig, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	c := processPhaseConfigToRpc(phaseNumber, setConfig)
+	
+	cfg, err := p.client.ConfigurePhase(ctx, c)
+	if err != nil {
+		return ProcessPhaseConfig{}, err
+	}
+	return rpcToProcessPhaseConfig(cfg), nil
+	
+}
+
+func (p *ProcessRPCClient) ValidateConfig() (ProcessConfigValidation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	
+	v, err := p.client.ValidateConfig(ctx, &emptypb.Empty{})
+	if err != nil {
+		return ProcessConfigValidation{}, err
+	}
+	return ProcessConfigValidation{Valid: v.Valid, Error: v.Error}, nil
+}
+
+func (p *ProcessRPCClient) ConfigureProcess(cfg ProcessConfig) (ProcessConfig, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	
+	conf := processConfigToRpc(cfg)
+	conf, err := p.client.ConfigureProcess(ctx, conf)
+	if err != nil {
+		return ProcessConfig{}, err
+	}
+	return rpcToProcessConfig(conf), nil
+}
+
+func (p *ProcessRPCClient) Status() (ProcessStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	
+	status, err := p.client.Status(ctx, &emptypb.Empty{})
+	if err != nil {
+		return ProcessStatus{}, err
+	}
+	return rpcToProcessStatus(status), nil
 }
