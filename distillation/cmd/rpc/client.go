@@ -69,10 +69,39 @@ func testGpio() {
 	}
 	
 }
+func testHeaters() {
+	client, err := distillation.NewHeaterRPCCLient(addr, time.Second)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	
+	// Contact the server and print out its response.
+	for {
+		<-time.After(1 * time.Second)
+		r, err := client.Get()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		for _, elem := range r {
+			fmt.Printf("ID: %v, Enabled: %v\n", elem.ID, elem.Enabled)
+		}
+		n := r[0]
+		n.Enabled = !n.Enabled
+		
+		c, err := client.Configure(n)
+		log.Println(c, err)
+		
+	}
+	
+}
 
 func main() {
 	// go testpt()
-	testds()
+	// testds()
 	// testGpio()
-	// testHeaters()
+	testHeaters()
+	for {
+	
+	}
 }

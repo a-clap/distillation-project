@@ -85,3 +85,17 @@ func dsTemperatureToRPC(t []DSTemperature) *distillationproto.DSTemperatures {
 	}
 	return temperatures
 }
+
+func heaterConfigToRPC(config *HeaterConfigGlobal) *distillationproto.HeaterConfig {
+	return &distillationproto.HeaterConfig{
+		ID:      config.ID,
+		Enabled: config.Enabled,
+	}
+}
+
+func rpcToHeaterConfig(config *distillationproto.HeaterConfig) HeaterConfigGlobal {
+	return HeaterConfigGlobal{
+		ID:      config.ID,
+		Enabled: config.Enabled,
+	}
+}

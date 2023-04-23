@@ -10,6 +10,7 @@ import (
 )
 
 type RPC struct {
+	distillationproto.UnimplementedHeaterServer
 	distillationproto.UnimplementedGPIOServer
 	distillationproto.UnimplementedDSServer
 	*Distillation
@@ -35,6 +36,7 @@ func (r *RPC) Run() error {
 	s := grpc.NewServer()
 	distillationproto.RegisterGPIOServer(s, r)
 	distillationproto.RegisterDSServer(s, r)
+	distillationproto.RegisterHeaterServer(s, r)
 	
 	r.Distillation.Run()
 	defer r.Distillation.Close()
@@ -90,4 +92,26 @@ func (r *RPC) DSGetTemperatures(ctx context.Context, e *empty.Empty) (*distillat
 	logger.Debug("DSGetTemperatures")
 	t := r.Distillation.DSHandler.Temperatures()
 	return dsTemperatureToRPC(t), nil
+}
+
+func (r *RPC) HeaterGet(ctx context.Context, e *empty.Empty) (*distillationproto.HeaterConfigs, error) {
+	logger.Debug("HeaterGet")
+	g := r.Distillation.HeatersHandler.ConfigsGlobal()
+	
+	configs := make([]*distillationproto.HeaterConfig, len(g))
+	for i, elem := range g {
+		configs[i] = heaterConfigToRPC(&elem)
+	}
+	return &distillationproto.HeaterConfigs{Configs: configs}, nil
+}
+
+func (r *RPC) HeaterConfigure(ctx context.Context, config *distillationproto.HeaterConfig) (*distillationproto.HeaterConfig, error) {
+	logger.Debug("HeaterConfigure")
+	cfg := rpcToHeaterConfig(config)
+	newCfg, err := r.Distillation.HeatersHandler.ConfigureGlobal(cfg)
+	if err != nil {
+		return nil, err
+	}
+	
+	return heaterConfigToRPC(&newCfg), nil
 }

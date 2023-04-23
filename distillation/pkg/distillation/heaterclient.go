@@ -6,9 +6,14 @@
 package distillation
 
 import (
+	"context"
 	"time"
-
+	
+	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
 	"github.com/a-clap/embedded/pkg/restclient"
+	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type HeaterClient struct {
@@ -34,4 +39,48 @@ func (h *HeaterClient) Enable(setConfig HeaterConfigGlobal) (HeaterConfigGlobal,
 
 func (h *HeaterClient) Configure(setConfig HeaterConfig) (HeaterConfig, error) {
 	return restclient.Put[HeaterConfig, *Error](h.addr+RoutesConfigureHeater, h.timeout, setConfig)
+}
+
+type HeaterRPCClient struct {
+	timeout time.Duration
+	conn    *grpc.ClientConn
+	client  distillationproto.HeaterClient
+}
+
+func NewHeaterRPCCLient(addr string, timeout time.Duration) (*HeaterRPCClient, error) {
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	return &HeaterRPCClient{timeout: timeout, conn: conn, client: distillationproto.NewHeaterClient(conn)}, nil
+}
+
+func (g *HeaterRPCClient) Get() ([]HeaterConfigGlobal, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	got, err := g.client.HeaterGet(ctx, &empty.Empty{})
+	if err != nil {
+		return nil, err
+	}
+	confs := make([]HeaterConfigGlobal, len(got.Configs))
+	for i, elem := range got.Configs {
+		confs[i] = rpcToHeaterConfig(elem)
+	}
+	return confs, nil
+}
+
+func (g *HeaterRPCClient) Configure(setConfig HeaterConfigGlobal) (HeaterConfigGlobal, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
+	defer cancel()
+	set := heaterConfigToRPC(&setConfig)
+	got, err := g.client.HeaterConfigure(ctx, set)
+	if err != nil {
+		return HeaterConfigGlobal{}, err
+	}
+	setConfig = rpcToHeaterConfig(got)
+	return setConfig, nil
+}
+
+func (g *HeaterRPCClient) Close() {
+	_ = g.conn.Close()
 }
