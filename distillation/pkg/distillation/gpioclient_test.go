@@ -54,7 +54,7 @@ func (p *GPIOClientSuite) Test_Configure() {
 		},
 	}
 	m.On("Get").Return(onGet, nil)
-	h, _ := distillation.NewRest(distillation.WithGPIO(m))
+	h, _ := distillation.NewRest("", distillation.WithGPIO(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -83,7 +83,7 @@ func (p *GPIOClientSuite) Test_Configure() {
 
 func (p *GPIOClientSuite) Test_NotImplemented() {
 	t := p.Require()
-	h, _ := distillation.NewRest()
+	h, _ := distillation.NewRest("")
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	

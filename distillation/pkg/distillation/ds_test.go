@@ -204,7 +204,7 @@ func (t *DSTestSuite) TestGetSensors_Rest() {
 	for _, arg := range args {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
-		h, err := distillation.NewRest(distillation.WithDS(m))
+		h, err := distillation.NewRest("", distillation.WithDS(m))
 		r.NotNil(h)
 		r.Nil(err)
 		
@@ -292,7 +292,7 @@ func (t *DSTestSuite) TestTemperature_REST() {
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
 		
-		h, err := distillation.NewRest(distillation.WithDS(m))
+		h, err := distillation.NewRest("", distillation.WithDS(m))
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
 		
@@ -388,7 +388,7 @@ func (t *DSTestSuite) TestConfigureSensor_REST() {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Configure", arg.newConfig.DSSensorConfig).Return(arg.newConfig.DSSensorConfig, arg.onSetErr)
-		h, err := distillation.NewRest(distillation.WithDS(m))
+		h, err := distillation.NewRest("", distillation.WithDS(m))
 		r.Nil(err, arg.name)
 		
 		recorder := httptest.NewRecorder()

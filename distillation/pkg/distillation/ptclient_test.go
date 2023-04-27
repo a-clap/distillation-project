@@ -48,7 +48,7 @@ func (p *PTClientSuite) Test_Temperatures() {
 	
 	m.On("Get").Return(onGet, nil)
 	
-	h, _ := distillation.NewRest(distillation.WithPT(m))
+	h, _ := distillation.NewRest("", distillation.WithPT(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -75,7 +75,7 @@ func (p *PTClientSuite) Test_Configure() {
 	
 	m.On("Get").Return(onGet, nil)
 	
-	h, _ := distillation.NewRest(distillation.WithPT(m))
+	h, _ := distillation.NewRest("", distillation.WithPT(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -109,7 +109,7 @@ func (p *PTClientSuite) Test_Configure() {
 
 func (p *PTClientSuite) Test_NotImplemented() {
 	t := p.Require()
-	h, _ := distillation.NewRest()
+	h, _ := distillation.NewRest("")
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	

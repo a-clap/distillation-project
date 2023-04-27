@@ -219,7 +219,7 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 	for _, arg := range args {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
-		h, err := distillation.NewRest(distillation.WithPT(m))
+		h, err := distillation.NewRest("", distillation.WithPT(m))
 		r.NotNil(h)
 		r.Nil(err)
 		
@@ -307,7 +307,7 @@ func (t *PTTestSuite) TestTemperature_REST() {
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
 		
-		h, err := distillation.NewRest(distillation.WithPT(m))
+		h, err := distillation.NewRest("", distillation.WithPT(m))
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
 		
@@ -403,7 +403,7 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Configure", arg.newConfig.PTSensorConfig).Return(arg.newConfig.PTSensorConfig, arg.onSetErr)
-		h, err := distillation.NewRest(distillation.WithPT(m))
+		h, err := distillation.NewRest("", distillation.WithPT(m))
 		r.Nil(err, arg.name)
 		
 		recorder := httptest.NewRecorder()

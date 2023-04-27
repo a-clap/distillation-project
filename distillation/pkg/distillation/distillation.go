@@ -9,7 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/logging"
 )
@@ -30,7 +30,6 @@ type Distillation struct {
 	Process        *process.Process
 	lastStatus     ProcessStatus
 	lastStatusMtx  sync.Mutex
-	url            string
 }
 
 func New(opts ...Option) (*Distillation, error) {
@@ -41,7 +40,7 @@ func New(opts ...Option) (*Distillation, error) {
 		runInterval:   1 * time.Second,
 		lastStatusMtx: sync.Mutex{},
 	}
-	
+
 	// Options
 	for _, opt := range opts {
 		if err := opt(h); err != nil {
@@ -52,7 +51,7 @@ func New(opts ...Option) (*Distillation, error) {
 	if h.Process, err = process.New(); err != nil {
 		panic(err)
 	}
-	
+
 	return h, nil
 }
 
@@ -66,7 +65,7 @@ func (d *Distillation) Close() {
 	close(d.finish)
 	for range d.finished {
 	}
-	
+
 }
 
 func (d *Distillation) updateTemperatures() {
@@ -123,7 +122,7 @@ func (d *Distillation) handleProcess() {
 			}
 		}
 	}()
-	
+
 }
 
 func (d *Distillation) updateStatus(s process.Status) {

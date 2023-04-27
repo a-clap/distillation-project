@@ -43,7 +43,7 @@ func (p *HeaterClientSuite) Test_Configure() {
 	}
 	m.On("Get").Return(onGet, nil)
 	m.On("Configure", mock.Anything).Return(onGet[0], nil).Once()
-	h, _ := distillation.NewRest(distillation.WithHeaters(m))
+	h, _ := distillation.NewRest("", distillation.WithHeaters(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -84,7 +84,7 @@ func (p *HeaterClientSuite) Test_Enable() {
 	
 	m.On("Get").Return(onGet, nil)
 	m.On("Configure", mock.Anything).Return(onGet[0], nil).Once()
-	h, _ := distillation.NewRest(distillation.WithHeaters(m))
+	h, _ := distillation.NewRest("", distillation.WithHeaters(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -109,7 +109,7 @@ func (p *HeaterClientSuite) Test_Enable() {
 
 func (p *HeaterClientSuite) Test_NotImplemented() {
 	t := p.Require()
-	h, _ := distillation.NewRest()
+	h, _ := distillation.NewRest("")
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	

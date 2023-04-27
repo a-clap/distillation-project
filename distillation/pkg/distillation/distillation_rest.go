@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,30 +40,32 @@ var (
 )
 
 type Rest struct {
+	url string
 	*gin.Engine
 	*Distillation
 }
 
-func NewRest(opts ...Option) (*Rest, error) {
+func NewRest(url string, opts ...Option) (*Rest, error) {
 	r := &Rest{
+		url:    url,
 		Engine: gin.Default(),
 	}
 	d, err := New(opts...)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	r.Distillation = d
 	r.routes()
-	
+
 	return r, nil
 }
 
 func (r *Rest) Run() error {
 	r.Distillation.Run()
 	defer r.Distillation.Close()
-	err := r.Engine.Run(r.Distillation.url)
-	
+	err := r.Engine.Run(r.url)
+
 	return err
 }
 
@@ -73,27 +75,27 @@ func (r *Rest) routes() {
 	r.GET(RoutesGetEnabledHeaters, r.getEnabledHeaters())
 	r.PUT(RoutesEnableHeater, r.enableHeater())
 	r.PUT(RoutesConfigureHeater, r.configEnabledHeater())
-	
+
 	r.GET(RoutesGetDS, r.getDS())
 	r.GET(RoutesGetDSTemperatures, r.getDSTemperatures())
 	r.PUT(RoutesConfigureDS, r.configureDS())
-	
+
 	r.GET(RoutesGetPT, r.getPT())
 	r.GET(RoutesGetPTTemperatures, r.getPTTemperatures())
 	r.PUT(RoutesConfigurePT, r.configurePT())
-	
+
 	r.GET(RoutesGetGPIO, r.getGPIO())
 	r.PUT(RoutesConfigureGPIO, r.configureGPIO())
-	
+
 	r.GET(RoutesProcessPhases, r.getPhaseCount())
 	r.PUT(RoutesProcessPhases, r.configurePhaseCount())
 	r.GET(RoutesProcessConfigPhase, r.getProcessConfig())
 	r.PUT(RoutesProcessConfigPhase, r.setProcessConfig())
-	
+
 	r.GET(RoutesProcessConfigValidate, r.getConfigValidation())
 	r.GET(RoutesProcessStatus, r.getProcessStatus())
 	r.PUT(RoutesProcess, r.configureProcess())
-	
+
 }
 
 // common respond for whole rest API
@@ -124,7 +126,7 @@ func (r *Rest) configEnabledHeater() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		cfg, err := r.HeatersHandler.Configure(cfg)
 		if err != nil {
 			e := &Error{
@@ -277,7 +279,7 @@ func (r *Rest) configureDS() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		newcfg, err := r.Distillation.DSHandler.ConfigureSensor(cfg)
 		if err != nil {
 			e := &Error{
@@ -345,7 +347,7 @@ func (r *Rest) configurePT() gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, e)
 			return
 		}
-		
+
 		cfg := PTConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			e := &Error{
@@ -357,7 +359,7 @@ func (r *Rest) configurePT() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		c, err := r.Distillation.PTHandler.Configure(cfg)
 		if err != nil {
 			e := &Error{
@@ -404,7 +406,7 @@ func (r *Rest) configureGPIO() gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, e)
 			return
 		}
-		
+
 		cfg := GPIOConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			e := &Error{
@@ -416,7 +418,7 @@ func (r *Rest) configureGPIO() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		newCfg, err := r.Distillation.GPIOHandler.Configure(cfg)
 		if err != nil {
 			e := &Error{
@@ -492,7 +494,7 @@ func (r *Rest) configurePhaseCount() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		if err := r.Distillation.Process.SetPhases(cfg.PhaseNumber); err != nil {
 			e := &Error{
 				Title:     "Failed to SetPhases",
@@ -503,11 +505,11 @@ func (r *Rest) configurePhaseCount() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		config := r.Distillation.Process.GetConfig()
 		s := ProcessPhaseCount{PhaseNumber: config.PhaseNumber}
 		r.respond(ctx, http.StatusOK, s)
-		
+
 	}
 }
 
@@ -565,7 +567,7 @@ func (r *Rest) setProcessConfig() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		if err := r.Distillation.configurePhase(int(id), cfg); err != nil {
 			e := &Error{
 				Title:     "Failed to configurePhase",
@@ -576,7 +578,7 @@ func (r *Rest) setProcessConfig() gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, e)
 			return
 		}
-		
+
 		config := r.Distillation.Process.GetConfig()
 		r.respond(ctx, http.StatusOK, config.Phases[id])
 	}

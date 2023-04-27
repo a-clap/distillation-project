@@ -55,7 +55,7 @@ func (p *ProcessHeaterMock) SetPower(pwr int) error {
 
 func (p *ProcessClientSuite) Test_Config() {
 	t := p.Require()
-	h, _ := distillation.NewRest()
+	h, _ := distillation.NewRest("")
 	
 	sensorMock := new(ProcessSensorMock)
 	sensorMock.On("ID").Return("s1")
@@ -101,7 +101,7 @@ func (p *ProcessClientSuite) Test_Config() {
 
 func (p *ProcessClientSuite) Test_PhaseCount() {
 	t := p.Require()
-	h, _ := distillation.NewRest()
+	h, _ := distillation.NewRest("")
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	

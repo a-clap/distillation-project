@@ -137,7 +137,7 @@ func (t *HeaterHandlerSuite) TestRestAPI_ConfigHeater() {
 			m.Mock.On("Configure", expectedConfig).Return(expectedConfig, nil).Once()
 		}
 		
-		h, err := distillation.NewRest(distillation.WithHeaters(m))
+		h, err := distillation.NewRest("", distillation.WithHeaters(m))
 		r.Nil(err)
 		r.NotNil(h)
 		
@@ -243,7 +243,7 @@ func (t *HeaterHandlerSuite) Test_RestAPI_ConfigureGlobal() {
 			m.Mock.On("Configure", expectedConfig).Return(expectedConfig, nil).Once()
 		}
 		
-		h, err := distillation.NewRest(distillation.WithHeaters(m))
+		h, err := distillation.NewRest("", distillation.WithHeaters(m))
 		r.Nil(err)
 		r.NotNil(h)
 		
@@ -377,7 +377,7 @@ func (t *HeaterHandlerSuite) Test_RestAPI_GetEnabled() {
 			m.Mock.On("Configure", expectedConfig).Return(expectedConfig, nil).Once()
 		}
 		
-		h, _ := distillation.NewRest(distillation.WithHeaters(m))
+		h, _ := distillation.NewRest("", distillation.WithHeaters(m))
 		heaters := h.HeatersHandler
 		
 		// Get list of enabled heaters
@@ -467,7 +467,7 @@ func (t *HeaterHandlerSuite) TestRest_GetGlobalHeaters() {
 			m.Mock.On("Configure", expectedConfig).Return(expectedConfig, nil).Once()
 		}
 		
-		h, err := distillation.NewRest(distillation.WithHeaters(m))
+		h, err := distillation.NewRest("", distillation.WithHeaters(m))
 		r.Nil(err)
 		
 		t.req, _ = http.NewRequest(http.MethodGet, distillation.RoutesGetAllHeaters, nil)

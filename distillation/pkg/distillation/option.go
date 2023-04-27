@@ -49,9 +49,3 @@ func WithPT(pt PT) Option {
 		return err
 	}
 }
-func WithURL(url string) Option {
-	return func(d *Distillation) error {
-		d.url = url
-		return nil
-	}
-}

@@ -48,7 +48,7 @@ func (d *DSClientSuite) Test_Temperatures() {
 	
 	m.On("Get").Return(onGet, nil)
 	
-	h, _ := distillation.NewRest(distillation.WithDS(m))
+	h, _ := distillation.NewRest("", distillation.WithDS(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -75,7 +75,7 @@ func (d *DSClientSuite) Test_Configure() {
 	
 	m.On("Get").Return(onGet, nil)
 	
-	h, _ := distillation.NewRest(distillation.WithDS(m))
+	h, _ := distillation.NewRest("", distillation.WithDS(m))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
@@ -109,7 +109,7 @@ func (d *DSClientSuite) Test_Configure() {
 
 func (d *DSClientSuite) Test_NotImplemented() {
 	t := d.Require()
-	h, _ := distillation.NewRest()
+	h, _ := distillation.NewRest("")
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	
