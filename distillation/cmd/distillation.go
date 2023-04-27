@@ -9,7 +9,7 @@ import (
 	"log"
 	"net"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation"
 	"github.com/a-clap/embedded/pkg/embedded"
 )
@@ -18,35 +18,35 @@ const EmbeddedAddr = "localhost:50001"
 
 func main() {
 	err := WaitForEmbedded(EmbeddedAddr, 30*time.Second)
-	
+
 	if err != nil {
 		log.Fatalln("Couldn't connect to ", EmbeddedAddr)
 	}
-	
+
 	heaterClient, err := embedded.NewHeaterRPCCLient(EmbeddedAddr, 1*time.Second)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer heaterClient.Close()
-	
+
 	ptClient, err := embedded.NewPTRPCClient(EmbeddedAddr, 1*time.Second)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer ptClient.Close()
-	
+
 	dsClient, err := embedded.NewDSRPCClient(EmbeddedAddr, 1*time.Second)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer dsClient.Close()
-	
+
 	gpioClient, err := embedded.NewGPIORPCClient(EmbeddedAddr, time.Second)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer gpioClient.Close()
-	
+
 	handler, err := distillation.NewRPC(
 		distillation.WithPT(ptClient),
 		distillation.WithDS(dsClient),
@@ -73,7 +73,7 @@ func WaitForEmbedded(addr string, timeout time.Duration) error {
 		_ = conn.Close()
 		break
 	}
-	
+
 	return err
-	
+
 }
