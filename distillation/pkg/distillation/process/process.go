@@ -49,6 +49,12 @@ type Process struct {
 	moveToNext         moveToNext
 }
 
+type Components struct {
+	Sensors []string `json:"sensors"`
+	Heaters []string `json:"heaters"`
+	Outputs []string `json:"outputs"`
+}
+
 const (
 	initPhases         = 3
 	initPhasesCapacity = 10
@@ -91,6 +97,27 @@ func (p *Process) ConfigureOutputs(outputs []Output) {
 			inRange: false,
 		}
 	}
+}
+
+func (p *Process) Components() Components {
+	c := Components{}
+	c.Sensors = make([]string, 0, len(p.sensors))
+	for k := range p.sensors {
+		c.Sensors = append(c.Sensors, k)
+	}
+
+	c.Heaters = make([]string, 0, len(p.heaters))
+	for k := range p.heaters {
+		c.Heaters = append(c.Heaters, k)
+	}
+
+	c.Outputs = make([]string, 0, len(p.outputs))
+	for k := range p.outputs {
+		c.Outputs = append(c.Outputs, k)
+	}
+
+	return c
+
 }
 
 // Run enable processing
