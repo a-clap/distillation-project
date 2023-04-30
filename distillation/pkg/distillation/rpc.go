@@ -7,7 +7,7 @@ package distillation
 
 import (
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
 	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/embedded/pkg/ds18b20"
@@ -204,8 +204,10 @@ func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillatio
 		GPIO:    make([]*distillationproto.GPIOPhaseConfig, len(config.GPIO)),
 	}
 	for i, heater := range config.Heaters {
-		cfg.Heaters[i].ID = heater.ID
-		cfg.Heaters[i].Power = int32(heater.Power)
+		cfg.Heaters[i] = &distillationproto.HeaterPhaseConfig{
+			ID:    heater.ID,
+			Power: int32(heater.Power),
+		}
 	}
 	for i, gp := range config.GPIO {
 		cfg.GPIO[i] = &distillationproto.GPIOPhaseConfig{
@@ -217,7 +219,7 @@ func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillatio
 			Inverted:   gp.Inverted,
 		}
 	}
-	
+
 	return cfg
 }
 
@@ -272,7 +274,7 @@ func rpcToProcessStatus(status *distillationproto.ProcessStatus) ProcessStatus {
 			Temperature: float64(t.Temperature),
 		}
 	}
-	
+
 	for i, io := range status.GPIO {
 		s.GPIO[i] = process.GPIOPhaseStatus{
 			ID:    io.ID,
@@ -311,24 +313,24 @@ func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
 			Power: int32(heater.Power),
 		}
 	}
-	
+
 	for i, t := range status.Temperature {
 		s.Temperature[i] = &distillationproto.TemperaturePhaseStatus{
 			ID:          t.ID,
 			Temperature: float32(t.Temperature),
 		}
 	}
-	
+
 	for i, io := range status.GPIO {
 		s.GPIO[i] = &distillationproto.GPIOPhaseStatus{
 			ID:    io.ID,
 			State: io.State,
 		}
 	}
-	
+
 	for i, err := range status.Errors {
 		s.Errors[i] = err
 	}
 	return s
-	
+
 }
