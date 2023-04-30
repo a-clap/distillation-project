@@ -10,8 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
+	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/embedded/pkg/restclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -59,6 +60,10 @@ func (h *ProcessClient) Status() (ProcessStatus, error) {
 	return restclient.Get[ProcessStatus, *Error](h.addr+RoutesProcessStatus, h.timeout)
 }
 
+func (h *ProcessClient) Components() (process.Components, error) {
+	return restclient.Get[process.Components, *Error](h.addr+RoutesProcessComponents, h.timeout)
+}
+
 type ProcessRPCClient struct {
 	timeout time.Duration
 	conn    *grpc.ClientConn
@@ -71,6 +76,27 @@ func NewProcessRPCClient(addr string, timeout time.Duration) (*ProcessRPCClient,
 		return nil, err
 	}
 	return &ProcessRPCClient{timeout: timeout, conn: conn, client: distillationproto.NewProcessClient(conn)}, nil
+}
+
+func (p *ProcessRPCClient) Components() (process.Components, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	comp, err := p.client.GetComponents(ctx, &emptypb.Empty{})
+	if err != nil {
+		return process.Components{}, err
+	}
+
+	pComp := process.Components{
+		Sensors: make([]string, len(comp.Sensors)),
+		Heaters: make([]string, len(comp.Heaters)),
+		Outputs: make([]string, len(comp.Outputs)),
+	}
+
+	copy(pComp.Sensors, comp.Sensors)
+	copy(pComp.Heaters, comp.Heaters)
+	copy(pComp.Outputs, comp.Outputs)
+
+	return pComp, nil
 }
 
 func (p *ProcessRPCClient) GetPhaseCount() (ProcessPhaseCount, error) {
@@ -91,7 +117,7 @@ func (p *ProcessRPCClient) GetPhaseConfig(phaseNumber int) (ProcessPhaseConfig, 
 		return ProcessPhaseConfig{}, err
 	}
 	return rpcToProcessPhaseConfig(cfg), nil
-	
+
 }
 
 func (p *ProcessRPCClient) ConfigurePhaseCount(count ProcessPhaseCount) (ProcessPhaseCount, error) {
@@ -108,19 +134,19 @@ func (p *ProcessRPCClient) ConfigurePhase(phaseNumber int, setConfig ProcessPhas
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
 	c := processPhaseConfigToRpc(phaseNumber, setConfig)
-	
+
 	cfg, err := p.client.ConfigurePhase(ctx, c)
 	if err != nil {
 		return ProcessPhaseConfig{}, err
 	}
 	return rpcToProcessPhaseConfig(cfg), nil
-	
+
 }
 
 func (p *ProcessRPCClient) ValidateConfig() (ProcessConfigValidation, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
-	
+
 	v, err := p.client.ValidateConfig(ctx, &emptypb.Empty{})
 	if err != nil {
 		return ProcessConfigValidation{}, err
@@ -131,7 +157,7 @@ func (p *ProcessRPCClient) ValidateConfig() (ProcessConfigValidation, error) {
 func (p *ProcessRPCClient) ConfigureProcess(cfg ProcessConfig) (ProcessConfig, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
-	
+
 	conf := processConfigToRpc(cfg)
 	conf, err := p.client.ConfigureProcess(ctx, conf)
 	if err != nil {
@@ -143,7 +169,7 @@ func (p *ProcessRPCClient) ConfigureProcess(cfg ProcessConfig) (ProcessConfig, e
 func (p *ProcessRPCClient) Status() (ProcessStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
-	
+
 	status, err := p.client.Status(ctx, &emptypb.Empty{})
 	if err != nil {
 		return ProcessStatus{}, err

@@ -14,7 +14,8 @@ service Process {
   rpc ConfigurePhase(ProcessPhaseConfig) returns (ProcessPhaseConfig) {}
   rpc ValidateConfig(google.protobuf.Empty) returns (ProcessConfigValidation) {}
   rpc ConfigureProcess(ProcessConfig) returns (ProcessConfig) {}
-  rpc Status(google.protobuf.Empty)returns  (ProcessStatus) {}
+  rpc Status(google.protobuf.Empty) returns  (ProcessStatus) {}
+  rpc GetComponents(google.protobuf.Empty) returns (Components) {}
 }
 
 message ProcessPhaseCount {
@@ -105,4 +106,10 @@ message MoveToNextStatus {
   int32 Type = 1;
   MoveToNextStatusTime Time = 2;
   MoveToNextStatusTemperature Temperature = 3;
+}
+
+message Components {
+  repeated string Sensors = 1;
+  repeated string Heaters = 2;
+  repeated string Outputs = 3;
 }

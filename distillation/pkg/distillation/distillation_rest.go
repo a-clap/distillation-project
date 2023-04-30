@@ -33,6 +33,7 @@ const (
 	RoutesProcessConfigValidate = "/api/process/validate"
 	RoutesProcess               = "/api/process"
 	RoutesProcessStatus         = "/api/process/status"
+	RoutesProcessComponents     = "/api/process/components"
 )
 
 var (
@@ -94,6 +95,7 @@ func (r *Rest) routes() {
 
 	r.GET(RoutesProcessConfigValidate, r.getConfigValidation())
 	r.GET(RoutesProcessStatus, r.getProcessStatus())
+	r.GET(RoutesProcessComponents, r.getComponents())
 	r.PUT(RoutesProcess, r.configureProcess())
 
 }
@@ -466,6 +468,13 @@ func (r *Rest) getProcessStatus() gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, r.Distillation.Status())
 	}
 }
+
+func (r *Rest) getComponents() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		r.respond(ctx, http.StatusOK, r.Distillation.Process.Components())
+	}
+}
+
 func (r *Rest) getConfigValidation() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		v := r.Distillation.ValidateConfig()

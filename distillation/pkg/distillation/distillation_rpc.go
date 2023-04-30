@@ -206,3 +206,20 @@ func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.Pr
 	status := r.Distillation.Status()
 	return processStatusToRPC(status), nil
 }
+
+func (r *RPC) GetComponents(context.Context, *empty.Empty) (*distillationproto.Components, error) {
+	logger.Debug("GetComponents")
+	comp := r.Distillation.Process.Components()
+
+	c := &distillationproto.Components{
+		Sensors: make([]string, len(comp.Sensors)),
+		Heaters: make([]string, len(comp.Heaters)),
+		Outputs: make([]string, len(comp.Outputs)),
+	}
+	copy(c.Sensors, comp.Sensors)
+	copy(c.Heaters, comp.Heaters)
+	copy(c.Outputs, comp.Outputs)
+
+	return c, nil
+
+}
