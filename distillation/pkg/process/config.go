@@ -25,6 +25,7 @@ type Config struct {
 	PhaseNumber uint          `json:"phase_number"`
 	Phases      []PhaseConfig `json:"phases"`
 	GlobalGPIO  []GPIOConfig  `json:"global_gpio"`
+	Sensors     []string      `json:"sensors"`
 }
 
 type PhaseConfig struct {
@@ -118,6 +119,7 @@ func (c *config) UpdateSensors(sensors []Sensor) {
 		c.sensors[sensor.ID()] = newSensor(sensor)
 	}
 	c.updateSensorsConfig()
+	c.repairConfig()
 }
 
 func (c *config) UpdateHeaters(heaters []Heater) {
@@ -125,6 +127,7 @@ func (c *config) UpdateHeaters(heaters []Heater) {
 		c.heaters[heater.ID()] = newHeater(heater)
 	}
 	c.updateHeaterConfig()
+	c.repairConfig()
 }
 
 func (c *config) UpdateOutputs(outputs []Output) {
@@ -132,6 +135,7 @@ func (c *config) UpdateOutputs(outputs []Output) {
 		c.outputs[output.ID()] = newOutput(output)
 	}
 	c.updateGPIOConfig()
+	c.repairConfig()
 }
 
 func (c *config) SetPhaseNumber(number uint) {
@@ -146,6 +150,8 @@ func (c *config) SetPhaseNumber(number uint) {
 	c.updateGPIOConfig()
 	c.updateSensorsConfig()
 	c.updateHeaterConfig()
+
+	c.repairConfig()
 }
 
 func (c *config) SetPhaseConfig(nb uint, conf PhaseConfig) error {
@@ -309,6 +315,7 @@ func (c *config) updateSensorsConfig() {
 	for i := range c.Phases {
 		c.Phases[i].Next.Sensors = append(make([]string, 0, size), sensorIds...)
 	}
+	c.Config.Sensors = sensorIds
 }
 
 func (c *config) validateHeaterConfig(heaters []HeaterPhaseConfig) error {
@@ -356,13 +363,14 @@ func (c *config) validateGPIOConfig(conf []GPIOConfig) error {
 
 func (c *config) validateNextConfig(next *MoveToNextConfig) error {
 	switch next.Type {
-	case ByTime:
-		if next.TimeLeft <= 0 {
-			return ErrByTimeWrongTime
-		}
 	case ByTemperature:
 		if _, ok := c.sensors[next.SensorID]; !ok {
 			return ErrByTemperatureWrongID
+		}
+		fallthrough
+	case ByTime:
+		if next.TimeLeft <= 0 {
+			return ErrByTimeWrongTime
 		}
 	default:
 		return ErrUnknownType
@@ -395,6 +403,53 @@ func (c *config) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (c *config) repairConfig() {
+	for i, elem := range c.GlobalGPIO {
+		// Make sure sensor ID exists
+		if _, ok := c.sensors[elem.SensorID]; !ok {
+			// 	Doesn't exist - should do sth about it
+			for k := range c.sensors {
+				// If there is any sensor, GPIOConfig will get first random value from map
+				// If not, it will stay same
+				c.GlobalGPIO[i].SensorID = k
+				break
+			}
+		}
+	}
+
+	for i, elem := range c.Phases {
+		// Timeleft can't be 0
+		if elem.Next.TimeLeft <= 0 {
+			c.Phases[i].Next.TimeLeft = 1
+		}
+		// Make sure sensorID exists - Next config
+		if _, ok := c.sensors[elem.Next.SensorID]; !ok {
+			// 	Doesn't exist - should do sth about it
+			for k := range c.sensors {
+				// If there is any sensor, GPIOConfig will get first random value from map
+				// If not, it will stay same
+				c.Phases[i].Next.SensorID = k
+				break
+			}
+		}
+
+		// GPIOs
+		for j, gpio := range elem.GPIO {
+			// Make sure sensor ID exists
+			if _, ok := c.sensors[gpio.SensorID]; !ok {
+				// 	Doesn't exist - should do sth about it
+				for k := range c.sensors {
+					// If there is any sensor, GPIOConfig will get first random value from map
+					// If not, it will stay same
+					c.Phases[i].GPIO[j].SensorID = k
+					break
+				}
+			}
+		}
+	}
+
 }
 
 func resizeSlice[S constraints.Integer, T any](newSize S, s []T) []T {

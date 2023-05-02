@@ -18,6 +18,119 @@ func TestProcess(t *testing.T) {
 	suite.Run(t, new(ProcessConfigSuite))
 }
 
+func (pcs *ProcessConfigSuite) TestConfig_AlwaysReturnsCorrectConfig() {
+	args := []struct {
+		name      string
+		sensorIDs []string
+		heaterIDs []string
+		outputIDs []string
+	}{
+		{
+			name:      "minimum components",
+			sensorIDs: nil,
+			heaterIDs: []string{"h1"},
+			outputIDs: nil,
+		},
+		{
+			name:      "heater and sensors",
+			sensorIDs: []string{"s1"},
+			heaterIDs: []string{"h1"},
+			outputIDs: nil,
+		},
+		{
+			name:      "heater, sensors and outputs",
+			sensorIDs: []string{"s1"},
+			heaterIDs: []string{"h1"},
+			outputIDs: []string{"o1"},
+		},
+	}
+	for _, arg := range args {
+		ctrl := gomock.NewController(pcs.T())
+
+		t := pcs.Require()
+		p := process.New()
+
+		if arg.sensorIDs != nil {
+			sensors := make([]process.Sensor, len(arg.sensorIDs))
+			for i, elem := range arg.sensorIDs {
+				sensor := mocks.NewMockSensor(ctrl)
+				sensor.EXPECT().ID().Return(elem).AnyTimes()
+				sensors[i] = sensor
+			}
+			p.UpdateSensors(sensors)
+		}
+
+		if arg.outputIDs != nil {
+			outputs := make([]process.Output, len(arg.outputIDs))
+			for i, elem := range arg.outputIDs {
+				output := mocks.NewMockOutput(ctrl)
+				output.EXPECT().ID().Return(elem).AnyTimes()
+				outputs[i] = output
+			}
+			p.UpdateOutputs(outputs)
+		}
+
+		if arg.heaterIDs != nil {
+			heaters := make([]process.Heater, len(arg.heaterIDs))
+			for i, elem := range arg.heaterIDs {
+				heater := mocks.NewMockHeater(ctrl)
+				heater.EXPECT().ID().Return(elem).AnyTimes()
+				heaters[i] = heater
+			}
+			p.UpdateHeaters(heaters)
+		}
+
+		cfg := p.GetConfig()
+		t.Nil(p.SetGPIOGlobalConfig(cfg.GlobalGPIO))
+		for i, conf := range cfg.Phases {
+			t.Nil(p.SetPhaseConfig(uint(i), conf))
+		}
+	}
+
+}
+func (pcs *ProcessConfigSuite) TestConfigAvailableSensors() {
+	args := []struct {
+		name      string
+		sensorIDs []string
+	}{
+		{
+			name:      "single sensor",
+			sensorIDs: []string{"s1"},
+		},
+		{
+			name:      "two sensors",
+			sensorIDs: []string{"s1", "s2"},
+		},
+		{
+			name:      "many",
+			sensorIDs: []string{"s1", "s2", "s5", "s7", "s12"},
+		},
+		{
+			name:      "empty",
+			sensorIDs: []string{},
+		},
+	}
+	t := pcs.Require()
+	for _, arg := range args {
+		ctrl := gomock.NewController(pcs.T())
+
+		pr := process.New()
+		if arg.sensorIDs != nil {
+			sensors := make([]process.Sensor, len(arg.sensorIDs))
+			for i, elem := range arg.sensorIDs {
+				sensor := mocks.NewMockSensor(ctrl)
+				sensor.EXPECT().ID().Return(elem).AnyTimes()
+				sensors[i] = sensor
+			}
+			pr.UpdateSensors(sensors)
+		}
+		cfg := pr.GetConfig()
+		t.ElementsMatch(cfg.Sensors, arg.sensorIDs)
+
+	}
+
+}
+
 func (pcs *ProcessConfigSuite) TestSetPhases() {
 	t := pcs.Require()
 	p := process.New()
@@ -511,7 +624,7 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_NextConfig() {
 				Type:            process.ByTemperature,
 				SensorID:        "s1",
 				SensorThreshold: 0,
-				TimeLeft:        0,
+				TimeLeft:        1,
 			},
 			sensorIDs: []string{"s1"},
 			err:       nil,
@@ -521,10 +634,10 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_NextConfig() {
 		// Always good config - except Next
 		phaseConfig := process.PhaseConfig{
 			Next: process.MoveToNextConfig{
-				Type:            0,
+				Type:            process.ByTime,
 				SensorID:        "",
 				SensorThreshold: 0,
-				TimeLeft:        0,
+				TimeLeft:        1,
 			},
 			Heaters: []process.HeaterPhaseConfig{
 				{ID: "h1", Power: 13},
