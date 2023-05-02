@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation/process"
+	"github.com/a-clap/distillation/pkg/process"
 	"github.com/a-clap/logging"
 )
 
@@ -47,11 +47,7 @@ func New(opts ...Option) (*Distillation, error) {
 			logger.Error("Option failed", logging.String("error", err.Error()))
 		}
 	}
-	var err error
-	if h.Process, err = process.New(); err != nil {
-		panic(err)
-	}
-
+	h.Process = process.New()
 	return h, nil
 }
 

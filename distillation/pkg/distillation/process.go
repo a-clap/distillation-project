@@ -7,14 +7,14 @@ package distillation
 
 import (
 	"errors"
-	
-	"github.com/a-clap/distillation/pkg/distillation/process"
+
+	"github.com/a-clap/distillation/pkg/process"
 	"github.com/a-clap/embedded/pkg/embedded"
 )
 
 // ProcessPhaseCount is JSON wrapper for process.PhaseNumber
 type ProcessPhaseCount struct {
-	PhaseNumber int `json:"phase_number"`
+	PhaseNumber uint `json:"phase_number"`
 }
 
 // ProcessPhaseConfig is package wrapper for process.PhaseConfig
@@ -44,7 +44,7 @@ func (d *Distillation) Status() ProcessStatus {
 	d.lastStatusMtx.Lock()
 	defer d.lastStatusMtx.Unlock()
 	return d.lastStatus
-	
+
 }
 func (d *Distillation) ValidateConfig() ProcessConfigValidation {
 	v := ProcessConfigValidation{Valid: true}
@@ -60,7 +60,7 @@ func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
 		// Not possible if process is not running
 		if cfg.MoveToNext || cfg.Disable {
 			return errors.New("process is not running")
-			
+
 		}
 		// If user wants to enable process
 		if cfg.Enable {
@@ -73,7 +73,7 @@ func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
 			return nil
 		}
 	}
-	
+
 	if cfg.MoveToNext {
 		s, err := d.Process.MoveToNext()
 		if err != nil {
@@ -93,13 +93,13 @@ func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
 	return errors.New("nothing to do")
 }
 
-func (d *Distillation) configurePhase(number int, config ProcessPhaseConfig) error {
+func (d *Distillation) configurePhase(number uint, config ProcessPhaseConfig) error {
 	// Update ios, if process is not running
 	if d.Process.Running() == false {
 		d.updateProcess()
 	}
-	return d.Process.ConfigurePhase(number, config.PhaseConfig)
-	
+	return d.Process.SetPhaseConfig(number, config.PhaseConfig)
+
 }
 
 func (d *Distillation) updateProcess() {
@@ -128,24 +128,16 @@ func (d *Distillation) updateSensors() {
 	if d.DSHandler == nil && d.PTHandler == nil {
 		return
 	}
-	
-	getTempDS := func(id string) func() float64 {
-		return func() float64 {
-			t, err := d.DSHandler.Temperature(id)
-			if err != nil {
-				return -1
-			}
-			return t
+
+	getTempDS := func(id string) func() (float64, error) {
+		return func() (float64, error) {
+			return d.DSHandler.Temperature(id)
 		}
 	}
-	
-	getTempPT := func(id string) func() float64 {
-		return func() float64 {
-			t, err := d.PTHandler.Temperature(id)
-			if err != nil {
-				return -1
-			}
-			return t
+
+	getTempPT := func(id string) func() (float64, error) {
+		return func() (float64, error) {
+			return d.PTHandler.Temperature(id)
 		}
 	}
 	var sensors []process.Sensor
@@ -171,8 +163,8 @@ func (d *Distillation) updateSensors() {
 			}
 		}
 	}
-	d.Process.ConfigureSensors(sensors)
-	
+	d.Process.UpdateSensors(sensors)
+
 }
 func (d *Distillation) updateOutputs() {
 	if d.GPIOHandler == nil {
@@ -190,7 +182,7 @@ func (d *Distillation) updateOutputs() {
 			return err
 		}
 	}
-	
+
 	var outputs []process.Output
 	for _, out := range d.GPIOHandler.Config() {
 		o := &processOutput{
@@ -199,15 +191,15 @@ func (d *Distillation) updateOutputs() {
 		}
 		outputs = append(outputs, o)
 	}
-	d.Process.ConfigureOutputs(outputs)
-	
+	d.Process.UpdateOutputs(outputs)
+
 }
 
 func (d *Distillation) updateHeaters() {
 	if d.HeatersHandler == nil {
 		return
 	}
-	
+
 	setPwr := func(id string) func(pwr int) error {
 		return func(pwr int) error {
 			cfg := HeaterConfig{
@@ -221,7 +213,7 @@ func (d *Distillation) updateHeaters() {
 			return err
 		}
 	}
-	
+
 	var heaters []process.Heater
 	for _, heater := range d.HeatersHandler.ConfigsGlobal() {
 		if heater.Enabled {
@@ -231,7 +223,7 @@ func (d *Distillation) updateHeaters() {
 			heaters = append(heaters, h)
 		}
 	}
-	d.Process.ConfigureHeaters(heaters)
+	d.Process.UpdateHeaters(heaters)
 }
 
 // processHeater fulfills process.Heater interface
@@ -269,7 +261,7 @@ func (p *processOutput) Set(value bool) error {
 // processSensor fulfills process.Sensor interface
 type processSensor struct {
 	id      string
-	getTemp func() float64
+	getTemp func() (float64, error)
 }
 
 // ID fulfills process.Sensor interface
@@ -278,6 +270,6 @@ func (p *processSensor) ID() string {
 }
 
 // Temperature fulfills process.Sensor interface
-func (p *processSensor) Temperature() float64 {
+func (p *processSensor) Temperature() (float64, error) {
 	return p.getTemp()
 }

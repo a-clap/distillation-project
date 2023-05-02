@@ -95,7 +95,6 @@ func (r *Rest) routes() {
 
 	r.GET(RoutesProcessConfigValidate, r.getConfigValidation())
 	r.GET(RoutesProcessStatus, r.getProcessStatus())
-	r.GET(RoutesProcessComponents, r.getComponents())
 	r.PUT(RoutesProcess, r.configureProcess())
 
 }
@@ -469,12 +468,6 @@ func (r *Rest) getProcessStatus() gin.HandlerFunc {
 	}
 }
 
-func (r *Rest) getComponents() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		r.respond(ctx, http.StatusOK, r.Distillation.Process.Components())
-	}
-}
-
 func (r *Rest) getConfigValidation() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		v := r.Distillation.ValidateConfig()
@@ -504,16 +497,7 @@ func (r *Rest) configurePhaseCount() gin.HandlerFunc {
 			return
 		}
 
-		if err := r.Distillation.Process.SetPhases(cfg.PhaseNumber); err != nil {
-			e := &Error{
-				Title:     "Failed to SetPhases",
-				Detail:    err.Error(),
-				Instance:  RoutesProcessPhases,
-				Timestamp: time.Now(),
-			}
-			r.respond(ctx, http.StatusBadRequest, e)
-			return
-		}
+		r.Distillation.Process.SetPhaseNumber(cfg.PhaseNumber)
 
 		config := r.Distillation.Process.GetConfig()
 		s := ProcessPhaseCount{PhaseNumber: config.PhaseNumber}
@@ -537,7 +521,7 @@ func (r *Rest) getProcessConfig() gin.HandlerFunc {
 			return
 		}
 		cfg := r.Distillation.Process.GetConfig()
-		if int(id) >= cfg.PhaseNumber {
+		if uint(id) >= cfg.PhaseNumber {
 			e := &Error{
 				Title:     "Phase doesn't exist",
 				Detail:    fmt.Errorf("requested phase %v doesn't exist", id).Error(),
@@ -577,7 +561,7 @@ func (r *Rest) setProcessConfig() gin.HandlerFunc {
 			return
 		}
 
-		if err := r.Distillation.configurePhase(int(id), cfg); err != nil {
+		if err := r.Distillation.configurePhase(uint(id), cfg); err != nil {
 			e := &Error{
 				Title:     "Failed to configurePhase",
 				Detail:    err.Error(),

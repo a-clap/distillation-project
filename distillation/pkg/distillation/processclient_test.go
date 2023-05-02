@@ -10,9 +10,9 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/distillation/process"
+	"github.com/a-clap/distillation/pkg/process"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -41,8 +41,9 @@ func (s *ProcessSensorMock) ID() string {
 	return s.Called().String(0)
 }
 
-func (s *ProcessSensorMock) Temperature() float64 {
-	return s.Called().Get(0).(float64)
+func (s *ProcessSensorMock) Temperature() (float64, error) {
+	args := s.Called()
+	return args.Get(0).(float64), args.Error(1)
 }
 
 func (p *ProcessHeaterMock) ID() string {
@@ -56,27 +57,27 @@ func (p *ProcessHeaterMock) SetPower(pwr int) error {
 func (p *ProcessClientSuite) Test_Config() {
 	t := p.Require()
 	h, _ := distillation.NewRest("")
-	
+
 	sensorMock := new(ProcessSensorMock)
 	sensorMock.On("ID").Return("s1")
 	sensors := []process.Sensor{sensorMock}
-	
+
 	heaterMock := new(ProcessHeaterMock)
 	heaterMock.On("ID").Return("h1")
 	heaters := []process.Heater{heaterMock}
-	
-	h.Process.ConfigureHeaters(heaters)
-	h.Process.ConfigureSensors(sensors)
+
+	h.Process.UpdateHeaters(heaters)
+	h.Process.UpdateSensors(sensors)
 	srv := httptest.NewServer(h)
 	defer srv.Close()
-	
+
 	ps := distillation.NewProcessClient(srv.URL, 1*time.Second)
-	
+
 	// Get anything
 	cfg, err := ps.GetPhaseConfig(0)
 	t.Nil(err)
 	t.NotNil(cfg)
-	
+
 	// Correct config
 	cfg.Heaters = []process.HeaterPhaseConfig{
 		{
@@ -84,19 +85,19 @@ func (p *ProcessClientSuite) Test_Config() {
 			Power: 0,
 		},
 	}
-	cfg.Next.SecondsToMove = 1
-	
+	cfg.Next.TimeLeft = 1
+
 	newCfg, err := ps.ConfigurePhase(0, cfg)
 	t.Nil(err)
 	t.NotNil(newCfg)
 	t.Equal(cfg, newCfg)
-	
+
 	// Ask for not existing phase
 	newCfg, err = ps.ConfigurePhase(3, cfg)
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.RoutesProcessConfigPhase)
 	t.ErrorContains(err, process.ErrNoSuchPhase.Error())
-	
+
 }
 
 func (p *ProcessClientSuite) Test_PhaseCount() {
@@ -104,34 +105,20 @@ func (p *ProcessClientSuite) Test_PhaseCount() {
 	h, _ := distillation.NewRest("")
 	srv := httptest.NewServer(h)
 	defer srv.Close()
-	
+
 	ps := distillation.NewProcessClient(srv.URL, 1*time.Second)
 	s, err := ps.GetPhaseCount()
 	t.Nil(err)
 	t.NotNil(s)
 	// Initial value
 	t.EqualValues(3, s.PhaseNumber)
-	
+
 	// Good
 	s.PhaseNumber = 5
 	s, err = ps.ConfigurePhaseCount(s)
 	t.Nil(err)
 	t.EqualValues(5, s.PhaseNumber)
-	
-	// Wrong - phases can't be below or equal 0
-	s.PhaseNumber = 0
-	_, err = ps.ConfigurePhaseCount(s)
-	t.NotNil(err)
-	t.ErrorContains(err, process.ErrPhasesBelowZero.Error())
-	t.ErrorContains(err, distillation.RoutesProcessPhases)
-	
-	// Wrong - phases can't be below or equal 0
-	s.PhaseNumber = -1
-	_, err = ps.ConfigurePhaseCount(s)
-	t.NotNil(err)
-	t.ErrorContains(err, process.ErrPhasesBelowZero.Error())
-	t.ErrorContains(err, distillation.RoutesProcessPhases)
-	
+
 	// So there should be still 5 phases
 	s, err = ps.GetPhaseCount()
 	t.Nil(err)

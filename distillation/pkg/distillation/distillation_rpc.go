@@ -160,7 +160,7 @@ func (r *RPC) GetPhaseCount(ctx context.Context, e *empty.Empty) (*distillationp
 func (r *RPC) GetPhaseConfig(ctx context.Context, number *distillationproto.PhaseNumber) (*distillationproto.ProcessPhaseConfig, error) {
 	logger.Debug("GetPhaseConfig")
 	cfg := r.Distillation.Process.GetConfig()
-	if int(number.Number) >= cfg.PhaseNumber {
+	if uint(number.Number) >= cfg.PhaseNumber {
 		return nil, errors.New("wrong phase number")
 	}
 
@@ -170,9 +170,7 @@ func (r *RPC) GetPhaseConfig(ctx context.Context, number *distillationproto.Phas
 
 func (r *RPC) ConfigurePhaseCount(ctx context.Context, count *distillationproto.ProcessPhaseCount) (*distillationproto.ProcessPhaseCount, error) {
 	logger.Debug("ConfigurePhaseCount")
-	if err := r.Distillation.Process.SetPhases(int(count.Count)); err != nil {
-		return nil, err
-	}
+	r.Distillation.Process.SetPhaseNumber(uint(count.Count))
 	return count, nil
 }
 
@@ -180,7 +178,7 @@ func (r *RPC) ConfigurePhase(ctx context.Context, config *distillationproto.Proc
 	logger.Debug("ConfigurePhaseCount")
 
 	conf := rpcToProcessPhaseConfig(config)
-	if err := r.Distillation.configurePhase(int(config.Number.Number), conf); err != nil {
+	if err := r.Distillation.configurePhase(uint(config.Number.Number), conf); err != nil {
 		return nil, err
 	}
 	return config, nil
@@ -205,21 +203,4 @@ func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.Pr
 	logger.Debug("Status")
 	status := r.Distillation.Status()
 	return processStatusToRPC(status), nil
-}
-
-func (r *RPC) GetComponents(context.Context, *empty.Empty) (*distillationproto.Components, error) {
-	logger.Debug("GetComponents")
-	comp := r.Distillation.Process.Components()
-
-	c := &distillationproto.Components{
-		Sensors: make([]string, len(comp.Sensors)),
-		Heaters: make([]string, len(comp.Heaters)),
-		Outputs: make([]string, len(comp.Outputs)),
-	}
-	copy(c.Sensors, comp.Sensors)
-	copy(c.Heaters, comp.Heaters)
-	copy(c.Outputs, comp.Outputs)
-
-	return c, nil
-
 }

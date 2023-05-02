@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
-	"github.com/a-clap/distillation/pkg/distillation/process"
 	"github.com/a-clap/embedded/pkg/restclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -60,10 +59,6 @@ func (h *ProcessClient) Status() (ProcessStatus, error) {
 	return restclient.Get[ProcessStatus, *Error](h.addr+RoutesProcessStatus, h.timeout)
 }
 
-func (h *ProcessClient) Components() (process.Components, error) {
-	return restclient.Get[process.Components, *Error](h.addr+RoutesProcessComponents, h.timeout)
-}
-
 type ProcessRPCClient struct {
 	timeout time.Duration
 	conn    *grpc.ClientConn
@@ -76,27 +71,6 @@ func NewProcessRPCClient(addr string, timeout time.Duration) (*ProcessRPCClient,
 		return nil, err
 	}
 	return &ProcessRPCClient{timeout: timeout, conn: conn, client: distillationproto.NewProcessClient(conn)}, nil
-}
-
-func (p *ProcessRPCClient) Components() (process.Components, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
-	defer cancel()
-	comp, err := p.client.GetComponents(ctx, &emptypb.Empty{})
-	if err != nil {
-		return process.Components{}, err
-	}
-
-	pComp := process.Components{
-		Sensors: make([]string, len(comp.Sensors)),
-		Heaters: make([]string, len(comp.Heaters)),
-		Outputs: make([]string, len(comp.Outputs)),
-	}
-
-	copy(pComp.Sensors, comp.Sensors)
-	copy(pComp.Heaters, comp.Heaters)
-	copy(pComp.Outputs, comp.Outputs)
-
-	return pComp, nil
 }
 
 func (p *ProcessRPCClient) GetPhaseCount() (ProcessPhaseCount, error) {
@@ -127,7 +101,7 @@ func (p *ProcessRPCClient) ConfigurePhaseCount(count ProcessPhaseCount) (Process
 	if err != nil {
 		return ProcessPhaseCount{}, err
 	}
-	return ProcessPhaseCount{PhaseNumber: int(cfg.Count)}, nil
+	return ProcessPhaseCount{PhaseNumber: uint(cfg.Count)}, nil
 }
 
 func (p *ProcessRPCClient) ConfigurePhase(phaseNumber int, setConfig ProcessPhaseConfig) (ProcessPhaseConfig, error) {

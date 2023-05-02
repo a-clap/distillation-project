@@ -40,8 +40,7 @@ message MoveToNextConfig {
   int32 Type = 1;
   string SensorID = 2;
   float SensorThreshold = 3;
-  int64 TemperatureHoldSeconds = 4;
-  int64 SecondsToMove = 5;
+  int64 TimeLeft = 4;
 }
 
 message HeaterPhaseConfig {
@@ -56,6 +55,7 @@ message GPIOPhaseConfig {
   float THigh = 4;
   float Hysteresis = 5;
   bool Inverted = 6;
+  bool Enabled = 7;
 }
 
 message ProcessConfig{
@@ -92,10 +92,6 @@ message HeaterPhaseStatus {
   int32  Power = 2;
 }
 
-message MoveToNextStatusTime {
-  int64 TimeLeft = 1;
-}
-
 message MoveToNextStatusTemperature {
   string SensorID = 1;
   float SensorThreshold = 2;
@@ -104,7 +100,7 @@ message MoveToNextStatusTemperature {
 
 message MoveToNextStatus {
   int32 Type = 1;
-  MoveToNextStatusTime Time = 2;
+  int64 TimeLeft = 2;
   MoveToNextStatusTemperature Temperature = 3;
 }
 

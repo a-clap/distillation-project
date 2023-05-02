@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
-	"github.com/a-clap/distillation/pkg/distillation/process"
+	"github.com/a-clap/distillation/pkg/process"
 	"github.com/a-clap/embedded/pkg/ds18b20"
 	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/a-clap/embedded/pkg/gpio"
@@ -155,20 +155,19 @@ func ptTemperatureToRPC(t []PTTemperature) *distillationproto.PTTemperatures {
 }
 
 func rpcToProcessPhaseCount(cnt *distillationproto.ProcessPhaseCount) ProcessPhaseCount {
-	return ProcessPhaseCount{PhaseNumber: int(cnt.Count)}
+	return ProcessPhaseCount{PhaseNumber: uint(cnt.Count)}
 }
 
 func rpcToProcessPhaseConfig(cfg *distillationproto.ProcessPhaseConfig) ProcessPhaseConfig {
 	c := ProcessPhaseConfig{PhaseConfig: process.PhaseConfig{
 		Next: process.MoveToNextConfig{
-			Type:                   process.MoveToNextType(cfg.Next.Type),
-			SensorID:               cfg.Next.SensorID,
-			SensorThreshold:        float64(cfg.Next.SensorThreshold),
-			TemperatureHoldSeconds: cfg.Next.TemperatureHoldSeconds,
-			SecondsToMove:          cfg.Next.SecondsToMove,
+			Type:            process.MoveToNextType(cfg.Next.Type),
+			SensorID:        cfg.Next.SensorID,
+			SensorThreshold: float64(cfg.Next.SensorThreshold),
+			TimeLeft:        cfg.Next.TimeLeft,
 		},
 		Heaters: make([]process.HeaterPhaseConfig, len(cfg.Heaters)),
-		GPIO:    make([]process.GPIOPhaseConfig, len(cfg.GPIO)),
+		GPIO:    make([]process.GPIOConfig, len(cfg.GPIO)),
 	},
 	}
 	for i, heater := range cfg.Heaters {
@@ -178,7 +177,8 @@ func rpcToProcessPhaseConfig(cfg *distillationproto.ProcessPhaseConfig) ProcessP
 		}
 	}
 	for i, gp := range cfg.GPIO {
-		c.GPIO[i] = process.GPIOPhaseConfig{
+		c.GPIO[i] = process.GPIOConfig{
+			Enabled:    gp.Enabled,
 			ID:         gp.ID,
 			SensorID:   gp.SensorID,
 			TLow:       float64(gp.TLow),
@@ -194,11 +194,10 @@ func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillatio
 	cfg := &distillationproto.ProcessPhaseConfig{
 		Number: &distillationproto.PhaseNumber{Number: int32(number)},
 		Next: &distillationproto.MoveToNextConfig{
-			Type:                   int32(config.Next.Type),
-			SensorID:               config.Next.SensorID,
-			SensorThreshold:        float32(config.Next.SensorThreshold),
-			TemperatureHoldSeconds: config.Next.TemperatureHoldSeconds,
-			SecondsToMove:          config.Next.SecondsToMove,
+			Type:            int32(config.Next.Type),
+			SensorID:        config.Next.SensorID,
+			SensorThreshold: float32(config.Next.SensorThreshold),
+			TimeLeft:        config.Next.TimeLeft,
 		},
 		Heaters: make([]*distillationproto.HeaterPhaseConfig, len(config.Heaters)),
 		GPIO:    make([]*distillationproto.GPIOPhaseConfig, len(config.GPIO)),
@@ -243,18 +242,15 @@ func rpcToProcessStatus(status *distillationproto.ProcessStatus) ProcessStatus {
 	s := ProcessStatus{process.Status{
 		Running:     status.Running,
 		Done:        status.Done,
-		PhaseNumber: int(status.PhaseNumber),
+		PhaseNumber: uint(status.PhaseNumber),
 		StartTime:   time.Unix(status.StartTime, 0),
 		EndTime:     time.Unix(status.EndTime, 0),
 		Next: process.MoveToNextStatus{
-			Type: process.MoveToNextType(status.Next.Type),
-			Time: process.MoveToNextStatusTime{
-				TimeLeft: status.Next.Time.TimeLeft,
-			},
+			Type:     process.MoveToNextType(status.Next.Type),
+			TimeLeft: status.Next.TimeLeft,
 			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        status.Next.Temperature.SensorID,
 				SensorThreshold: float64(status.Next.Temperature.SensorThreshold),
-				TimeLeft:        status.Next.Temperature.TimeLeft,
 			},
 		},
 		Heaters:     make([]process.HeaterPhaseStatus, len(status.Heaters)),
@@ -295,12 +291,11 @@ func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
 		StartTime:   status.StartTime.Unix(),
 		EndTime:     status.StartTime.Unix(),
 		Next: &distillationproto.MoveToNextStatus{
-			Type: int32(status.Next.Type),
-			Time: &distillationproto.MoveToNextStatusTime{TimeLeft: status.Next.Time.TimeLeft},
+			Type:     int32(status.Next.Type),
+			TimeLeft: status.Next.TimeLeft,
 			Temperature: &distillationproto.MoveToNextStatusTemperature{
 				SensorID:        status.Next.Temperature.SensorID,
 				SensorThreshold: float32(status.Next.Temperature.SensorThreshold),
-				TimeLeft:        status.Next.Temperature.TimeLeft,
 			}},
 		Heaters:     make([]*distillationproto.HeaterPhaseStatus, len(status.Heaters)),
 		Temperature: make([]*distillationproto.TemperaturePhaseStatus, len(status.Temperature)),
