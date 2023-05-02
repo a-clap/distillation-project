@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
+	"github.com/a-clap/distillation/pkg/process"
 	"github.com/a-clap/embedded/pkg/restclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -149,4 +150,39 @@ func (p *ProcessRPCClient) Status() (ProcessStatus, error) {
 		return ProcessStatus{}, err
 	}
 	return rpcToProcessStatus(status), nil
+}
+
+func (p *ProcessRPCClient) GlobalConfig() (process.Config, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+
+	global, err := p.client.GetGlobalConfig(ctx, &emptypb.Empty{})
+	if err != nil {
+		return process.Config{}, err
+	}
+
+	cfg := process.Config{
+		PhaseNumber: uint(global.Count),
+		Phases:      make([]process.PhaseConfig, len(global.PhaseConfig)),
+		GlobalGPIO:  make([]process.GPIOConfig, len(global.GlobalGPIOConfig)),
+		Sensors:     global.Sensors,
+	}
+
+	for i, gpio := range global.GlobalGPIOConfig {
+		cfg.GlobalGPIO[i] = process.GPIOConfig{
+			Enabled:    gpio.Enabled,
+			ID:         gpio.ID,
+			SensorID:   gpio.SensorID,
+			TLow:       float64(gpio.TLow),
+			THigh:      float64(gpio.THigh),
+			Hysteresis: float64(gpio.Hysteresis),
+			Inverted:   gpio.Inverted,
+		}
+	}
+
+	for i, elem := range global.PhaseConfig {
+		cfg.Phases[i] = rpcToProcessPhaseConfig(elem).PhaseConfig
+	}
+
+	return cfg, nil
 }

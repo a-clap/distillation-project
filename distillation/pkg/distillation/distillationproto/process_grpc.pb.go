@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProcessClient interface {
+	GetGlobalConfig(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessGlobalConfig, error)
 	GetPhaseCount(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessPhaseCount, error)
 	GetPhaseConfig(ctx context.Context, in *PhaseNumber, opts ...grpc.CallOption) (*ProcessPhaseConfig, error)
 	ConfigurePhaseCount(ctx context.Context, in *ProcessPhaseCount, opts ...grpc.CallOption) (*ProcessPhaseCount, error)
@@ -39,6 +40,15 @@ type processClient struct {
 
 func NewProcessClient(cc grpc.ClientConnInterface) ProcessClient {
 	return &processClient{cc}
+}
+
+func (c *processClient) GetGlobalConfig(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessGlobalConfig, error) {
+	out := new(ProcessGlobalConfig)
+	err := c.cc.Invoke(ctx, "/distillationproto.Process/GetGlobalConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *processClient) GetPhaseCount(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessPhaseCount, error) {
@@ -117,6 +127,7 @@ func (c *processClient) GetComponents(ctx context.Context, in *empty.Empty, opts
 // All implementations must embed UnimplementedProcessServer
 // for forward compatibility
 type ProcessServer interface {
+	GetGlobalConfig(context.Context, *empty.Empty) (*ProcessGlobalConfig, error)
 	GetPhaseCount(context.Context, *empty.Empty) (*ProcessPhaseCount, error)
 	GetPhaseConfig(context.Context, *PhaseNumber) (*ProcessPhaseConfig, error)
 	ConfigurePhaseCount(context.Context, *ProcessPhaseCount) (*ProcessPhaseCount, error)
@@ -132,6 +143,9 @@ type ProcessServer interface {
 type UnimplementedProcessServer struct {
 }
 
+func (UnimplementedProcessServer) GetGlobalConfig(context.Context, *empty.Empty) (*ProcessGlobalConfig, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGlobalConfig not implemented")
+}
 func (UnimplementedProcessServer) GetPhaseCount(context.Context, *empty.Empty) (*ProcessPhaseCount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPhaseCount not implemented")
 }
@@ -167,6 +181,24 @@ type UnsafeProcessServer interface {
 
 func RegisterProcessServer(s grpc.ServiceRegistrar, srv ProcessServer) {
 	s.RegisterService(&Process_ServiceDesc, srv)
+}
+
+func _Process_GetGlobalConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessServer).GetGlobalConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/distillationproto.Process/GetGlobalConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessServer).GetGlobalConfig(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Process_GetPhaseCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -320,6 +352,10 @@ var Process_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "distillationproto.Process",
 	HandlerType: (*ProcessServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetGlobalConfig",
+			Handler:    _Process_GetGlobalConfig_Handler,
+		},
 		{
 			MethodName: "GetPhaseCount",
 			Handler:    _Process_GetPhaseCount_Handler,

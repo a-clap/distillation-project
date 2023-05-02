@@ -204,3 +204,32 @@ func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.Pr
 	status := r.Distillation.Status()
 	return processStatusToRPC(status), nil
 }
+func (r *RPC) GetGlobalConfig(context.Context, *empty.Empty) (*distillationproto.ProcessGlobalConfig, error) {
+	cfg := r.Distillation.Process.GetConfig()
+	globalConfig := &distillationproto.ProcessGlobalConfig{
+		Count:            int32(cfg.PhaseNumber),
+		PhaseConfig:      make([]*distillationproto.ProcessPhaseConfig, len(cfg.Phases)),
+		GlobalGPIOConfig: make([]*distillationproto.GPIOPhaseConfig, len(cfg.GlobalGPIO)),
+		Sensors:          cfg.Sensors,
+	}
+
+	for i, gpio := range cfg.GlobalGPIO {
+		globalConfig.GlobalGPIOConfig[i] = &distillationproto.GPIOPhaseConfig{
+			ID:         gpio.ID,
+			SensorID:   gpio.SensorID,
+			TLow:       float32(gpio.TLow),
+			THigh:      float32(gpio.THigh),
+			Hysteresis: float32(gpio.Hysteresis),
+			Inverted:   gpio.Inverted,
+			Enabled:    gpio.Enabled,
+		}
+	}
+
+	for i, conf := range cfg.Phases {
+		globalConfig.PhaseConfig[i] = processPhaseConfigToRpc(i, ProcessPhaseConfig{conf})
+	}
+
+	globalConfig.Sensors = cfg.Sensors
+	return globalConfig, nil
+
+}

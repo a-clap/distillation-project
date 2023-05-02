@@ -8,6 +8,7 @@ option java_multiple_files = true;
 package distillationproto;
 
 service Process {
+  rpc GetGlobalConfig(google.protobuf.Empty) returns (ProcessGlobalConfig) {}
   rpc GetPhaseCount(google.protobuf.Empty) returns (ProcessPhaseCount) {}
   rpc GetPhaseConfig(PhaseNumber) returns (ProcessPhaseConfig) {}
   rpc ConfigurePhaseCount(ProcessPhaseCount) returns (ProcessPhaseCount) {}
@@ -24,6 +25,12 @@ message ProcessPhaseCount {
 
 message PhaseNumber {
   int32 Number = 1;
+}
+message ProcessGlobalConfig {
+    int32  Count = 1;
+    repeated ProcessPhaseConfig PhaseConfig = 2;
+    repeated GPIOPhaseConfig GlobalGPIOConfig = 3;
+    repeated string Sensors = 4;
 }
 message ProcessPhaseConfig {
   PhaseNumber Number = 1;
