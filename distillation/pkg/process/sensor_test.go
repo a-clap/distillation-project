@@ -1,10 +1,10 @@
-package process2
+package process
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/a-clap/distillation/pkg/process2/mocks"
+	"github.com/a-clap/distillation/pkg/process/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

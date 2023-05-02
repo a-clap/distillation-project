@@ -1,4 +1,4 @@
-package process2
+package process
 
 //go:generate mockgen -destination=mocks/mocks.go -package=mocks . Clock,Heater,Sensor,Output
 
@@ -64,6 +64,22 @@ func (p *Process) Process() (Status, error) {
 
 func (p *Process) Running() bool {
 	return p.running.Load()
+}
+
+func (p *Process) MoveToNext() (Status, error) {
+	if !p.Running() {
+		return Status{}, ErrNotRunning
+	}
+	p.moveToPhase(p.status.PhaseNumber + 1)
+	return p.status, nil
+}
+
+func (p *Process) Finish() (Status, error) {
+	if !p.Running() {
+		return Status{}, ErrNotRunning
+	}
+	p.finish()
+	return p.status, nil
 }
 
 func (p *Process) SetPhaseConfig(nb uint, conf PhaseConfig) error {

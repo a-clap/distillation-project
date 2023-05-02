@@ -1,4 +1,4 @@
-package process2
+package process
 
 type Option func(p *Process)
 

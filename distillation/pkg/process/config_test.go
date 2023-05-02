@@ -1,10 +1,10 @@
-package process2_test
+package process_test
 
 import (
 	"testing"
 
-	"github.com/a-clap/distillation/pkg/process2"
-	"github.com/a-clap/distillation/pkg/process2/mocks"
+	"github.com/a-clap/distillation/pkg/process"
+	"github.com/a-clap/distillation/pkg/process/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/slices"
@@ -20,7 +20,7 @@ func TestProcess(t *testing.T) {
 
 func (pcs *ProcessConfigSuite) TestSetPhases() {
 	t := pcs.Require()
-	p := process2.New()
+	p := process.New()
 
 	p.SetPhaseNumber(5)
 	cfg := p.GetConfig()
@@ -52,14 +52,14 @@ func (pcs *ProcessConfigSuite) TestGPIOGlobalConfig() {
 		name         string
 		sensorIDs    []string
 		outputs      []string
-		globalConfig []process2.GPIOConfig
+		globalConfig []process.GPIOConfig
 		err          error
 	}{
 		{
 			name:      "duplicated ID",
 			sensorIDs: nil,
 			outputs:   nil,
-			globalConfig: []process2.GPIOConfig{
+			globalConfig: []process.GPIOConfig{
 				{
 					ID: "o1",
 				},
@@ -67,36 +67,36 @@ func (pcs *ProcessConfigSuite) TestGPIOGlobalConfig() {
 					ID: "o1",
 				},
 			},
-			err: process2.ErrDuplicatedID,
+			err: process.ErrDuplicatedID,
 		},
 		{
 			name:      "no such GPIO",
 			sensorIDs: nil,
 			outputs:   nil,
-			globalConfig: []process2.GPIOConfig{
+			globalConfig: []process.GPIOConfig{
 				{
 					ID: "o1",
 				},
 			},
-			err: process2.ErrWrongGpioID,
+			err: process.ErrWrongGpioID,
 		},
 		{
 			name:      "no such sensor",
 			sensorIDs: nil,
 			outputs:   []string{"o1"},
-			globalConfig: []process2.GPIOConfig{
+			globalConfig: []process.GPIOConfig{
 				{
 					ID:       "o1",
 					SensorID: "s1",
 				},
 			},
-			err: process2.ErrWrongSensorID,
+			err: process.ErrWrongSensorID,
 		},
 		{
 			name:      "all good",
 			sensorIDs: []string{"s1"},
 			outputs:   []string{"o1"},
-			globalConfig: []process2.GPIOConfig{
+			globalConfig: []process.GPIOConfig{
 				{
 					ID:       "o1",
 					SensorID: "s1",
@@ -108,9 +108,9 @@ func (pcs *ProcessConfigSuite) TestGPIOGlobalConfig() {
 	for _, arg := range args {
 		ctrl := gomock.NewController(pcs.T())
 
-		pr := process2.New()
+		pr := process.New()
 		if arg.sensorIDs != nil {
-			sensors := make([]process2.Sensor, len(arg.sensorIDs))
+			sensors := make([]process.Sensor, len(arg.sensorIDs))
 			for i, elem := range arg.sensorIDs {
 				sensor := mocks.NewMockSensor(ctrl)
 				sensor.EXPECT().ID().Return(elem).AnyTimes()
@@ -120,7 +120,7 @@ func (pcs *ProcessConfigSuite) TestGPIOGlobalConfig() {
 		}
 
 		if arg.outputs != nil {
-			outputs := make([]process2.Output, len(arg.outputs))
+			outputs := make([]process.Output, len(arg.outputs))
 			for i, elem := range arg.outputs {
 				output := mocks.NewMockOutput(ctrl)
 				output.EXPECT().ID().Return(elem).AnyTimes()
@@ -170,10 +170,10 @@ func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 	t := pcs.Require()
 	for _, arg := range args {
 		ctrl := gomock.NewController(pcs.T())
-		pr := process2.New()
+		pr := process.New()
 
 		if arg.sensorIDs != nil {
-			sensors := make([]process2.Sensor, len(arg.sensorIDs))
+			sensors := make([]process.Sensor, len(arg.sensorIDs))
 			for i, elem := range arg.sensorIDs {
 				sensor := mocks.NewMockSensor(ctrl)
 				sensor.EXPECT().ID().Return(elem).AnyTimes()
@@ -183,7 +183,7 @@ func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 		}
 
 		if arg.heaterIDs != nil {
-			heaters := make([]process2.Heater, len(arg.heaterIDs))
+			heaters := make([]process.Heater, len(arg.heaterIDs))
 			for i, elem := range arg.heaterIDs {
 				heater := mocks.NewMockHeater(ctrl)
 				heater.EXPECT().ID().Return(elem).AnyTimes()
@@ -193,7 +193,7 @@ func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 		}
 
 		if arg.outputIDs != nil {
-			outputs := make([]process2.Output, len(arg.outputIDs))
+			outputs := make([]process.Output, len(arg.outputIDs))
 			for i, elem := range arg.outputIDs {
 				output := mocks.NewMockOutput(ctrl)
 				output.EXPECT().ID().Return(elem).AnyTimes()
@@ -207,7 +207,7 @@ func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 		// Global GPIO
 		t.Len(cfg.GlobalGPIO, len(arg.outputIDs), arg.name)
 		for _, id := range arg.outputIDs {
-			got := slices.ContainsFunc(cfg.GlobalGPIO, func(config process2.GPIOConfig) bool {
+			got := slices.ContainsFunc(cfg.GlobalGPIO, func(config process.GPIOConfig) bool {
 				return config.ID == id
 			})
 			t.True(got, "should contain ID: "+id)
@@ -217,7 +217,7 @@ func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 			// GPIO
 			t.Len(elem.GPIO, len(arg.outputIDs), arg.name, i)
 			for _, id := range arg.outputIDs {
-				got := slices.ContainsFunc(elem.GPIO, func(config process2.GPIOConfig) bool {
+				got := slices.ContainsFunc(elem.GPIO, func(config process.GPIOConfig) bool {
 					return config.ID == id
 				})
 				t.True(got, "should contain ID: "+id)
@@ -225,7 +225,7 @@ func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 			// Heaters
 			t.Len(elem.Heaters, len(arg.heaterIDs), arg.name, i)
 			for _, id := range arg.heaterIDs {
-				got := slices.ContainsFunc(elem.Heaters, func(config process2.HeaterPhaseConfig) bool {
+				got := slices.ContainsFunc(elem.Heaters, func(config process.HeaterPhaseConfig) bool {
 					return config.ID == id
 				})
 				t.True(got, "should contain ID: "+id)
@@ -243,42 +243,42 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 	args := []struct {
 		name          string
 		heaterIDs     []string
-		heatersConfig []process2.HeaterPhaseConfig
+		heatersConfig []process.HeaterPhaseConfig
 		err           error
 	}{
 		{
 			name:      "wrong id of heater",
 			heaterIDs: []string{"h1"},
-			heatersConfig: []process2.HeaterPhaseConfig{
+			heatersConfig: []process.HeaterPhaseConfig{
 				{
 					ID:    "h2",
 					Power: 13,
 				},
 			},
-			err: process2.ErrWrongHeaterID,
+			err: process.ErrWrongHeaterID,
 		},
 		{
 			name:      "power of heater over 100",
 			heaterIDs: []string{"h1"},
-			heatersConfig: []process2.HeaterPhaseConfig{
+			heatersConfig: []process.HeaterPhaseConfig{
 				{
 					ID:    "h1",
 					Power: 101,
 				},
 			},
-			err: process2.ErrWrongHeaterPower,
+			err: process.ErrWrongHeaterPower,
 		},
 		{
 			name:          "lack of heater configuration",
 			heaterIDs:     []string{"h1"},
 			heatersConfig: nil,
-			err:           process2.ErrHeaterConfigDiffersFromHeatersLen,
+			err:           process.ErrHeaterConfigDiffersFromHeatersLen,
 		},
 
 		{
 			name:      "all good",
 			heaterIDs: []string{"h1"},
-			heatersConfig: []process2.HeaterPhaseConfig{
+			heatersConfig: []process.HeaterPhaseConfig{
 				{
 					ID:    "h1",
 					Power: 15,
@@ -289,9 +289,9 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 	}
 	for _, arg := range args {
 		// Always good config - except heaters
-		phaseConfig := process2.PhaseConfig{
-			Next: process2.MoveToNextConfig{
-				Type:            process2.ByTime,
+		phaseConfig := process.PhaseConfig{
+			Next: process.MoveToNextConfig{
+				Type:            process.ByTime,
 				SensorID:        "",
 				SensorThreshold: 0,
 				TimeLeft:        3,
@@ -300,9 +300,9 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 			GPIO:    nil,
 		}
 		ctrl := gomock.NewController(pcs.T())
-		pr := process2.New()
+		pr := process.New()
 		if arg.heaterIDs != nil {
-			heaters := make([]process2.Heater, len(arg.heaterIDs))
+			heaters := make([]process.Heater, len(arg.heaterIDs))
 			for i, elem := range arg.heaterIDs {
 				heater := mocks.NewMockHeater(ctrl)
 				heater.EXPECT().ID().Return(elem).AnyTimes()
@@ -313,7 +313,7 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_HeatersError() {
 
 		s := mocks.NewMockSensor(ctrl)
 		s.EXPECT().ID().Return("s1").AnyTimes()
-		pr.UpdateSensors([]process2.Sensor{s})
+		pr.UpdateSensors([]process.Sensor{s})
 
 		phaseConfig.Heaters = arg.heatersConfig
 
@@ -337,46 +337,46 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 		name       string
 		outputIDs  []string
 		sensorIDs  []string
-		gpioConfig []process2.GPIOConfig
+		gpioConfig []process.GPIOConfig
 		err        error
 	}{
 		{
 			name:      "wrong id of gpio",
 			outputIDs: []string{"h2"},
 			sensorIDs: []string{"s1"},
-			gpioConfig: []process2.GPIOConfig{
+			gpioConfig: []process.GPIOConfig{
 				{
 					ID:       "h2",
 					SensorID: "s2",
 				},
 			},
-			err: process2.ErrWrongSensorID,
+			err: process.ErrWrongSensorID,
 		},
 		{
 			name:      "wrong gpio ID",
 			outputIDs: []string{"g1"},
 			sensorIDs: []string{"s1"},
-			gpioConfig: []process2.GPIOConfig{
+			gpioConfig: []process.GPIOConfig{
 				{
 					ID:       "g2",
 					SensorID: "s1",
 				},
 			},
-			err: process2.ErrWrongGpioID,
+			err: process.ErrWrongGpioID,
 		},
 		{
 			name:       "lack of gpio config",
 			outputIDs:  []string{"g1"},
 			sensorIDs:  []string{"s1"},
 			gpioConfig: nil,
-			err:        process2.ErrDifferentGPIOSConfig,
+			err:        process.ErrDifferentGPIOSConfig,
 		},
 
 		{
 			name:      "all good",
 			outputIDs: []string{"h1"},
 			sensorIDs: []string{"s1"},
-			gpioConfig: []process2.GPIOConfig{
+			gpioConfig: []process.GPIOConfig{
 				{
 					ID:       "h1",
 					SensorID: "s1",
@@ -387,23 +387,23 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 	}
 	for _, arg := range args {
 		// Always good config - except heaters
-		phaseConfig := process2.PhaseConfig{
-			Next: process2.MoveToNextConfig{
-				Type:            process2.ByTime,
+		phaseConfig := process.PhaseConfig{
+			Next: process.MoveToNextConfig{
+				Type:            process.ByTime,
 				SensorID:        "",
 				SensorThreshold: 0,
 				TimeLeft:        3,
 			},
-			Heaters: []process2.HeaterPhaseConfig{
+			Heaters: []process.HeaterPhaseConfig{
 				{ID: "h1", Power: 13},
 			},
 			GPIO: nil,
 		}
 		ctrl := gomock.NewController(pcs.T())
-		pr := process2.New()
+		pr := process.New()
 
 		if arg.sensorIDs != nil {
-			sensors := make([]process2.Sensor, len(arg.sensorIDs))
+			sensors := make([]process.Sensor, len(arg.sensorIDs))
 			for i, elem := range arg.sensorIDs {
 				sensor := mocks.NewMockSensor(ctrl)
 				sensor.EXPECT().ID().Return(elem).AnyTimes()
@@ -413,7 +413,7 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 		}
 
 		if arg.outputIDs != nil {
-			outputs := make([]process2.Output, len(arg.outputIDs))
+			outputs := make([]process.Output, len(arg.outputIDs))
 			for i, elem := range arg.outputIDs {
 				output := mocks.NewMockOutput(ctrl)
 				output.EXPECT().ID().Return(elem).AnyTimes()
@@ -424,7 +424,7 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_GPIOErrors() {
 		{
 			heater := mocks.NewMockHeater(ctrl)
 			heater.EXPECT().ID().Return("h1").AnyTimes()
-			pr.UpdateHeaters([]process2.Heater{heater})
+			pr.UpdateHeaters([]process.Heater{heater})
 		}
 		phaseConfig.GPIO = arg.gpioConfig
 		pr.SetPhaseNumber(1)
@@ -446,36 +446,36 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_NextConfig() {
 
 	args := []struct {
 		name             string
-		moveToNextConfig process2.MoveToNextConfig
+		moveToNextConfig process.MoveToNextConfig
 		sensorIDs        []string
 		err              error
 	}{
 		{
 			name: "byTime - time can't be 0",
-			moveToNextConfig: process2.MoveToNextConfig{
-				Type:            process2.ByTime,
+			moveToNextConfig: process.MoveToNextConfig{
+				Type:            process.ByTime,
 				SensorID:        "",
 				SensorThreshold: 0,
 				TimeLeft:        0,
 			},
 			sensorIDs: []string{"s1"},
-			err:       process2.ErrByTimeWrongTime,
+			err:       process.ErrByTimeWrongTime,
 		},
 		{
 			name: "byTime - seconds under 0",
-			moveToNextConfig: process2.MoveToNextConfig{
-				Type:            process2.ByTime,
+			moveToNextConfig: process.MoveToNextConfig{
+				Type:            process.ByTime,
 				SensorID:        "",
 				SensorThreshold: 0,
 				TimeLeft:        -1,
 			},
 			sensorIDs: []string{"s1"},
-			err:       process2.ErrByTimeWrongTime,
+			err:       process.ErrByTimeWrongTime,
 		},
 		{
 			name: "byTime - all good",
-			moveToNextConfig: process2.MoveToNextConfig{
-				Type:            process2.ByTime,
+			moveToNextConfig: process.MoveToNextConfig{
+				Type:            process.ByTime,
 				SensorID:        "",
 				SensorThreshold: 0,
 				TimeLeft:        1,
@@ -485,30 +485,30 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_NextConfig() {
 		},
 		{
 			name: "byTemperature - wrong sensor",
-			moveToNextConfig: process2.MoveToNextConfig{
-				Type:            process2.ByTemperature,
+			moveToNextConfig: process.MoveToNextConfig{
+				Type:            process.ByTemperature,
 				SensorID:        "s2",
 				SensorThreshold: 0,
 				TimeLeft:        0,
 			},
 			sensorIDs: []string{"s1"},
-			err:       process2.ErrByTemperatureWrongID,
+			err:       process.ErrByTemperatureWrongID,
 		},
 		{
 			name: "byTemperature - weird type",
-			moveToNextConfig: process2.MoveToNextConfig{
-				Type:            process2.MoveToNextType(3),
+			moveToNextConfig: process.MoveToNextConfig{
+				Type:            process.MoveToNextType(3),
 				SensorID:        "s1",
 				SensorThreshold: 0,
 				TimeLeft:        0,
 			},
 			sensorIDs: []string{"s1"},
-			err:       process2.ErrUnknownType,
+			err:       process.ErrUnknownType,
 		},
 		{
 			name: "byTemperature - all good, threshold/hold can be 0",
-			moveToNextConfig: process2.MoveToNextConfig{
-				Type:            process2.ByTemperature,
+			moveToNextConfig: process.MoveToNextConfig{
+				Type:            process.ByTemperature,
 				SensorID:        "s1",
 				SensorThreshold: 0,
 				TimeLeft:        0,
@@ -519,23 +519,23 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_NextConfig() {
 	}
 	for _, arg := range args {
 		// Always good config - except Next
-		phaseConfig := process2.PhaseConfig{
-			Next: process2.MoveToNextConfig{
+		phaseConfig := process.PhaseConfig{
+			Next: process.MoveToNextConfig{
 				Type:            0,
 				SensorID:        "",
 				SensorThreshold: 0,
 				TimeLeft:        0,
 			},
-			Heaters: []process2.HeaterPhaseConfig{
+			Heaters: []process.HeaterPhaseConfig{
 				{ID: "h1", Power: 13},
 			},
 			GPIO: nil,
 		}
-		pr := process2.New()
+		pr := process.New()
 		ctrl := gomock.NewController(pcs.T())
 
 		if arg.sensorIDs != nil {
-			sensors := make([]process2.Sensor, len(arg.sensorIDs))
+			sensors := make([]process.Sensor, len(arg.sensorIDs))
 			for i, elem := range arg.sensorIDs {
 				sensor := mocks.NewMockSensor(ctrl)
 				sensor.EXPECT().ID().Return(elem).AnyTimes()
@@ -546,7 +546,7 @@ func (pcs *ProcessConfigSuite) TestConfigurePhase_NextConfig() {
 		{
 			heater := mocks.NewMockHeater(ctrl)
 			heater.EXPECT().ID().Return("h1").AnyTimes()
-			pr.UpdateHeaters([]process2.Heater{heater})
+			pr.UpdateHeaters([]process.Heater{heater})
 		}
 
 		phaseConfig.Next = arg.moveToNextConfig

@@ -1,4 +1,4 @@
-package process2
+package process
 
 type endCondition interface {
 	end() (bool, int64)

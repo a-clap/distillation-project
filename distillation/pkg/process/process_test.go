@@ -1,11 +1,11 @@
-package process2_test
+package process_test
 
 import (
 	"errors"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/process2"
-	"github.com/a-clap/distillation/pkg/process2/mocks"
+	"github.com/a-clap/distillation/pkg/process"
+	"github.com/a-clap/distillation/pkg/process/mocks"
 	"github.com/golang/mock/gomock"
 )
 
@@ -15,40 +15,40 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 
 	heaterMock := mocks.NewMockHeater(ctrl)
 	heaterMock.EXPECT().ID().Return("h1").AnyTimes()
-	heaters := []process2.Heater{heaterMock}
+	heaters := []process.Heater{heaterMock}
 
 	sensorMock := mocks.NewMockSensor(ctrl)
 	sensorMock.EXPECT().ID().Return("s1").AnyTimes()
-	sensors := []process2.Sensor{sensorMock}
+	sensors := []process.Sensor{sensorMock}
 
 	outputMock := mocks.NewMockOutput(ctrl)
 	outputMock.EXPECT().ID().Return("o1").AnyTimes()
-	outputs := []process2.Output{outputMock}
+	outputs := []process.Output{outputMock}
 
 	clockMock := mocks.NewMockClock(ctrl)
 
-	p := process2.New(process2.WithClock(clockMock))
+	p := process.New(process.WithClock(clockMock))
 	p.UpdateOutputs(outputs)
 	p.UpdateHeaters(heaters)
 	p.UpdateSensors(sensors)
 
-	cfg := process2.Config{
+	cfg := process.Config{
 		PhaseNumber: 2,
-		Phases: []process2.PhaseConfig{
+		Phases: []process.PhaseConfig{
 			{
-				Next: process2.MoveToNextConfig{
-					Type:            process2.ByTime,
+				Next: process.MoveToNextConfig{
+					Type:            process.ByTime,
 					SensorID:        "",
 					SensorThreshold: 0,
 					TimeLeft:        100,
 				},
-				Heaters: []process2.HeaterPhaseConfig{
+				Heaters: []process.HeaterPhaseConfig{
 					{
 						ID:    "h1",
 						Power: 13,
 					},
 				},
-				GPIO: []process2.GPIOConfig{
+				GPIO: []process.GPIOConfig{
 					{
 						Enabled:    true,
 						ID:         "o1",
@@ -61,19 +61,19 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 				},
 			},
 			{
-				Next: process2.MoveToNextConfig{
-					Type:            process2.ByTemperature,
+				Next: process.MoveToNextConfig{
+					Type:            process.ByTemperature,
 					SensorID:        "s1",
 					SensorThreshold: 75.0,
 					TimeLeft:        10,
 				},
-				Heaters: []process2.HeaterPhaseConfig{
+				Heaters: []process.HeaterPhaseConfig{
 					{
 						ID:    "h1",
 						Power: 40,
 					},
 				},
-				GPIO: []process2.GPIOConfig{
+				GPIO: []process.GPIOConfig{
 					{
 						Enabled:    true,
 						ID:         "o1",
@@ -86,7 +86,7 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 				},
 			},
 		},
-		GlobalGPIO: []process2.GPIOConfig{
+		GlobalGPIO: []process.GPIOConfig{
 			{
 				Enabled:    false,
 				ID:         "o1",
@@ -113,32 +113,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 	outputMock.EXPECT().Set(false).Return(nil)
 	s, err := p.Run()
 	t.Nil(err)
-	expectedStatus := process2.Status{
+	expectedStatus := process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(retTime, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    100,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: false,
@@ -156,32 +156,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 	outputMock.EXPECT().Set(false).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    95,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: false,
@@ -207,32 +207,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    490,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 56,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -250,35 +250,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 1,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 10,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 40,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -299,35 +299,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 1,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 500,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 40,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 77.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -348,35 +348,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 1,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 700,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 40,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 77.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -393,40 +393,40 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 
 	heaterMock := mocks.NewMockHeater(ctrl)
 	heaterMock.EXPECT().ID().Return("h1").AnyTimes()
-	heaters := []process2.Heater{heaterMock}
+	heaters := []process.Heater{heaterMock}
 
 	sensorMock := mocks.NewMockSensor(ctrl)
 	sensorMock.EXPECT().ID().Return("s1").AnyTimes()
-	sensors := []process2.Sensor{sensorMock}
+	sensors := []process.Sensor{sensorMock}
 
 	outputMock := mocks.NewMockOutput(ctrl)
 	outputMock.EXPECT().ID().Return("o1").AnyTimes()
-	outputs := []process2.Output{outputMock}
+	outputs := []process.Output{outputMock}
 
 	clockMock := mocks.NewMockClock(ctrl)
 
-	p := process2.New(process2.WithClock(clockMock))
+	p := process.New(process.WithClock(clockMock))
 	p.UpdateHeaters(heaters)
 	p.UpdateOutputs(outputs)
 	p.UpdateSensors(sensors)
 
-	cfg := process2.Config{
+	cfg := process.Config{
 		PhaseNumber: 1,
-		Phases: []process2.PhaseConfig{
+		Phases: []process.PhaseConfig{
 			{
-				Next: process2.MoveToNextConfig{
-					Type:            process2.ByTime,
+				Next: process.MoveToNextConfig{
+					Type:            process.ByTime,
 					SensorID:        "",
 					SensorThreshold: 0,
 					TimeLeft:        100,
 				},
-				Heaters: []process2.HeaterPhaseConfig{
+				Heaters: []process.HeaterPhaseConfig{
 					{
 						ID:    "h1",
 						Power: 13,
 					},
 				},
-				GPIO: []process2.GPIOConfig{
+				GPIO: []process.GPIOConfig{
 					{
 						Enabled:    true,
 						ID:         "o1",
@@ -439,7 +439,7 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 				},
 			},
 		},
-		GlobalGPIO: []process2.GPIOConfig{
+		GlobalGPIO: []process.GPIOConfig{
 			{
 				Enabled:    false,
 				ID:         "o1",
@@ -469,32 +469,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(false).Return(nil)
 	s, err := p.Run()
 	t.Nil(err)
-	expectedStatus := process2.Status{
+	expectedStatus := process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(retTime, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    100,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: false,
@@ -512,32 +512,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    95,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 15.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -555,32 +555,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    83,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 21,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -598,32 +598,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    83,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 9,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -641,32 +641,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(false).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    83,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 8.9,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: false,
@@ -684,32 +684,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(false).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    83,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 9.9,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: false,
@@ -727,32 +727,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(true).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    83,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 10.0,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: true,
@@ -771,32 +771,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	outputMock.EXPECT().Set(false).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     false,
 		Done:        true,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Unix(retTime, 0),
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    0,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 0,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 100.1,
 			},
 		},
-		GPIO: []process2.GPIOPhaseStatus{
+		GPIO: []process.GPIOPhaseStatus{
 			{
 				ID:    "o1",
 				State: false,
@@ -812,27 +812,27 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	ctrl := gomock.NewController(pcs.T())
 
 	clockMock := mocks.NewMockClock(ctrl)
-	p := process2.New(process2.WithClock(clockMock))
+	p := process.New(process.WithClock(clockMock))
 
 	heater := mocks.NewMockHeater(ctrl)
 	heater.EXPECT().ID().Return("h1").AnyTimes()
-	p.UpdateHeaters([]process2.Heater{heater})
+	p.UpdateHeaters([]process.Heater{heater})
 
 	sensor := mocks.NewMockSensor(ctrl)
 	sensor.EXPECT().ID().Return("s1").AnyTimes()
-	p.UpdateSensors([]process2.Sensor{sensor})
+	p.UpdateSensors([]process.Sensor{sensor})
 
-	cfg := process2.Config{
+	cfg := process.Config{
 		PhaseNumber: 1,
-		Phases: []process2.PhaseConfig{
+		Phases: []process.PhaseConfig{
 			{
-				Next: process2.MoveToNextConfig{
-					Type:            process2.ByTemperature,
+				Next: process.MoveToNextConfig{
+					Type:            process.ByTemperature,
 					SensorID:        "s1",
 					SensorThreshold: 75.0,
 					TimeLeft:        10,
 				},
-				Heaters: []process2.HeaterPhaseConfig{
+				Heaters: []process.HeaterPhaseConfig{
 					{
 						ID:    "h1",
 						Power: 13,
@@ -858,35 +858,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err := p.Run()
 	t.Nil(err)
-	expectedStatus := process2.Status{
+	expectedStatus := process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(retTime, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 10,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -898,35 +898,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 10,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 74.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -938,35 +938,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 10,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 75.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -978,35 +978,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 8,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 100.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -1018,35 +1018,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 10,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 74.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -1058,35 +1058,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 10,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 75.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -1099,35 +1099,35 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTemperature() {
 	heater.EXPECT().SetPower(0).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     false,
 		Done:        true,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Unix(retTime, 0),
-		Next: process2.MoveToNextStatus{
-			Type:     process2.ByTemperature,
+		Next: process.MoveToNextStatus{
+			Type:     process.ByTemperature,
 			TimeLeft: 0,
-			Temperature: process2.MoveToNextStatusTemperature{
+			Temperature: process.MoveToNextStatusTemperature{
 				SensorID:        "s1",
 				SensorThreshold: 75.0,
 			},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 0,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 75.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -1138,27 +1138,27 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTime() {
 	ctrl := gomock.NewController(pcs.T())
 
 	clock := mocks.NewMockClock(ctrl)
-	p := process2.New(process2.WithClock(clock))
+	p := process.New(process.WithClock(clock))
 
 	heater := mocks.NewMockHeater(ctrl)
 	heater.EXPECT().ID().Return("h1").AnyTimes()
-	p.UpdateHeaters([]process2.Heater{heater})
+	p.UpdateHeaters([]process.Heater{heater})
 
 	sensor := mocks.NewMockSensor(ctrl)
 	sensor.EXPECT().ID().Return("s1").AnyTimes()
-	p.UpdateSensors([]process2.Sensor{sensor})
+	p.UpdateSensors([]process.Sensor{sensor})
 
-	cfg := process2.Config{
+	cfg := process.Config{
 		PhaseNumber: 1,
-		Phases: []process2.PhaseConfig{
+		Phases: []process.PhaseConfig{
 			{
-				Next: process2.MoveToNextConfig{
-					Type:            process2.ByTime,
+				Next: process.MoveToNextConfig{
+					Type:            process.ByTime,
 					SensorID:        "",
 					SensorThreshold: 0,
 					TimeLeft:        100,
 				},
-				Heaters: []process2.HeaterPhaseConfig{
+				Heaters: []process.HeaterPhaseConfig{
 					{
 						ID:    "h1",
 						Power: 13,
@@ -1184,32 +1184,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTime() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err := p.Run()
 	t.Nil(err)
-	expectedStatus := process2.Status{
+	expectedStatus := process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(retTime, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    100,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 1.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -1221,32 +1221,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTime() {
 	heater.EXPECT().SetPower(13).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    95,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 13,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 100.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
@@ -1259,27 +1259,27 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTime() {
 	heater.EXPECT().SetPower(13).Return(pwrErr)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     true,
 		Done:        false,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Time{},
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    1,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			// Empty, because error happened
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 150.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	// Check without errors,
@@ -1298,32 +1298,32 @@ func (pcs *ProcessConfigSuite) TestHappyPath_SinglePhaseByTime() {
 	heater.EXPECT().SetPower(0).Return(nil)
 	s, err = p.Process()
 	t.Nil(err)
-	expectedStatus = process2.Status{
+	expectedStatus = process.Status{
 		Running:     false,
 		Done:        true,
 		PhaseNumber: 0,
 		StartTime:   time.Unix(0, 0),
 		EndTime:     time.Unix(retTime, 0),
-		Next: process2.MoveToNextStatus{
-			Type:        process2.ByTime,
+		Next: process.MoveToNextStatus{
+			Type:        process.ByTime,
 			TimeLeft:    0,
-			Temperature: process2.MoveToNextStatusTemperature{},
+			Temperature: process.MoveToNextStatusTemperature{},
 		},
-		Heaters: []process2.HeaterPhaseStatus{
+		Heaters: []process.HeaterPhaseStatus{
 			{
-				process2.HeaterPhaseConfig{
+				process.HeaterPhaseConfig{
 					ID:    "h1",
 					Power: 0,
 				},
 			},
 		},
-		Temperature: []process2.TemperaturePhaseStatus{
+		Temperature: []process.TemperaturePhaseStatus{
 			{
 				ID:          "s1",
 				Temperature: 100.1,
 			},
 		},
-		GPIO:   []process2.GPIOPhaseStatus{},
+		GPIO:   []process.GPIOPhaseStatus{},
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
