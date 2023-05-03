@@ -67,7 +67,6 @@ func (d *Distillation) Close() {
 	close(d.finish)
 	for range d.finished {
 	}
-
 }
 
 func (d *Distillation) updateTemperatures() {
@@ -107,7 +106,7 @@ func (d *Distillation) updateTemperatures() {
 		}()
 	}
 	wg.Wait()
-	close(d.finish)
+	close(d.finished)
 }
 
 func (d *Distillation) handleProcess() {

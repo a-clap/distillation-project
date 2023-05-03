@@ -5,6 +5,10 @@
 
 package distillation
 
+import (
+	"time"
+)
+
 type Option func(*Distillation) error
 
 func WithHeaters(heaters Heaters) Option {
@@ -47,5 +51,12 @@ func WithPT(pt PT) Option {
 			h.PTHandler.subscribe(h.updateSensors)
 		}
 		return err
+	}
+}
+
+func WithInterval(interval time.Duration) Option {
+	return func(d *Distillation) error {
+		d.runInterval = interval
+		return nil
 	}
 }
