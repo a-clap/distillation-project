@@ -115,7 +115,30 @@ func (p *ProcessRPCClient) ConfigurePhase(phaseNumber int, setConfig ProcessPhas
 		return ProcessPhaseConfig{}, err
 	}
 	return rpcToProcessPhaseConfig(cfg), nil
+}
 
+func (p *ProcessRPCClient) ConfigureGlobalGPIO(gpios []process.GPIOConfig) ([]process.GPIOConfig, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+
+	rpcConf := &distillationproto.GlobalGPIOConfig{
+		Configs: make([]*distillationproto.GPIOPhaseConfig, len(gpios)),
+	}
+	for i, gp := range gpios {
+		rpcConf.Configs[i] = gpioPhaseConfigToRpc(gp)
+	}
+
+	cfg, err := p.client.ConfigureGlobalGPIO(ctx, rpcConf)
+	if err != nil {
+		return nil, err
+	}
+
+	gpios = make([]process.GPIOConfig, len(cfg.Configs))
+	for i, gp := range cfg.Configs {
+		gpios[i] = rpcToGPIOPhaseConfig(gp)
+	}
+
+	return gpios, nil
 }
 
 func (p *ProcessRPCClient) ValidateConfig() (ProcessConfigValidation, error) {
@@ -134,7 +157,7 @@ func (p *ProcessRPCClient) ConfigureProcess(cfg ProcessConfig) (ProcessConfig, e
 	defer cancel()
 
 	conf := processConfigToRpc(cfg)
-	conf, err := p.client.ConfigureProcess(ctx, conf)
+	conf, err := p.client.EnableProcess(ctx, conf)
 	if err != nil {
 		return ProcessConfig{}, err
 	}

@@ -177,19 +177,33 @@ func rpcToProcessPhaseConfig(cfg *distillationproto.ProcessPhaseConfig) ProcessP
 		}
 	}
 	for i, gp := range cfg.GPIO {
-		c.GPIO[i] = process.GPIOConfig{
-			Enabled:    gp.Enabled,
-			ID:         gp.ID,
-			SensorID:   gp.SensorID,
-			TLow:       float64(gp.TLow),
-			THigh:      float64(gp.THigh),
-			Hysteresis: float64(gp.Hysteresis),
-			Inverted:   gp.Inverted,
-		}
+		c.GPIO[i] = rpcToGPIOPhaseConfig(gp)
 	}
 	return c
 }
 
+func rpcToGPIOPhaseConfig(gp *distillationproto.GPIOPhaseConfig) process.GPIOConfig {
+	return process.GPIOConfig{
+		Enabled:    gp.Enabled,
+		ID:         gp.ID,
+		SensorID:   gp.SensorID,
+		TLow:       float64(gp.TLow),
+		THigh:      float64(gp.THigh),
+		Hysteresis: float64(gp.Hysteresis),
+		Inverted:   gp.Inverted,
+	}
+}
+func gpioPhaseConfigToRpc(gp process.GPIOConfig) *distillationproto.GPIOPhaseConfig {
+	return &distillationproto.GPIOPhaseConfig{
+		ID:         gp.ID,
+		SensorID:   gp.SensorID,
+		TLow:       float32(gp.TLow),
+		THigh:      float32(gp.THigh),
+		Hysteresis: float32(gp.Hysteresis),
+		Inverted:   gp.Inverted,
+		Enabled:    gp.Enabled,
+	}
+}
 func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillationproto.ProcessPhaseConfig {
 	cfg := &distillationproto.ProcessPhaseConfig{
 		Number: &distillationproto.PhaseNumber{Number: int32(number)},
@@ -209,15 +223,7 @@ func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillatio
 		}
 	}
 	for i, gp := range config.GPIO {
-		cfg.GPIO[i] = &distillationproto.GPIOPhaseConfig{
-			Enabled:    gp.Enabled,
-			ID:         gp.ID,
-			SensorID:   gp.SensorID,
-			TLow:       float32(gp.TLow),
-			THigh:      float32(gp.THigh),
-			Hysteresis: float32(gp.Hysteresis),
-			Inverted:   gp.Inverted,
-		}
+		cfg.GPIO[i] = gpioPhaseConfigToRpc(gp)
 	}
 
 	return cfg

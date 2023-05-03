@@ -29,9 +29,9 @@ type ProcessClient interface {
 	ConfigurePhaseCount(ctx context.Context, in *ProcessPhaseCount, opts ...grpc.CallOption) (*ProcessPhaseCount, error)
 	ConfigurePhase(ctx context.Context, in *ProcessPhaseConfig, opts ...grpc.CallOption) (*ProcessPhaseConfig, error)
 	ValidateConfig(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessConfigValidation, error)
-	ConfigureProcess(ctx context.Context, in *ProcessConfig, opts ...grpc.CallOption) (*ProcessConfig, error)
+	ConfigureGlobalGPIO(ctx context.Context, in *GlobalGPIOConfig, opts ...grpc.CallOption) (*GlobalGPIOConfig, error)
+	EnableProcess(ctx context.Context, in *ProcessConfig, opts ...grpc.CallOption) (*ProcessConfig, error)
 	Status(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessStatus, error)
-	GetComponents(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Components, error)
 }
 
 type processClient struct {
@@ -96,9 +96,18 @@ func (c *processClient) ValidateConfig(ctx context.Context, in *empty.Empty, opt
 	return out, nil
 }
 
-func (c *processClient) ConfigureProcess(ctx context.Context, in *ProcessConfig, opts ...grpc.CallOption) (*ProcessConfig, error) {
+func (c *processClient) ConfigureGlobalGPIO(ctx context.Context, in *GlobalGPIOConfig, opts ...grpc.CallOption) (*GlobalGPIOConfig, error) {
+	out := new(GlobalGPIOConfig)
+	err := c.cc.Invoke(ctx, "/distillationproto.Process/ConfigureGlobalGPIO", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *processClient) EnableProcess(ctx context.Context, in *ProcessConfig, opts ...grpc.CallOption) (*ProcessConfig, error) {
 	out := new(ProcessConfig)
-	err := c.cc.Invoke(ctx, "/distillationproto.Process/ConfigureProcess", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/distillationproto.Process/EnableProcess", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -108,15 +117,6 @@ func (c *processClient) ConfigureProcess(ctx context.Context, in *ProcessConfig,
 func (c *processClient) Status(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ProcessStatus, error) {
 	out := new(ProcessStatus)
 	err := c.cc.Invoke(ctx, "/distillationproto.Process/Status", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *processClient) GetComponents(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Components, error) {
-	out := new(Components)
-	err := c.cc.Invoke(ctx, "/distillationproto.Process/GetComponents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -133,9 +133,9 @@ type ProcessServer interface {
 	ConfigurePhaseCount(context.Context, *ProcessPhaseCount) (*ProcessPhaseCount, error)
 	ConfigurePhase(context.Context, *ProcessPhaseConfig) (*ProcessPhaseConfig, error)
 	ValidateConfig(context.Context, *empty.Empty) (*ProcessConfigValidation, error)
-	ConfigureProcess(context.Context, *ProcessConfig) (*ProcessConfig, error)
+	ConfigureGlobalGPIO(context.Context, *GlobalGPIOConfig) (*GlobalGPIOConfig, error)
+	EnableProcess(context.Context, *ProcessConfig) (*ProcessConfig, error)
 	Status(context.Context, *empty.Empty) (*ProcessStatus, error)
-	GetComponents(context.Context, *empty.Empty) (*Components, error)
 	mustEmbedUnimplementedProcessServer()
 }
 
@@ -161,14 +161,14 @@ func (UnimplementedProcessServer) ConfigurePhase(context.Context, *ProcessPhaseC
 func (UnimplementedProcessServer) ValidateConfig(context.Context, *empty.Empty) (*ProcessConfigValidation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateConfig not implemented")
 }
-func (UnimplementedProcessServer) ConfigureProcess(context.Context, *ProcessConfig) (*ProcessConfig, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigureProcess not implemented")
+func (UnimplementedProcessServer) ConfigureGlobalGPIO(context.Context, *GlobalGPIOConfig) (*GlobalGPIOConfig, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfigureGlobalGPIO not implemented")
+}
+func (UnimplementedProcessServer) EnableProcess(context.Context, *ProcessConfig) (*ProcessConfig, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableProcess not implemented")
 }
 func (UnimplementedProcessServer) Status(context.Context, *empty.Empty) (*ProcessStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
-}
-func (UnimplementedProcessServer) GetComponents(context.Context, *empty.Empty) (*Components, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetComponents not implemented")
 }
 func (UnimplementedProcessServer) mustEmbedUnimplementedProcessServer() {}
 
@@ -291,20 +291,38 @@ func _Process_ValidateConfig_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Process_ConfigureProcess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Process_ConfigureGlobalGPIO_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GlobalGPIOConfig)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessServer).ConfigureGlobalGPIO(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/distillationproto.Process/ConfigureGlobalGPIO",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessServer).ConfigureGlobalGPIO(ctx, req.(*GlobalGPIOConfig))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Process_EnableProcess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProcessConfig)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProcessServer).ConfigureProcess(ctx, in)
+		return srv.(ProcessServer).EnableProcess(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/distillationproto.Process/ConfigureProcess",
+		FullMethod: "/distillationproto.Process/EnableProcess",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProcessServer).ConfigureProcess(ctx, req.(*ProcessConfig))
+		return srv.(ProcessServer).EnableProcess(ctx, req.(*ProcessConfig))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -323,24 +341,6 @@ func _Process_Status_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProcessServer).Status(ctx, req.(*empty.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Process_GetComponents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProcessServer).GetComponents(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/distillationproto.Process/GetComponents",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProcessServer).GetComponents(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -377,16 +377,16 @@ var Process_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Process_ValidateConfig_Handler,
 		},
 		{
-			MethodName: "ConfigureProcess",
-			Handler:    _Process_ConfigureProcess_Handler,
+			MethodName: "ConfigureGlobalGPIO",
+			Handler:    _Process_ConfigureGlobalGPIO_Handler,
+		},
+		{
+			MethodName: "EnableProcess",
+			Handler:    _Process_EnableProcess_Handler,
 		},
 		{
 			MethodName: "Status",
 			Handler:    _Process_Status_Handler,
-		},
-		{
-			MethodName: "GetComponents",
-			Handler:    _Process_GetComponents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

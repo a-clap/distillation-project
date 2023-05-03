@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
+	"github.com/a-clap/distillation/pkg/process"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )
@@ -215,5 +216,24 @@ func (r *RPC) GetGlobalConfig(context.Context, *empty.Empty) (*distillationproto
 
 	globalConfig.Sensors = cfg.Sensors
 	return globalConfig, nil
+}
 
+func (r *RPC) ConfigureGlobalGPIO(ctx context.Context, c *distillationproto.GlobalGPIOConfig) (*distillationproto.GlobalGPIOConfig, error) {
+	config := make([]process.GPIOConfig, len(c.Configs))
+	for i, conf := range c.Configs {
+		config[i] = rpcToGPIOPhaseConfig(conf)
+	}
+
+	if err := r.Distillation.Process.SetGPIOGlobalConfig(config); err != nil {
+		return nil, err
+	}
+
+	newConf := r.Distillation.Process.GetConfig().GlobalGPIO
+	proto := new(distillationproto.GlobalGPIOConfig)
+	proto.Configs = make([]*distillationproto.GPIOPhaseConfig, len(newConf))
+	for i, conf := range newConf {
+		proto.Configs[i] = gpioPhaseConfigToRpc(conf)
+	}
+
+	return proto, nil
 }

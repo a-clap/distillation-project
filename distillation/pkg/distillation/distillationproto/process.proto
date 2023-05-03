@@ -14,9 +14,9 @@ service Process {
   rpc ConfigurePhaseCount(ProcessPhaseCount) returns (ProcessPhaseCount) {}
   rpc ConfigurePhase(ProcessPhaseConfig) returns (ProcessPhaseConfig) {}
   rpc ValidateConfig(google.protobuf.Empty) returns (ProcessConfigValidation) {}
-  rpc ConfigureProcess(ProcessConfig) returns (ProcessConfig) {}
+  rpc ConfigureGlobalGPIO(GlobalGPIOConfig) returns (GlobalGPIOConfig){}
+  rpc EnableProcess(ProcessConfig) returns (ProcessConfig) {}
   rpc Status(google.protobuf.Empty) returns  (ProcessStatus) {}
-  rpc GetComponents(google.protobuf.Empty) returns (Components) {}
 }
 
 message ProcessPhaseCount {
@@ -32,6 +32,11 @@ message ProcessGlobalConfig {
     repeated GPIOPhaseConfig GlobalGPIOConfig = 3;
     repeated string Sensors = 4;
 }
+
+message GlobalGPIOConfig {
+  repeated GPIOPhaseConfig Configs = 1;
+}
+
 message ProcessPhaseConfig {
   PhaseNumber Number = 1;
   MoveToNextConfig Next = 2;
@@ -111,8 +116,3 @@ message MoveToNextStatus {
   MoveToNextStatusTemperature Temperature = 3;
 }
 
-message Components {
-  repeated string Sensors = 1;
-  repeated string Heaters = 2;
-  repeated string Outputs = 3;
-}
