@@ -48,6 +48,12 @@ func New(opts ...Option) (*Distillation, error) {
 		}
 	}
 	h.Process = process.New()
+
+	// Update process with enabled components
+	h.safeUpdateHeaters()
+	h.safeUpdateSensors()
+	h.safeUpdateOutputs()
+
 	return h, nil
 }
 

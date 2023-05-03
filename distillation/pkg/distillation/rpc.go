@@ -210,6 +210,7 @@ func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillatio
 	}
 	for i, gp := range config.GPIO {
 		cfg.GPIO[i] = &distillationproto.GPIOPhaseConfig{
+			Enabled:    gp.Enabled,
 			ID:         gp.ID,
 			SensorID:   gp.SensorID,
 			TLow:       float32(gp.TLow),

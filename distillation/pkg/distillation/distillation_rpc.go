@@ -53,7 +53,6 @@ func (r *RPC) Close() {
 }
 
 func (r *RPC) GPIOGet(ctx context.Context, empty *empty.Empty) (*distillationproto.GPIOConfigs, error) {
-	logger.Debug("GPIOGet")
 	g := r.Distillation.GPIOHandler.Config()
 	configs := make([]*distillationproto.GPIOConfig, len(g))
 	for i, elem := range g {
@@ -63,7 +62,6 @@ func (r *RPC) GPIOGet(ctx context.Context, empty *empty.Empty) (*distillationpro
 }
 
 func (r *RPC) GPIOConfigure(ctx context.Context, cfg *distillationproto.GPIOConfig) (*distillationproto.GPIOConfig, error) {
-	logger.Debug("GPIOConfigure")
 	config := rpcToGPIOConfig(cfg)
 	newCfg, err := r.Distillation.GPIOHandler.Configure(config)
 	if err != nil {
@@ -74,7 +72,6 @@ func (r *RPC) GPIOConfigure(ctx context.Context, cfg *distillationproto.GPIOConf
 }
 
 func (r *RPC) DSGet(ctx context.Context, e *empty.Empty) (*distillationproto.DSConfigs, error) {
-	logger.Debug("DSGet")
 	g := r.Distillation.DSHandler.GetSensors()
 
 	configs := make([]*distillationproto.DSConfig, len(g))
@@ -85,7 +82,6 @@ func (r *RPC) DSGet(ctx context.Context, e *empty.Empty) (*distillationproto.DSC
 }
 
 func (r *RPC) DSConfigure(ctx context.Context, config *distillationproto.DSConfig) (*distillationproto.DSConfig, error) {
-	logger.Debug("DSConfigure")
 	cfg := rpcToDSConfig(config)
 	newCfg, err := r.Distillation.DSHandler.ConfigureSensor(cfg)
 	if err != nil {
@@ -95,13 +91,11 @@ func (r *RPC) DSConfigure(ctx context.Context, config *distillationproto.DSConfi
 }
 
 func (r *RPC) DSGetTemperatures(ctx context.Context, e *empty.Empty) (*distillationproto.DSTemperatures, error) {
-	logger.Debug("DSGetTemperatures")
 	t := r.Distillation.DSHandler.Temperatures()
 	return dsTemperatureToRPC(t), nil
 }
 
 func (r *RPC) HeaterGet(ctx context.Context, e *empty.Empty) (*distillationproto.HeaterConfigs, error) {
-	logger.Debug("HeaterGet")
 	g := r.Distillation.HeatersHandler.ConfigsGlobal()
 
 	configs := make([]*distillationproto.HeaterConfig, len(g))
@@ -112,7 +106,6 @@ func (r *RPC) HeaterGet(ctx context.Context, e *empty.Empty) (*distillationproto
 }
 
 func (r *RPC) HeaterConfigure(ctx context.Context, config *distillationproto.HeaterConfig) (*distillationproto.HeaterConfig, error) {
-	logger.Debug("HeaterConfigure")
 	cfg := rpcToHeaterConfig(config)
 	newCfg, err := r.Distillation.HeatersHandler.ConfigureGlobal(cfg)
 	if err != nil {
@@ -123,7 +116,6 @@ func (r *RPC) HeaterConfigure(ctx context.Context, config *distillationproto.Hea
 }
 
 func (r *RPC) PTGet(ctx context.Context, e *empty.Empty) (*distillationproto.PTConfigs, error) {
-	logger.Debug("PTGet")
 	g := r.Distillation.PTHandler.GetSensors()
 
 	configs := make([]*distillationproto.PTConfig, len(g))
@@ -144,13 +136,11 @@ func (r *RPC) PTConfigure(ctx context.Context, config *distillationproto.PTConfi
 }
 
 func (r *RPC) PTGetTemperatures(ctx context.Context, e *empty.Empty) (*distillationproto.PTTemperatures, error) {
-	logger.Debug("PTGetTemperatures")
 	t := r.Distillation.PTHandler.Temperatures()
 	return ptTemperatureToRPC(t), nil
 }
 
 func (r *RPC) GetPhaseCount(ctx context.Context, e *empty.Empty) (*distillationproto.ProcessPhaseCount, error) {
-	logger.Debug("GetPhaseCount")
 	cfg := r.Distillation.Process.GetConfig()
 	s := &distillationproto.ProcessPhaseCount{Count: int32(cfg.PhaseNumber)}
 	return s, nil
@@ -169,14 +159,11 @@ func (r *RPC) GetPhaseConfig(ctx context.Context, number *distillationproto.Phas
 }
 
 func (r *RPC) ConfigurePhaseCount(ctx context.Context, count *distillationproto.ProcessPhaseCount) (*distillationproto.ProcessPhaseCount, error) {
-	logger.Debug("ConfigurePhaseCount")
 	r.Distillation.Process.SetPhaseNumber(uint(count.Count))
 	return count, nil
 }
 
 func (r *RPC) ConfigurePhase(ctx context.Context, config *distillationproto.ProcessPhaseConfig) (*distillationproto.ProcessPhaseConfig, error) {
-	logger.Debug("ConfigurePhaseCount")
-
 	conf := rpcToProcessPhaseConfig(config)
 	if err := r.Distillation.configurePhase(uint(config.Number.Number), conf); err != nil {
 		return nil, err
@@ -185,13 +172,11 @@ func (r *RPC) ConfigurePhase(ctx context.Context, config *distillationproto.Proc
 }
 
 func (r *RPC) ValidateConfig(ctx context.Context, e *empty.Empty) (*distillationproto.ProcessConfigValidation, error) {
-	logger.Debug("ValidateConfig")
 	v := r.Distillation.ValidateConfig()
 	return &distillationproto.ProcessConfigValidation{Valid: v.Valid, Error: v.Error}, nil
 }
 
 func (r *RPC) ConfigureProcess(ctx context.Context, config *distillationproto.ProcessConfig) (*distillationproto.ProcessConfig, error) {
-	logger.Debug("ConfigureProcess")
 	conf := rpcToProcessConfig(config)
 	if err := r.Distillation.ConfigureProcess(conf); err != nil {
 		return nil, err
@@ -200,7 +185,6 @@ func (r *RPC) ConfigureProcess(ctx context.Context, config *distillationproto.Pr
 }
 
 func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.ProcessStatus, error) {
-	logger.Debug("Status")
 	status := r.Distillation.Status()
 	return processStatusToRPC(status), nil
 }

@@ -7,9 +7,10 @@ package distillation
 
 import (
 	"errors"
-	
+
 	"github.com/a-clap/embedded/pkg/ds18b20"
 	"github.com/a-clap/embedded/pkg/embedded"
+	"github.com/a-clap/logging"
 )
 
 var (
@@ -112,7 +113,7 @@ func (d *DSHandler) History() []embedded.DSTemperature {
 		}
 		var data []ds18b20.Readings
 		data, v.temps.Readings = v.temps.Readings[0:length-1], v.temps.Readings[length-1:]
-		
+
 		t = append(t, embedded.DSTemperature{
 			Readings: data,
 		})
@@ -124,7 +125,12 @@ func (d *DSHandler) History() []embedded.DSTemperature {
 func (d *DSHandler) Temperatures() []DSTemperature {
 	t := make([]DSTemperature, 0, len(d.sensors))
 	for id := range d.sensors {
-		temp, _ := d.Temperature(id)
+		temp, err := d.Temperature(id)
+		if err != nil {
+			logger.Debug("error on DS temperature ", logging.String("id", id), logging.String("error", err.Error()))
+			continue
+		}
+
 		t = append(t, DSTemperature{
 			ID:          id,
 			Temperature: temp,
@@ -139,7 +145,7 @@ func (d *DSHandler) Temperature(id string) (float64, error) {
 	if !ok {
 		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoSuchID.Error()}
 	}
-	
+
 	size := len(ds.temps.Readings)
 	if size == 0 {
 		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoTemps.Error()}
@@ -187,7 +193,7 @@ func (d *DSHandler) init() error {
 	if err != nil {
 		return &DSError{Op: "init.Get", Err: err.Error()}
 	}
-	
+
 	for _, ds := range sensors {
 		id := ds.ID
 		cfg := &DSConfig{

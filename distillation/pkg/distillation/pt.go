@@ -8,9 +8,10 @@ package distillation
 import (
 	"errors"
 	"time"
-	
+
 	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/a-clap/embedded/pkg/max31865"
+	"github.com/a-clap/logging"
 )
 
 var (
@@ -111,7 +112,7 @@ func (p *PTHandler) History() []embedded.PTTemperature {
 		}
 		var data []max31865.Readings
 		data, v.temps.Readings = v.temps.Readings[0:length-1], v.temps.Readings[length-1:]
-		
+
 		t = append(t, embedded.PTTemperature{
 			Readings: data,
 		})
@@ -123,7 +124,12 @@ func (p *PTHandler) History() []embedded.PTTemperature {
 func (p *PTHandler) Temperatures() []PTTemperature {
 	t := make([]PTTemperature, 0, len(p.sensors))
 	for id := range p.sensors {
-		temp, _ := p.Temperature(id)
+		temp, err := p.Temperature(id)
+		if err != nil {
+			logger.Debug("error on pt temperature ", logging.String("id", id), logging.String("error", err.Error()))
+			continue
+		}
+
 		t = append(t, PTTemperature{
 			ID:          id,
 			Temperature: temp,
@@ -138,7 +144,7 @@ func (p *PTHandler) Temperature(id string) (float64, error) {
 	if !ok {
 		return 0.0, &PTError{ID: id, Op: "Temperature", Err: ErrNoSuchID.Error()}
 	}
-	
+
 	size := len(pt.temps.Readings)
 	if size == 0 {
 		return 0.0, &PTError{ID: id, Op: "Temperature", Err: ErrNoTemps.Error()}
@@ -179,7 +185,7 @@ func (p *PTHandler) GetSensors() []PTConfig {
 }
 
 func (p *PTHandler) init() error {
-	
+
 	if p.PT == nil {
 		return &PTError{Op: "init", Err: ErrNoPTInterface.Error()}
 	}
@@ -187,7 +193,7 @@ func (p *PTHandler) init() error {
 	if err != nil {
 		return &PTError{Op: "init.Get", Err: err.Error()}
 	}
-	
+
 	for _, pt := range sensors {
 		id := pt.ID
 		cfg := &PTConfig{
