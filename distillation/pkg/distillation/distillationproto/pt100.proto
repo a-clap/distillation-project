@@ -16,6 +16,7 @@ service PT {
 message PTConfigs {
   repeated PTConfig configs = 1;
 }
+
 message PTConfig {
   string ID = 1;
   string Name = 2;
@@ -33,4 +34,6 @@ message PTTemperatures {
 message PTTemperature {
   string ID = 1;
   float Temperature = 2;
+  int64 Stamp = 3;
+  int32 ErrorCode = 4;
 }

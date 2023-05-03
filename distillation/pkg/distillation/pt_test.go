@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation"
 	"github.com/a-clap/embedded/pkg/embedded"
 	"github.com/a-clap/embedded/pkg/max31865"
@@ -222,14 +222,14 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 		h, err := distillation.NewRest("", distillation.WithPT(m))
 		r.NotNil(h)
 		r.Nil(err)
-		
+
 		recorder := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, distillation.RoutesGetPT, nil)
-		
+
 		h.ServeHTTP(recorder, request)
 		r.Equal(http.StatusOK, recorder.Code, arg.name)
 		var retCfg []distillation.PTConfig
-		
+
 		r.Nil(json.NewDecoder(recorder.Body).Decode(&retCfg), arg.name)
 	}
 }
@@ -239,7 +239,7 @@ func (t *PTTestSuite) TestTemperature_REST() {
 		name                 string
 		onGet                []embedded.PTSensorConfig
 		onTemperatures       []embedded.PTTemperature
-		expectedTemperatures []distillation.PTTemperature
+		expectedTemperatures []distillation.Temperature
 	}{
 		{
 			name: "return average",
@@ -260,7 +260,7 @@ func (t *PTTestSuite) TestTemperature_REST() {
 					Stamp:       time.Time{},
 					Error:       "",
 				}}}},
-			expectedTemperatures: []distillation.PTTemperature{{
+			expectedTemperatures: []distillation.Temperature{{
 				ID:          "1",
 				Temperature: 123.0,
 			}}}, {
@@ -296,30 +296,30 @@ func (t *PTTestSuite) TestTemperature_REST() {
 					Stamp:       time.Time{},
 					Error:       "",
 				}}}},
-			expectedTemperatures: []distillation.PTTemperature{{
+			expectedTemperatures: []distillation.Temperature{{
 				ID:          "1",
 				Temperature: 123.0,
 			}}}}
-	
+
 	r := t.Require()
 	for _, arg := range args {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewRest("", distillation.WithPT(m))
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.PTHandler.Update(), 0, arg.name)
-		
+
 		recorder := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, distillation.RoutesGetPTTemperatures, nil)
-		
+
 		h.ServeHTTP(recorder, request)
 		r.Equal(http.StatusOK, recorder.Code, arg.name)
-		var retCfg []distillation.PTTemperature
-		
+		var retCfg []distillation.Temperature
+
 		r.Nil(json.NewDecoder(recorder.Body).Decode(&retCfg), arg.name)
 	}
 }
@@ -405,14 +405,14 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 		m.On("Configure", arg.newConfig.PTSensorConfig).Return(arg.newConfig.PTSensorConfig, arg.onSetErr)
 		h, err := distillation.NewRest("", distillation.WithPT(m))
 		r.Nil(err, arg.name)
-		
+
 		recorder := httptest.NewRecorder()
 		var body bytes.Buffer
 		r.Nil(json.NewEncoder(&body).Encode(arg.newConfig))
-		
+
 		request, _ := http.NewRequest(http.MethodPut, distillation.RoutesConfigurePT, &body)
 		request.Header.Add("Content-Type", "application/json")
-		
+
 		h.ServeHTTP(recorder, request)
 		if arg.errContains != "" {
 			err := distillation.Error{}
@@ -421,11 +421,11 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 			r.Contains(err.Detail, arg.errContains, arg.name)
 			continue
 		}
-		
+
 		r.Equal(http.StatusOK, recorder.Code, recorder.Body.String())
 		retCfg := distillation.PTConfig{}
 		r.Nil(json.NewDecoder(recorder.Body).Decode(&retCfg), arg.name)
-		
+
 		r.Equal(arg.newConfig, retCfg, arg.name)
 	}
 }
@@ -635,25 +635,25 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.Update(), 0, arg.name)
 		history := h.History()
 		r.ElementsMatch(arg.expectedHistory, history, arg.name)
 		// Second call should be empty without update
 		r.Len(h.History(), 0, arg.name)
-		
+
 		// Now verify args
 		r.Equal(len(arg.ids), len(arg.temps), arg.name)
 		for i := range arg.ids {
-			t, err := h.Temperature(arg.ids[i])
-			r.Nil(err)
-			r.InDelta(arg.temps[i], t, 0.01)
+			t := h.Temperature(arg.ids[i])
+			r.EqualValues(t.Error, 0)
+			r.InDelta(arg.temps[i], t.Temperature, 0.01)
 		}
-		
+
 	}
 }
 func (t *PTTestSuite) TestHistory() {
@@ -922,14 +922,14 @@ func (t *PTTestSuite) TestHistory() {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.Update(), 0, arg.name)
 		history := h.History()
-		
+
 		r.ElementsMatch(arg.expectedHistory, history, arg.name)
 	}
 }
@@ -1030,16 +1030,16 @@ func (t *PTTestSuite) TestTemperature() {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.Update(), 0, arg.name)
-		
-		temp, err := h.Temperature(arg.id)
-		r.Nil(err, arg.name)
-		r.InDelta(arg.expectedTemperature, temp, 0.01, arg.name)
+
+		temp := h.Temperature(arg.id)
+		r.EqualValues(temp.Error, 0, arg.name)
+		r.InDelta(arg.expectedTemperature, temp.Temperature, 0.01, arg.name)
 	}
 }
 
@@ -1105,11 +1105,11 @@ func (t *PTTestSuite) TestUpdate_Errors() {
 		m := new(PTMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, arg.onTemperaturesErr)
-		
+
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		errs := h.Update()
 		r.Len(arg.expectedErr, len(errs), arg.name)
 		for i := range errs {
@@ -1123,7 +1123,7 @@ func (t *PTTestSuite) TestTemperatureErrors() {
 		name        string
 		onGet       []embedded.PTSensorConfig
 		id          string
-		expectedErr error
+		expectedErr distillation.ErrorCode
 	}{
 		{
 			name: "wrong ID",
@@ -1140,7 +1140,7 @@ func (t *PTTestSuite) TestTemperatureErrors() {
 				},
 			},
 			id:          "2",
-			expectedErr: distillation.ErrNoSuchID,
+			expectedErr: distillation.ErrorCodeWrongID,
 		},
 		{
 			name: "no temps",
@@ -1157,7 +1157,7 @@ func (t *PTTestSuite) TestTemperatureErrors() {
 				},
 			},
 			id:          "1",
-			expectedErr: distillation.ErrNoTemps,
+			expectedErr: distillation.ErrorCodeEmptyBuffer,
 		},
 	}
 	r := t.Require()
@@ -1167,10 +1167,9 @@ func (t *PTTestSuite) TestTemperatureErrors() {
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
-		_, err = h.Temperature(arg.id)
-		r.NotNil(err, arg.name)
-		r.ErrorContains(err, arg.expectedErr.Error(), arg.name)
+
+		temp := h.Temperature(arg.id)
+		r.EqualValues(temp.Error, arg.expectedErr, arg.name)
 	}
 }
 
@@ -1268,7 +1267,7 @@ func (t *PTTestSuite) TestConfigureSensor() {
 		m.On("Configure", arg.newConfig.PTSensorConfig).Return(arg.newConfig.PTSensorConfig, arg.onSetErr)
 		pt, err := distillation.NewPTHandler(m)
 		r.Nil(err, arg.name)
-		
+
 		_, err = pt.Configure(arg.newConfig)
 		if arg.errContains != "" {
 			r.ErrorContains(err, arg.errContains, arg.name)
@@ -1450,7 +1449,7 @@ func (t *PTTestSuite) TestGetSensors() {
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.ElementsMatch(arg.expected, h.GetSensors(), arg.name)
 	}
 }
@@ -1484,12 +1483,12 @@ func (t *PTTestSuite) TestNew() {
 				Samples:      1,
 			},
 		}
-		
+
 		m.On("Get").Return([]embedded.PTSensorConfig{sensor}, nil)
 		h, err := distillation.NewPTHandler(m)
 		r.NotNil(h)
 		r.Nil(err)
-		
+
 		sensors := []distillation.PTConfig{{PTSensorConfig: sensor}}
 		r.ElementsMatch(sensors, h.GetSensors())
 	}

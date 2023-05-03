@@ -57,10 +57,12 @@ type PTHandler struct {
 	clients      []ptCallback
 }
 
-// PTTemperature - json returned from rest API
-type PTTemperature struct {
-	ID          string  `json:"ID"`
-	Temperature float64 `json:"temperature"`
+// Temperature - json returned from rest API
+type Temperature struct {
+	ID          string    `json:"ID"`
+	Temperature float64   `json:"temperature"`
+	Stamp       int64     `json:"unix_seconds"`
+	Error       ErrorCode `json:"error_code"`
 }
 
 type ptCallback func()
@@ -121,36 +123,45 @@ func (p *PTHandler) History() []embedded.PTTemperature {
 }
 
 // Temperatures returns last read temperature for all sensors
-func (p *PTHandler) Temperatures() []PTTemperature {
-	t := make([]PTTemperature, 0, len(p.sensors))
+func (p *PTHandler) Temperatures() []Temperature {
+	t := make([]Temperature, 0, len(p.sensors))
 	for id := range p.sensors {
-		temp, err := p.Temperature(id)
-		if err != nil {
-			logger.Debug("error on pt temperature ", logging.String("id", id), logging.String("error", err.Error()))
-			continue
-		}
-
-		t = append(t, PTTemperature{
-			ID:          id,
-			Temperature: temp,
-		})
+		t = append(t, p.Temperature(id))
 	}
 	return t
 }
 
 // Temperature returns last read temperature
-func (p *PTHandler) Temperature(id string) (float64, error) {
+func (p *PTHandler) Temperature(id string) Temperature {
+	t := Temperature{
+		ID:          id,
+		Temperature: 0,
+		Stamp:       0,
+		Error:       0,
+	}
+
 	pt, ok := p.sensors[id]
 	if !ok {
-		return 0.0, &PTError{ID: id, Op: "Temperature", Err: ErrNoSuchID.Error()}
+
+		t.Error = ErrorCodeWrongID
+		return t
 	}
 
 	size := len(pt.temps.Readings)
 	if size == 0 {
-		return 0.0, &PTError{ID: id, Op: "Temperature", Err: ErrNoTemps.Error()}
+		logger.Error("PT.Temperature error", logging.String("id", id), logging.String("error", ErrNoTemps.Error()))
+		t.Error = ErrorCodeEmptyBuffer
+		return t
 	}
-	// Return last temperature
-	return pt.temps.Readings[size-1].Average, nil
+	temp := pt.temps.Readings[size-1]
+	if temp.Error != "" {
+		t.Error = ErrorCodeInternal
+	} else {
+		t.Stamp = temp.Stamp.Unix()
+		t.Temperature = temp.Average
+	}
+
+	return t
 }
 
 func (p *PTHandler) Configure(cfg PTConfig) (PTConfig, error) {

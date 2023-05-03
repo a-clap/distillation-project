@@ -10,6 +10,14 @@ import (
 	"time"
 )
 
+type ErrorCode int
+
+const (
+	ErrorCodeEmptyBuffer ErrorCode = -iota - 1
+	ErrorCodeWrongID
+	ErrorCodeInternal
+)
+
 // Error is common struct returned via rest api
 type Error struct {
 	Title     string    `json:"title"`

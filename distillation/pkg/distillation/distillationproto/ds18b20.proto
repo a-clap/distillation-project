@@ -32,4 +32,6 @@ message DSTemperatures {
 message DSTemperature {
   string ID = 1;
   float Temperature = 2;
+  int64 Stamp = 3;
+  int32 ErrorCode = 4;
 }

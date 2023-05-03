@@ -8,7 +8,7 @@ package distillation
 import (
 	"context"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
 	"github.com/a-clap/embedded/pkg/restclient"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -33,8 +33,8 @@ func (p *PTClient) Configure(setConfig PTConfig) (PTConfig, error) {
 	return restclient.Put[PTConfig, *Error](p.addr+RoutesConfigurePT, p.timeout, setConfig)
 }
 
-func (p *PTClient) Temperatures() ([]PTTemperature, error) {
-	return restclient.Get[[]PTTemperature, *Error](p.addr+RoutesGetPTTemperatures, p.timeout)
+func (p *PTClient) Temperatures() ([]Temperature, error) {
+	return restclient.Get[[]Temperature, *Error](p.addr+RoutesGetPTTemperatures, p.timeout)
 }
 
 type PTRPCClient struct {
@@ -77,7 +77,7 @@ func (g *PTRPCClient) Configure(setConfig PTConfig) (PTConfig, error) {
 	return setConfig, nil
 }
 
-func (g *PTRPCClient) Temperatures() ([]PTTemperature, error) {
+func (g *PTRPCClient) Temperatures() ([]Temperature, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
 	got, err := g.client.PTGetTemperatures(ctx, &empty.Empty{})

@@ -131,13 +131,21 @@ func (d *Distillation) updateSensors() {
 
 	getTempDS := func(id string) func() (float64, error) {
 		return func() (float64, error) {
-			return d.DSHandler.Temperature(id)
+			t := d.DSHandler.Temperature(id)
+			if t.Error != 0 {
+				return 0, errors.New("error on DS Temperature")
+			}
+			return t.Temperature, nil
 		}
 	}
 
 	getTempPT := func(id string) func() (float64, error) {
 		return func() (float64, error) {
-			return d.PTHandler.Temperature(id)
+			t := d.PTHandler.Temperature(id)
+			if t.Error != 0 {
+				return 0, errors.New("error on PT Temperature")
+			}
+			return t.Temperature, nil
 		}
 	}
 	var sensors []process.Sensor

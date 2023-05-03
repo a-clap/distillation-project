@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation"
 	"github.com/a-clap/embedded/pkg/ds18b20"
 	"github.com/a-clap/embedded/pkg/embedded"
@@ -207,14 +207,14 @@ func (t *DSTestSuite) TestGetSensors_Rest() {
 		h, err := distillation.NewRest("", distillation.WithDS(m))
 		r.NotNil(h)
 		r.Nil(err)
-		
+
 		recorder := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, distillation.RoutesGetDS, nil)
-		
+
 		h.ServeHTTP(recorder, request)
 		r.Equal(http.StatusOK, recorder.Code, arg.name)
 		var retCfg []distillation.DSConfig
-		
+
 		r.Nil(json.NewDecoder(recorder.Body).Decode(&retCfg), arg.name)
 	}
 }
@@ -224,7 +224,7 @@ func (t *DSTestSuite) TestTemperature_REST() {
 		name                 string
 		onGet                []embedded.DSSensorConfig
 		onTemperatures       []embedded.DSTemperature
-		expectedTemperatures []distillation.DSTemperature
+		expectedTemperatures []distillation.Temperature
 	}{
 		{
 			name: "return average",
@@ -245,7 +245,7 @@ func (t *DSTestSuite) TestTemperature_REST() {
 					Stamp:       time.Time{},
 					Error:       "",
 				}}}},
-			expectedTemperatures: []distillation.DSTemperature{{
+			expectedTemperatures: []distillation.Temperature{{
 				ID:          "1",
 				Temperature: 123.0,
 			}}}, {
@@ -281,30 +281,30 @@ func (t *DSTestSuite) TestTemperature_REST() {
 					Stamp:       time.Time{},
 					Error:       "",
 				}}}},
-			expectedTemperatures: []distillation.DSTemperature{{
+			expectedTemperatures: []distillation.Temperature{{
 				ID:          "1",
 				Temperature: 123.0,
 			}}}}
-	
+
 	r := t.Require()
 	for _, arg := range args {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewRest("", distillation.WithDS(m))
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.DSHandler.Update(), 0, arg.name)
-		
+
 		recorder := httptest.NewRecorder()
 		request, _ := http.NewRequest(http.MethodGet, distillation.RoutesGetDSTemperatures, nil)
-		
+
 		h.ServeHTTP(recorder, request)
 		r.Equal(http.StatusOK, recorder.Code, arg.name)
-		var retCfg []distillation.DSTemperature
-		
+		var retCfg []distillation.Temperature
+
 		r.Nil(json.NewDecoder(recorder.Body).Decode(&retCfg), arg.name)
 	}
 }
@@ -390,14 +390,14 @@ func (t *DSTestSuite) TestConfigureSensor_REST() {
 		m.On("Configure", arg.newConfig.DSSensorConfig).Return(arg.newConfig.DSSensorConfig, arg.onSetErr)
 		h, err := distillation.NewRest("", distillation.WithDS(m))
 		r.Nil(err, arg.name)
-		
+
 		recorder := httptest.NewRecorder()
 		var body bytes.Buffer
 		r.Nil(json.NewEncoder(&body).Encode(arg.newConfig))
-		
+
 		request, _ := http.NewRequest(http.MethodPut, distillation.RoutesConfigureDS, &body)
 		request.Header.Add("Content-Type", "application/json")
-		
+
 		h.ServeHTTP(recorder, request)
 		if arg.errContains != "" {
 			err := distillation.Error{}
@@ -406,11 +406,11 @@ func (t *DSTestSuite) TestConfigureSensor_REST() {
 			r.Contains(err.Detail, arg.errContains, arg.name)
 			continue
 		}
-		
+
 		r.Equal(http.StatusOK, recorder.Code, recorder.Body.String())
 		retCfg := distillation.DSConfig{}
 		r.Nil(json.NewDecoder(recorder.Body).Decode(&retCfg), arg.name)
-		
+
 		r.Equal(arg.newConfig, retCfg, arg.name)
 	}
 }
@@ -619,25 +619,25 @@ func (t *DSTestSuite) TestAfterHistory_StillCanReadData() {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.Update(), 0, arg.name)
 		history := h.History()
 		r.ElementsMatch(arg.expectedHistory, history, arg.name)
 		// Second call should be empty without update
 		r.Len(h.History(), 0, arg.name)
-		
+
 		// Now verify args
 		r.Equal(len(arg.ids), len(arg.temps), arg.name)
 		for i := range arg.ids {
-			t, err := h.Temperature(arg.ids[i])
-			r.Nil(err)
-			r.InDelta(arg.temps[i], t, 0.01)
+			t := h.Temperature(arg.ids[i])
+			r.EqualValues(t.Error, 0)
+			r.InDelta(arg.temps[i], t.Temperature, 0.01)
 		}
-		
+
 	}
 }
 func (t *DSTestSuite) TestHistory() {
@@ -782,7 +782,7 @@ func (t *DSTestSuite) TestHistory() {
 			},
 			onTemperatures: []embedded.DSTemperature{
 				{
-					
+
 					Readings: []ds18b20.Readings{
 						{
 							ID:          "1",
@@ -907,14 +907,14 @@ func (t *DSTestSuite) TestHistory() {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.Update(), 0, arg.name)
 		history := h.History()
-		
+
 		r.ElementsMatch(arg.expectedHistory, history, arg.name)
 	}
 }
@@ -944,7 +944,7 @@ func (t *DSTestSuite) TestTemperature() {
 			},
 			onTemperatures: []embedded.DSTemperature{
 				{
-					
+
 					Readings: []ds18b20.Readings{
 						{
 							ID:          "1",
@@ -975,7 +975,7 @@ func (t *DSTestSuite) TestTemperature() {
 			},
 			onTemperatures: []embedded.DSTemperature{
 				{
-					
+
 					Readings: []ds18b20.Readings{
 						{
 							ID:          "1",
@@ -987,7 +987,7 @@ func (t *DSTestSuite) TestTemperature() {
 					},
 				},
 				{
-					
+
 					Readings: []ds18b20.Readings{
 						{
 							ID:          "1",
@@ -999,7 +999,7 @@ func (t *DSTestSuite) TestTemperature() {
 					},
 				},
 				{
-					
+
 					Readings: []ds18b20.Readings{
 						{
 							ID:          "1",
@@ -1019,16 +1019,16 @@ func (t *DSTestSuite) TestTemperature() {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, nil)
-		
+
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		r.Len(h.Update(), 0, arg.name)
-		
-		temp, err := h.Temperature(arg.id)
-		r.Nil(err, arg.name)
-		r.InDelta(arg.expectedTemperature, temp, 0.01, arg.name)
+
+		temp := h.Temperature(arg.id)
+		r.EqualValues(temp.Error, 0, arg.name)
+		r.InDelta(arg.expectedTemperature, temp.Temperature, 0.01, arg.name)
 	}
 }
 
@@ -1074,7 +1074,7 @@ func (t *DSTestSuite) TestUpdate_Errors() {
 			},
 			onTemperatures: []embedded.DSTemperature{
 				{
-					
+
 					Readings: []ds18b20.Readings{
 						{
 							ID:          "2",
@@ -1095,11 +1095,11 @@ func (t *DSTestSuite) TestUpdate_Errors() {
 		m := new(DSMock)
 		m.On("Get").Return(arg.onGet, nil)
 		m.On("Temperatures").Return(arg.onTemperatures, arg.onTemperaturesErr)
-		
+
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
+
 		errs := h.Update()
 		r.Len(arg.expectedErr, len(errs), arg.name)
 		for i := range errs {
@@ -1113,7 +1113,7 @@ func (t *DSTestSuite) TestTemperatureErrors() {
 		name        string
 		onGet       []embedded.DSSensorConfig
 		id          string
-		expectedErr error
+		expectedErr distillation.ErrorCode
 	}{
 		{
 			name: "wrong ID",
@@ -1130,7 +1130,7 @@ func (t *DSTestSuite) TestTemperatureErrors() {
 				},
 			},
 			id:          "2",
-			expectedErr: distillation.ErrNoSuchID,
+			expectedErr: distillation.ErrorCodeWrongID,
 		},
 		{
 			name: "no temps",
@@ -1147,7 +1147,7 @@ func (t *DSTestSuite) TestTemperatureErrors() {
 				},
 			},
 			id:          "1",
-			expectedErr: distillation.ErrNoTemps,
+			expectedErr: distillation.ErrorCodeEmptyBuffer,
 		},
 	}
 	r := t.Require()
@@ -1157,10 +1157,9 @@ func (t *DSTestSuite) TestTemperatureErrors() {
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h, arg.name)
 		r.Nil(err, arg.name)
-		
-		_, err = h.Temperature(arg.id)
-		r.NotNil(err, arg.name)
-		r.ErrorContains(err, arg.expectedErr.Error(), arg.name)
+
+		temp := h.Temperature(arg.id)
+		r.EqualValues(temp.Error, arg.expectedErr, arg.name)
 	}
 }
 
@@ -1258,7 +1257,7 @@ func (t *DSTestSuite) TestConfigureSensor() {
 		m.On("Configure", arg.newConfig.DSSensorConfig).Return(arg.newConfig.DSSensorConfig, arg.onSetErr)
 		ds, err := distillation.NewDSHandler(m)
 		r.Nil(err, arg.name)
-		
+
 		cfg, err := ds.ConfigureSensor(arg.newConfig)
 		if arg.errContains != "" {
 			r.ErrorContains(err, arg.errContains, arg.name)
@@ -1441,7 +1440,7 @@ func (t *DSTestSuite) TestGetSensors() {
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h)
 		r.Nil(err)
-		
+
 		r.ElementsMatch(arg.expected, h.GetSensors())
 	}
 }
@@ -1475,12 +1474,12 @@ func (t *DSTestSuite) TestNew() {
 				Samples:      1,
 			},
 		}
-		
+
 		m.On("Get").Return([]embedded.DSSensorConfig{sensor}, nil)
 		h, err := distillation.NewDSHandler(m)
 		r.NotNil(h)
 		r.Nil(err)
-		
+
 		sensors := []distillation.DSConfig{{DSSensorConfig: sensor}}
 		r.ElementsMatch(sensors, h.GetSensors())
 	}

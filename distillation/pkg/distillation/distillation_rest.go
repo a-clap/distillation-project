@@ -239,7 +239,7 @@ func (r *Rest) getDS() gin.HandlerFunc {
 
 func (r *Rest) getDSTemperatures() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var temperatures []DSTemperature
+		var temperatures []Temperature
 		if r.Distillation.DSHandler != nil {
 			temperatures = r.Distillation.DSHandler.Temperatures()
 		}
@@ -318,7 +318,7 @@ func (r *Rest) getPT() gin.HandlerFunc {
 
 func (r *Rest) getPTTemperatures() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var temperatures []PTTemperature
+		var temperatures []Temperature
 		if r.Distillation.PTHandler != nil {
 			temperatures = r.Distillation.PTHandler.Temperatures()
 		}

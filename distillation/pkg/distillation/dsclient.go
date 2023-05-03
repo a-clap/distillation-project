@@ -8,7 +8,7 @@ package distillation
 import (
 	"context"
 	"time"
-	
+
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
 	"github.com/a-clap/embedded/pkg/restclient"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -33,8 +33,8 @@ func (d *DSClient) Configure(setConfig DSConfig) (DSConfig, error) {
 	return restclient.Put[DSConfig, *Error](d.addr+RoutesGetDS, d.timeout, setConfig)
 }
 
-func (d *DSClient) Temperatures() ([]DSTemperature, error) {
-	return restclient.Get[[]DSTemperature, *Error](d.addr+RoutesGetDSTemperatures, d.timeout)
+func (d *DSClient) Temperatures() ([]Temperature, error) {
+	return restclient.Get[[]Temperature, *Error](d.addr+RoutesGetDSTemperatures, d.timeout)
 }
 
 type DSRPCClient struct {
@@ -77,7 +77,7 @@ func (g *DSRPCClient) Configure(setConfig DSConfig) (DSConfig, error) {
 	return setConfig, nil
 }
 
-func (g *DSRPCClient) Temperatures() ([]DSTemperature, error) {
+func (g *DSRPCClient) Temperatures() ([]Temperature, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
 	got, err := g.client.DSGetTemperatures(ctx, &empty.Empty{})

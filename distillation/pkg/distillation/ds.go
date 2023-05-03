@@ -60,12 +60,6 @@ type DSHandler struct {
 	clients []dsConfigureCallback
 }
 
-// DSTemperature - json returned from rest API
-type DSTemperature struct {
-	ID          string  `json:"ID"`
-	Temperature float64 `json:"temperature"`
-}
-
 // NewDSHandler creates new DSHandler with provided DS interface
 func NewDSHandler(ds DS) (*DSHandler, error) {
 	d := &DSHandler{
@@ -122,36 +116,44 @@ func (d *DSHandler) History() []embedded.DSTemperature {
 }
 
 // Temperatures returns last read temperature for all sensors
-func (d *DSHandler) Temperatures() []DSTemperature {
-	t := make([]DSTemperature, 0, len(d.sensors))
+func (d *DSHandler) Temperatures() []Temperature {
+	t := make([]Temperature, 0, len(d.sensors))
 	for id := range d.sensors {
-		temp, err := d.Temperature(id)
-		if err != nil {
-			logger.Debug("error on DS temperature ", logging.String("id", id), logging.String("error", err.Error()))
-			continue
-		}
-
-		t = append(t, DSTemperature{
-			ID:          id,
-			Temperature: temp,
-		})
+		t = append(t, d.Temperature(id))
 	}
 	return t
 }
 
 // Temperature returns last read temperature
-func (d *DSHandler) Temperature(id string) (float64, error) {
+func (d *DSHandler) Temperature(id string) Temperature {
+	t := Temperature{
+		ID:          id,
+		Temperature: 0,
+		Stamp:       0,
+		Error:       0,
+	}
+
 	ds, ok := d.sensors[id]
 	if !ok {
-		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoSuchID.Error()}
+		logger.Error("DS.Temperature error", logging.String("id", id), logging.String("error", ErrNoSuchID.Error()))
+		t.Error = ErrorCodeWrongID
+		return t
 	}
 
 	size := len(ds.temps.Readings)
 	if size == 0 {
-		return 0.0, &DSError{ID: id, Op: "Temperature", Err: ErrNoTemps.Error()}
+		logger.Error("DS.Temperature error", logging.String("id", id), logging.String("error", ErrNoTemps.Error()))
+		t.Error = ErrorCodeEmptyBuffer
+		return t
 	}
-	// Return last temperature
-	return ds.temps.Readings[size-1].Average, nil
+	temp := ds.temps.Readings[size-1]
+	if temp.Error != "" {
+		t.Error = ErrorCodeInternal
+	} else {
+		t.Stamp = temp.Stamp.Unix()
+		t.Temperature = temp.Average
+	}
+	return t
 }
 
 func (d *DSHandler) ConfigureSensor(cfg DSConfig) (DSConfig, error) {

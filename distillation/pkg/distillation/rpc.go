@@ -65,24 +65,28 @@ func dsConfigToRPC(d *DSConfig) *distillationproto.DSConfig {
 	}
 }
 
-func rpcToDSTemperature(r *distillationproto.DSTemperatures) []DSTemperature {
-	temperatures := make([]DSTemperature, len(r.Temps))
+func rpcToDSTemperature(r *distillationproto.DSTemperatures) []Temperature {
+	temperatures := make([]Temperature, len(r.Temps))
 	for i, temp := range r.Temps {
-		temperatures[i] = DSTemperature{
+		temperatures[i] = Temperature{
 			ID:          temp.ID,
 			Temperature: float64(temp.Temperature),
+			Stamp:       temp.Stamp,
+			Error:       ErrorCode(temp.ErrorCode),
 		}
 	}
 	return temperatures
 }
 
-func dsTemperatureToRPC(t []DSTemperature) *distillationproto.DSTemperatures {
+func dsTemperatureToRPC(t []Temperature) *distillationproto.DSTemperatures {
 	temperatures := &distillationproto.DSTemperatures{}
 	temperatures.Temps = make([]*distillationproto.DSTemperature, len(t))
 	for i, temp := range t {
 		temperatures.Temps[i] = &distillationproto.DSTemperature{
 			ID:          temp.ID,
 			Temperature: float32(temp.Temperature),
+			Stamp:       temp.Stamp,
+			ErrorCode:   int32(temp.Error),
 		}
 	}
 	return temperatures
@@ -131,24 +135,28 @@ func ptConfigToRPC(d *PTConfig) *distillationproto.PTConfig {
 	}
 }
 
-func rpcToPTTemperature(r *distillationproto.PTTemperatures) []PTTemperature {
-	temperatures := make([]PTTemperature, len(r.Temps))
+func rpcToPTTemperature(r *distillationproto.PTTemperatures) []Temperature {
+	temperatures := make([]Temperature, len(r.Temps))
 	for i, temp := range r.Temps {
-		temperatures[i] = PTTemperature{
+		temperatures[i] = Temperature{
 			ID:          temp.ID,
 			Temperature: float64(temp.Temperature),
+			Stamp:       temp.Stamp,
+			Error:       ErrorCode(temp.ErrorCode),
 		}
 	}
 	return temperatures
 }
 
-func ptTemperatureToRPC(t []PTTemperature) *distillationproto.PTTemperatures {
+func ptTemperatureToRPC(t []Temperature) *distillationproto.PTTemperatures {
 	temperatures := &distillationproto.PTTemperatures{}
 	temperatures.Temps = make([]*distillationproto.PTTemperature, len(t))
 	for i, temp := range t {
 		temperatures.Temps[i] = &distillationproto.PTTemperature{
 			ID:          temp.ID,
 			Temperature: float32(temp.Temperature),
+			Stamp:       temp.Stamp,
+			ErrorCode:   int32(temp.Error),
 		}
 	}
 	return temperatures
