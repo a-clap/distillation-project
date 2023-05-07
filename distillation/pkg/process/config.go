@@ -115,6 +115,7 @@ func newConfig() *config {
 }
 
 func (c *config) UpdateSensors(sensors []Sensor) {
+	c.sensors = make(map[string]*sensor, len(sensors))
 	for _, sensor := range sensors {
 		c.sensors[sensor.ID()] = newSensor(sensor)
 	}
@@ -123,6 +124,7 @@ func (c *config) UpdateSensors(sensors []Sensor) {
 }
 
 func (c *config) UpdateHeaters(heaters []Heater) {
+	c.heaters = make(map[string]*heater, len(heaters))
 	for _, heater := range heaters {
 		c.heaters[heater.ID()] = newHeater(heater)
 	}
@@ -131,6 +133,7 @@ func (c *config) UpdateHeaters(heaters []Heater) {
 }
 
 func (c *config) UpdateOutputs(outputs []Output) {
+	c.outputs = make(map[string]*output, len(outputs))
 	for _, output := range outputs {
 		c.outputs[output.ID()] = newOutput(output)
 	}
