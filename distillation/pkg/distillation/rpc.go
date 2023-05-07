@@ -269,9 +269,9 @@ func rpcToProcessStatus(status *distillationproto.ProcessStatus) ProcessStatus {
 			},
 		},
 		Heaters:     make([]process.HeaterPhaseStatus, len(status.Heaters)),
-		Temperature: make([]process.TemperaturePhaseStatus, len(status.Heaters)),
-		GPIO:        make([]process.GPIOPhaseStatus, len(status.Heaters)),
-		Errors:      make([]string, len(status.Heaters)),
+		Temperature: make([]process.TemperaturePhaseStatus, len(status.Temperature)),
+		GPIO:        make([]process.GPIOPhaseStatus, len(status.GPIO)),
+		Errors:      make([]string, len(status.Errors)),
 	}}
 	for i, heater := range status.Heaters {
 		s.Heaters[i] = process.HeaterPhaseStatus{HeaterPhaseConfig: process.HeaterPhaseConfig{

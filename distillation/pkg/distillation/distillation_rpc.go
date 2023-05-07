@@ -189,6 +189,15 @@ func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.Pr
 	status := r.Distillation.Status()
 	return processStatusToRPC(status), nil
 }
+func (r *RPC) EnableProcess(_ context.Context, c *distillationproto.ProcessConfig) (*distillationproto.ProcessConfig, error) {
+	cfg := rpcToProcessConfig(c)
+	err := r.Distillation.ConfigureProcess(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return processConfigToRpc(cfg), nil
+
+}
 func (r *RPC) GetGlobalConfig(context.Context, *empty.Empty) (*distillationproto.ProcessGlobalConfig, error) {
 	cfg := r.Distillation.Process.GetConfig()
 	globalConfig := &distillationproto.ProcessGlobalConfig{
