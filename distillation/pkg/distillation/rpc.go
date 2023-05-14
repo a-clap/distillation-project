@@ -304,7 +304,7 @@ func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
 		Done:        status.Done,
 		PhaseNumber: int32(status.PhaseNumber),
 		StartTime:   status.StartTime.Unix(),
-		EndTime:     status.StartTime.Unix(),
+		EndTime:     status.EndTime.Unix(),
 		Next: &distillationproto.MoveToNextStatus{
 			Type:     int32(status.Next.Type),
 			TimeLeft: status.Next.TimeLeft,

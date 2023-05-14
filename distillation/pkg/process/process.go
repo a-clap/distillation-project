@@ -281,6 +281,7 @@ func (p *Process) init() {
 	p.status.Done = false
 	p.stamp = p.clock.Unix()
 	p.status.StartTime = time.Unix(p.stamp, 0)
+	p.status.EndTime = time.Time{}
 	p.moveToPhase(0)
 }
 
