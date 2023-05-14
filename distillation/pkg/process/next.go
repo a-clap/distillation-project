@@ -16,14 +16,19 @@ type endConditionTime struct {
 	getTime  getTime
 	start    int64
 	duration int64
+	leftTime int64
 }
 
 func newEndConditionTime(duration int64, time getTime) *endConditionTime {
-	return &endConditionTime{
+	e := &endConditionTime{
 		getTime:  time,
 		duration: duration,
+		leftTime: duration,
 		start:    time(),
 	}
+
+	e.reset()
+	return e
 }
 
 func (e *endConditionTime) end() (bool, int64) {
@@ -33,10 +38,11 @@ func (e *endConditionTime) end() (bool, int64) {
 
 func (e *endConditionTime) reset() {
 	e.start = e.getTime()
+	e.leftTime = e.duration
 }
 
 func (e *endConditionTime) left() int64 {
-	t := (e.start + e.duration) - e.getTime()
+	t := (e.start + e.leftTime) - e.getTime()
 	if t < 0 {
 		return 0
 	}

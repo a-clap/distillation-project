@@ -83,37 +83,49 @@ func (p *Process) Finish() (Status, error) {
 }
 
 func (p *Process) SetPhaseConfig(nb uint, conf PhaseConfig) error {
+	updatingCurrentPhase := p.Running() && p.status.PhaseNumber == nb && p.phaseConfig != nil
+	var cfg PhaseConfig
+	var status Status
+	if updatingCurrentPhase {
+		cfg = *p.phaseConfig
+		status = p.status
+	}
+
 	if err := p.config.SetPhaseConfig(nb, conf); err != nil {
 		return err
 	}
-	// If we are during process and this is our current Phase we need to take an action
-	if p.Running() && p.status.PhaseNumber == nb {
-		if p.phaseConfig.Next.Type == ByTime {
-			if b, ok := p.phaseEnd.(*endConditionTime); ok {
-				b.duration = conf.Next.TimeLeft
-			}
-		} else {
-			if b, ok := p.phaseEnd.(*endConditionTemperature); ok {
-				b.endTime.duration = conf.Next.TimeLeft
-			}
-		}
-	}
+	if updatingCurrentPhase {
+		p.updateNextCondition()
+		// Changing between types forces starting phase from the beginning
+		if cfg.Next.Type == p.phaseConfig.Next.Type {
+			timeElapsed := cfg.Next.TimeLeft - status.Next.TimeLeft
+			newTimeleft := p.phaseConfig.Next.TimeLeft - timeElapsed
 
+			// If more time elapsed, then we will move to next phase on next iteration
+			if newTimeleft <= 0 {
+				newTimeleft = 0
+			}
+
+			if p.phaseConfig.Next.Type == ByTime {
+				if b, ok := p.phaseEnd.(*endConditionTime); ok {
+					b.leftTime = newTimeleft
+				}
+			} else {
+				if b, ok := p.phaseEnd.(*endConditionTemperature); ok {
+					b.endTime.leftTime = newTimeleft
+				}
+			}
+
+		}
+
+	}
 	return nil
 }
 
-func (p *Process) moveToPhase(next uint) {
-	if next >= p.Config.PhaseNumber {
-		p.finish()
-		return
-	}
-
+func (p *Process) updateNextCondition() {
 	timeNow := func() int64 {
 		return p.stamp
 	}
-
-	p.status.PhaseNumber = next
-	p.phaseConfig = &p.config.Phases[next]
 
 	if p.phaseConfig.Next.Type == ByTime {
 		p.phaseEnd = newEndConditionTime(p.phaseConfig.Next.TimeLeft, timeNow)
@@ -138,6 +150,17 @@ func (p *Process) moveToPhase(next uint) {
 	p.status.Next.Type = p.phaseConfig.Next.Type
 	// Update timeLeft
 	_, p.status.Next.TimeLeft = p.phaseEnd.end()
+}
+
+func (p *Process) moveToPhase(next uint) {
+	if next >= p.Config.PhaseNumber {
+		p.finish()
+		return
+	}
+
+	p.status.PhaseNumber = next
+	p.phaseConfig = &p.config.Phases[next]
+	p.updateNextCondition()
 }
 
 func (p *Process) updateTemperatures() {
@@ -256,7 +279,8 @@ func (p *Process) init() {
 	p.running.Store(true)
 	p.status.Running = true
 	p.status.Done = false
-	p.status.StartTime = time.Unix(p.clock.Unix(), 0)
+	p.stamp = p.clock.Unix()
+	p.status.StartTime = time.Unix(p.stamp, 0)
 	p.moveToPhase(0)
 }
 

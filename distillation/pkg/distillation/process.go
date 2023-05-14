@@ -86,7 +86,6 @@ func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
 		if err != nil {
 			return err
 		}
-		close(d.finish)
 		d.updateStatus(s)
 		return nil
 	}
