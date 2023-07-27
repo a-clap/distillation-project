@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	loadsaver "github.com/a-clap/distillation-ota/pkg/mender/loadSaver"
+	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
 )
 
 type Release struct {

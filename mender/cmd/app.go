@@ -9,7 +9,7 @@ import (
 
 	"github.com/a-clap/distillation-ota/pkg/mender"
 	"github.com/a-clap/distillation-ota/pkg/mender/device"
-	loadsaver "github.com/a-clap/distillation-ota/pkg/mender/loadSaver"
+	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
 	"github.com/a-clap/distillation-ota/pkg/mender/signer"
 )
 

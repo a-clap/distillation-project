@@ -5,7 +5,7 @@ import (
 
 	"github.com/a-clap/distillation-ota/pkg/mender/downloader"
 	"github.com/a-clap/distillation-ota/pkg/mender/installer"
-	loadsaver "github.com/a-clap/distillation-ota/pkg/mender/loadSaver"
+	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
 	"github.com/a-clap/distillation-ota/pkg/mender/rebooter"
 	"github.com/a-clap/distillation-ota/pkg/mender/signer"
 )
