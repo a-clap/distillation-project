@@ -94,12 +94,6 @@ func (c *Client) verify() error {
 }
 
 func (c *Client) Connect() error {
-	type AuthRequest struct {
-		ID     string `json:"id_data"`
-		PubKey string `json:"pubkey"`
-		Token  string `json:"tenant_token,omitempty"`
-	}
-
 	ids, err := c.Device.ID()
 	if err != nil {
 		return err
@@ -109,12 +103,17 @@ func (c *Client) Connect() error {
 	for _, id := range ids {
 		idsMap[id.Name] = id.Value
 	}
+
 	id, err := json.Marshal(idsMap)
 	if err != nil {
 		return err
 	}
 
-	auth := AuthRequest{
+	auth := struct {
+		ID     string `json:"id_data"`
+		PubKey string `json:"pubkey"`
+		Token  string `json:"tenant_token"`
+	}{
 		ID:     string(id),
 		PubKey: c.PublicKeyPEM(),
 		Token:  c.teenantToken,
