@@ -253,7 +253,7 @@ func (c *Client) Arti() Artifacts {
 	return artifact
 }
 
-func (c *Client) NotifyServer(status DeploymentStatus, artifactName string) error {
+func (c *Client) notifyServer(status DeploymentStatus, artifactName string) error {
 	ins, err := c.getInstructions(artifactName)
 	if err != nil {
 		return err
@@ -313,7 +313,7 @@ func (c *Client) StopUpdate() error {
 }
 
 func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
-	if err := c.NotifyServer(Downloading, artifactName); err != nil {
+	if err := c.notifyServer(Downloading, artifactName); err != nil {
 		c.notifyUser(0, Downloading, fmt.Errorf("failed to send Downloading status: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return "", err
@@ -341,7 +341,7 @@ func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
 	}
 
 	// Download finished - notify server
-	if err := c.NotifyServer(PauseBeforeInstalling, artifactName); err != nil {
+	if err := c.notifyServer(PauseBeforeInstalling, artifactName); err != nil {
 		c.notifyUser(0, PauseBeforeInstalling, fmt.Errorf("failed to notify server: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return "", err
@@ -354,7 +354,7 @@ func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
 }
 
 func (c *Client) handleReboot(artifactName string) error {
-	if err := c.NotifyServer(Rebooting, artifactName); err != nil {
+	if err := c.notifyServer(Rebooting, artifactName); err != nil {
 		c.notifyUser(0, Rebooting, fmt.Errorf("failed to send Rebooting status: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
@@ -372,7 +372,7 @@ func (c *Client) handleReboot(artifactName string) error {
 }
 
 func (c *Client) handleInstall(artifactName, src string) error {
-	if err := c.NotifyServer(Installing, artifactName); err != nil {
+	if err := c.notifyServer(Installing, artifactName); err != nil {
 		c.notifyUser(0, Installing, fmt.Errorf("failed to send Installing status: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
@@ -399,7 +399,7 @@ func (c *Client) handleInstall(artifactName, src string) error {
 	}
 
 	// Install finished - notify server
-	if err := c.NotifyServer(PauseBeforeRebooting, artifactName); err != nil {
+	if err := c.notifyServer(PauseBeforeRebooting, artifactName); err != nil {
 		c.notifyUser(0, PauseBeforeRebooting, fmt.Errorf("failed to notify server: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
@@ -412,7 +412,7 @@ func (c *Client) handleInstall(artifactName, src string) error {
 }
 
 func (c *Client) doCleanup(status DeploymentStatus, artifactName string) {
-	_ = c.NotifyServer(status, artifactName)
+	_ = c.notifyServer(status, artifactName)
 	close(c.updateStatus)
 	c.updating.Store(false)
 }
