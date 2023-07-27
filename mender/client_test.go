@@ -613,7 +613,7 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 		req.Nil(client.Connect())
 
 		// Check deployment
-		newRelease, releaseName, err := client.CheckNewRelease()
+		newRelease, err := client.PullReleases()
 		// Free resources
 		ctrl.Finish()
 		srv.Close()
@@ -634,8 +634,12 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 		req.Nil(err, arg.name)
 		// Verify response
 		req.Equal(arg.newRelease, newRelease, arg.name)
-		req.Equal(arg.releaseName, releaseName, arg.name)
-
+		releases := client.AvailableReleases()
+		if arg.releaseName == "" {
+			req.Len(releases, 0, arg.name)
+		} else {
+			req.Contains(releases, arg.releaseName, arg.name)
+		}
 	}
 }
 func (ms *MenderTestSuite) TestSendStatus() {
@@ -768,7 +772,6 @@ func (ms *MenderTestSuite) TestSendStatus() {
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
 			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
-
 		)
 
 		if client == nil || err != nil {
@@ -781,12 +784,12 @@ func (ms *MenderTestSuite) TestSendStatus() {
 		req.Nil(client.Connect())
 
 		// Get deploy instructions
-		newRelease, releaseName, err := client.CheckNewRelease()
+		newRelease, err := client.PullReleases()
 		req.True(newRelease, arg.name)
-		req.EqualValues(releaseName, "my-app-0.1", arg.name)
+		req.Contains(client.AvailableReleases(), "my-app-0.1", arg.name)
 		req.Nil(err, arg.name)
 
-		err = client.NotifyServer(arg.sendStatus, releaseName)
+		err = client.NotifyServer(arg.sendStatus, "my-app-0.1")
 
 		// Free resources
 		ctrl.Finish()
@@ -883,9 +886,10 @@ func (ms *MenderTestSuite) TestUpdate() {
 	r.NotNil(client)
 
 	r.Nil(client.Connect())
-	got, release, err := client.CheckNewRelease()
+	got, err := client.PullReleases()
 	r.True(got)
-	r.EqualValues(artifactName, release)
+
+	r.Contains(client.AvailableReleases(), artifactName)
 	r.Nil(err)
 
 	// First step is downloading

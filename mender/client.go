@@ -94,6 +94,12 @@ func (c *Client) verify() error {
 }
 
 func (c *Client) Connect() error {
+	type AuthRequest struct {
+		ID     string `json:"id_data"`
+		PubKey string `json:"pubkey"`
+		Token  string `json:"tenant_token,omitempty"`
+	}
+
 	ids, err := c.Device.ID()
 	if err != nil {
 		return err
@@ -184,14 +190,11 @@ func (c *Client) UpdateInventory() error {
 	return err
 }
 
-func (c *Client) CheckNewRelease() (newRelease bool, releaseName string, err error) {
+func (c *Client) PullReleases() (newRelease bool, err error) {
 	info, err := c.Device.Info()
 	if err != nil {
 		return
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
-	defer cancel()
 
 	params := map[string][]string{
 		"artifact_name": {info.ArtifactName},
@@ -199,6 +202,9 @@ func (c *Client) CheckNewRelease() (newRelease bool, releaseName string, err err
 	}
 
 	var artifact DeploymentInstructions
+
+	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
+	defer cancel()
 
 	err = requests.
 		URL(c.paths.Deployment()).
@@ -213,18 +219,26 @@ func (c *Client) CheckNewRelease() (newRelease bool, releaseName string, err err
 	if err != nil {
 		// Status 204 - No updates for device
 		if requests.HasStatusErr(err, http.StatusNoContent) {
-			return false, "", nil
+			return false, nil
 		}
-		return false, "", fmt.Errorf("http request error: %w", err)
+		return false, fmt.Errorf("http request error: %w", err)
 	}
 
 	if idx := slices.Index(artifact.Artifact.Compatible, info.DeviceType); idx == -1 {
-		return false, "", nil
+		return false, nil
 	}
 
 	c.artifacts = append(c.artifacts, artifact)
 
-	return true, artifact.Artifact.Name, nil
+	return true, nil
+}
+
+func (c *Client) AvailableReleases() []string {
+	releases := make([]string, 0, len(c.artifacts))
+	for _, artifact := range c.artifacts {
+		releases = append(releases, artifact.Artifact.Name)
+	}
+	return releases
 }
 
 func (c *Client) Arti() Artifacts {

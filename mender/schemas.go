@@ -14,12 +14,6 @@ const (
 	AlreadyInstalled
 )
 
-type AuthRequest struct {
-	ID     string `json:"id_data"`
-	PubKey string `json:"pubkey"`
-	Token  string `json:"tenant_token,omitempty"`
-}
-
 type UpdateStatus struct {
 	Progress int
 	Status   DeploymentStatus

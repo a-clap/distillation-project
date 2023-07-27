@@ -77,10 +77,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	got, name, err := client.CheckNewRelease()
+	got, err := client.PullReleases()
 
 	fmt.Println(got)
-	fmt.Println(name)
 	fmt.Println(err)
 
 	if !got {
