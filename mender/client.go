@@ -20,19 +20,20 @@ import (
 //go:generate mockgen -package mocks -destination mocks/mocks_mender.go . Signer,Device,Downloader,Installer,Rebooter,LoadSaver
 
 type Client struct {
-	Timeout      time.Duration
-	teenantToken string
-	jwtToken     string
-	paths        *serverPaths
-	artifacts    []DeploymentInstructions
-	updating     atomic.Bool
-	updateStatus chan UpdateStatus
+	Timeout time.Duration
 	Signer
 	Device
 	Downloader
 	Installer
 	Rebooter
 	LoadSaver
+
+	teenantToken string
+	jwtToken     string
+	paths        *serverPaths
+	artifacts    []DeploymentInstructions
+	updating     atomic.Bool
+	updateStatus chan UpdateStatus
 }
 
 const (
