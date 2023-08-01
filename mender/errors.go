@@ -13,4 +13,5 @@ var (
 	ErrNeedInstaller         = errors.New("Installer is mandatory")
 	ErrNeedRebooter          = errors.New("Rebooter is mandatory")
 	ErrNeedLoadSaver         = errors.New("LoadSaver is mandatory")
+	ErrNeedCallbacks         = errors.New("Callbacks are mandatory")
 )

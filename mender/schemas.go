@@ -14,12 +14,6 @@ const (
 	AlreadyInstalled
 )
 
-type UpdateStatus struct {
-	Progress int
-	Status   DeploymentStatus
-	Error    error
-}
-
 type DeploymentSource struct {
 	URI    string `json:"uri,omitempty"`
 	Expire string `json:"expire,omitempty"`

@@ -66,7 +66,7 @@ func (ms *MenderTestSuite) TestNew() {
 			opts:        nil,
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedSignerVerifier, mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver},
+				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks},
 			errorsNotIs: nil,
 		},
 		{
@@ -76,7 +76,7 @@ func (ms *MenderTestSuite) TestNew() {
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedSignerVerifier, mender.ErrNeedDevice, mender.ErrNeedDownloader, mender.ErrNeedInstaller, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver},
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks},
 			errorsNotIs: []error{mender.ErrNeedServerURLAndToken},
 		},
 		{
@@ -86,7 +86,7 @@ func (ms *MenderTestSuite) TestNew() {
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedDownloader, mender.ErrNeedInstaller, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver},
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks},
 			errorsNotIs: []error{mender.ErrNeedSignerVerifier},
 		},
 		{
@@ -96,7 +96,7 @@ func (ms *MenderTestSuite) TestNew() {
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedInstaller, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver},
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks},
 			errorsNotIs: []error{mender.ErrNeedDownloader},
 		},
 		{
@@ -106,7 +106,7 @@ func (ms *MenderTestSuite) TestNew() {
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver},
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks},
 			errorsNotIs: []error{mender.ErrNeedInstaller},
 		},
 		{
@@ -116,7 +116,7 @@ func (ms *MenderTestSuite) TestNew() {
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedLoadSaver},
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks},
 			errorsNotIs: []error{mender.ErrNeedRebooter},
 		},
 		{
@@ -126,8 +126,18 @@ func (ms *MenderTestSuite) TestNew() {
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedRebooter},
+				mender.ErrNeedRebooter, mender.ErrNeedCallbacks},
 			errorsNotIs: []error{mender.ErrNeedLoadSaver},
+		},
+		{
+			name: "with callbacks",
+			opts: []mender.Option{
+				mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
+			},
+			expectedErr: true,
+			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
+				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver},
+			errorsNotIs: []error{mender.ErrNeedCallbacks},
 		},
 
 		{
@@ -140,6 +150,7 @@ func (ms *MenderTestSuite) TestNew() {
 				mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 				mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
 				mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+				mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 			},
 			expectedErr: false,
 		},
@@ -271,13 +282,14 @@ func (ms *MenderTestSuite) TestConnect() {
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
 			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
 		// If somehow we didn't create client, fail fast
 		if client == nil || err != nil {
+			req.Fail("cannot proceed", fmt.Sprintf("%v: %v", arg.name, err))
 			srv.Close()
 			ctrl.Finish()
-			req.Fail(fmt.Sprintln("cannot proceed without client, err is:", err), arg.name)
 		}
 
 		err = client.Connect()
@@ -398,12 +410,13 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
 			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
 		if client == nil || err != nil {
+			req.Fail(fmt.Sprintln("cannot proceed without client, err is:", err), arg.name)
 			srv.Close()
 			ctrl.Finish()
-			req.Fail("cannot proceed", arg.name)
 		}
 
 		req.Nil(client.Connect())
@@ -444,6 +457,173 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 		req.EqualValues("Bearer "+arg.token, token, arg.name)
 	}
 
+}
+
+func (ms *MenderTestSuite) TestSendStatus() {
+	req := ms.Require()
+
+	args := []struct {
+		name           string
+		statusCode     int
+		deployID       string
+		sendStatus     mender.DeploymentStatus
+		expectedStatus string
+		err            error
+	}{
+		{
+			name:           "StatusBadRequest",
+			statusCode:     http.StatusBadRequest,
+			sendStatus:     mender.Downloading,
+			expectedStatus: "downloading",
+			deployID:       "1233",
+			err:            fmt.Errorf("%v", http.StatusBadRequest),
+		},
+		{
+			name:           "StatusNotFound",
+			statusCode:     http.StatusNotFound,
+			sendStatus:     mender.PauseBeforeInstalling,
+			expectedStatus: "pause_before_installing",
+			deployID:       "12345",
+			err:            fmt.Errorf("%v", http.StatusNotFound),
+		},
+		{
+			name:           "StatusConflict",
+			statusCode:     http.StatusConflict,
+			sendStatus:     mender.Installing,
+			expectedStatus: "installing",
+			deployID:       "123456",
+			err:            fmt.Errorf("%v", http.StatusConflict),
+		},
+		{
+			name:           "StatusInternalServerError",
+			statusCode:     http.StatusInternalServerError,
+			sendStatus:     mender.PauseBeforeRebooting,
+			expectedStatus: "pause_before_rebooting",
+			deployID:       "1234567",
+			err:            fmt.Errorf("%v", http.StatusInternalServerError),
+		},
+		{
+			name:           "NoContent",
+			statusCode:     http.StatusNoContent,
+			sendStatus:     mender.PauseBeforeCommiting,
+			expectedStatus: "pause_before_committing",
+			deployID:       "1233",
+			err:            nil,
+		},
+		{
+			name:           "NoContent",
+			statusCode:     http.StatusNoContent,
+			sendStatus:     mender.Success,
+			expectedStatus: "success",
+			deployID:       "1233",
+			err:            nil,
+		},
+		{
+			name:           "NoContent",
+			statusCode:     http.StatusNoContent,
+			sendStatus:     mender.Failure,
+			expectedStatus: "failure",
+			deployID:       "1233",
+			err:            nil,
+		},
+		{
+			name:           "NoContent",
+			statusCode:     http.StatusNoContent,
+			sendStatus:     mender.AlreadyInstalled,
+			expectedStatus: "already-installed",
+			deployID:       "1233",
+			err:            nil,
+		},
+	}
+	for _, arg := range args {
+
+		handle := http.NewServeMux()
+		// Return token
+		handle.Handle("/api/devices/v1/authentication/auth_requests", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			writer.WriteHeader(http.StatusOK)
+			writer.Header().Set("Content-Type", "application/json")
+			_, _ = writer.Write([]byte("token"))
+		}))
+
+		handle.Handle("/api/devices/v1/deployments/device/deployments/next", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			writer.WriteHeader(http.StatusOK)
+			body, _ := json.Marshal(mender.DeploymentInstructions{
+				ID: arg.deployID,
+				Artifact: mender.DeploymentArtifact{
+					Name: "my-app-0.1",
+					Source: mender.DeploymentSource{
+						URI:    "https://aws.my_update_bucket.com/image_123",
+						Expire: "2016-03-11T13:03:17.063493443Z",
+					},
+					Compatible: []string{
+						"device",
+						"rspi2",
+						"rspi0",
+					},
+				},
+			})
+			_, _ = writer.Write(body)
+		}))
+
+		var body []byte
+		deployURL := fmt.Sprintf("/api/devices/v1/deployments/device/deployments/%v/status", arg.deployID)
+		handle.Handle(deployURL, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			writer.WriteHeader(arg.statusCode)
+			body, _ = io.ReadAll(request.Body)
+			_ = request.Body.Close()
+		}))
+
+		srv := httptest.NewServer(handle)
+
+		ctrl := gomock.NewController(ms.T())
+		dev := mocks.NewMockDevice(ctrl)
+
+		dev.EXPECT().ID().Return([]device.Attribute{{Name: "id", Value: []string{"id"}}}, nil)
+		dev.EXPECT().Info().Return(device.Info{DeviceType: "device", ArtifactName: "artifact"}, nil)
+
+		client, err := mender.New(
+			mender.WithServer(srv.URL, "teenant token"),
+			mender.WithSigner(keys),
+			mender.WithDevice(dev),
+			mender.WithDownloader(mocks.NewMockDownloader(ctrl)),
+			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
+			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
+			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
+		)
+
+		if client == nil || err != nil {
+			srv.Close()
+			ctrl.Finish()
+			req.Fail("cannot proceed", arg.name)
+		}
+
+		// Fetch token
+		req.Nil(client.Connect())
+
+		// Get deploy instructions
+		newRelease, err := client.PullReleases()
+		req.True(newRelease, arg.name)
+		req.Contains(client.AvailableReleases(), "my-app-0.1", arg.name)
+		req.Nil(err, arg.name)
+
+		err = client.NotifyServer(arg.sendStatus, "my-app-0.1")
+
+		// Free resources
+		ctrl.Finish()
+		srv.Close()
+
+		var bodyMap map[string]interface{}
+		req.Nil(json.Unmarshal(body, &bodyMap), arg.name)
+
+		req.EqualValues(arg.expectedStatus, bodyMap["status"], arg.name)
+		if arg.err != nil {
+			req.NotNil(err, arg.name)
+			req.ErrorContains(err, arg.err.Error(), arg.name)
+			continue
+		}
+		req.Nil(err, arg.name)
+	}
 }
 
 func (ms *MenderTestSuite) TestCheckDeployment() {
@@ -600,12 +780,13 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
 			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
 		if client == nil || err != nil {
+			req.Fail("cannot proceed", fmt.Sprintf("%v: %v", arg.name, err))
 			srv.Close()
 			ctrl.Finish()
-			req.Fail("cannot proceed", arg.name)
 		}
 
 		// Fetch token
@@ -678,8 +859,8 @@ func (ms *MenderTestSuite) TestUpdate() {
 	type jsonStatus map[string]string
 	bodyStatus := make([]jsonStatus, 0)
 
-	deployUrl := fmt.Sprintf("/api/devices/v1/deployments/device/deployments/%v/status", deployID)
-	handle.Handle(deployUrl, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	deployURL := fmt.Sprintf("/api/devices/v1/deployments/device/deployments/%v/status", deployID)
+	handle.Handle(deployURL, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		// Proper response
 		writer.WriteHeader(http.StatusOK)
 		// Get body
@@ -703,6 +884,7 @@ func (ms *MenderTestSuite) TestUpdate() {
 	mockDownloader := mocks.NewMockDownloader(ctrl)
 	mockInstaller := mocks.NewMockInstaller(ctrl)
 	mockRebooter := mocks.NewMockRebooter(ctrl)
+	mockCallbacks := mocks.NewMockCallbacks(ctrl)
 
 	client, err := mender.New(
 		mender.WithServer(srv.URL, "teenant token"),
@@ -712,6 +894,7 @@ func (ms *MenderTestSuite) TestUpdate() {
 		mender.WithInstaller(mockInstaller),
 		mender.WithRebooter(mockRebooter),
 		mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+		mender.WithCallbacks(mockCallbacks),
 	)
 
 	r := ms.Require()
@@ -727,34 +910,32 @@ func (ms *MenderTestSuite) TestUpdate() {
 	r.Nil(err)
 
 	// First step is downloading
+	errChan := make(chan error, 1)
 	progressChan := make(chan int, 100)
 	for i := 1; i <= 100; i++ {
+		mockCallbacks.EXPECT().Update(mender.Downloading, i)
 		progressChan <- i
 	}
-	errChan := make(chan error, 1)
+
+	downloadFinished := make(chan struct{})
+	startInstall := make(chan struct{})
+	mockCallbacks.EXPECT().Update(mender.PauseBeforeInstalling, 100).Times(1)
+	mockCallbacks.EXPECT().NextState(mender.Installing).Return(true).Do(func(any) {
+		downloadFinished <- struct{}{}
+		<-startInstall
+	})
+
 	mockDownloader.EXPECT().Download(gomock.Any(), gomock.Any()).Return(progressChan, errChan, nil)
 
-	status, next, err := client.Update(artifactName)
-
-	r.NotNil(status)
-	r.NotNil(next)
+	err = client.Update(artifactName)
 	r.Nil(err)
 
-	var lastStatus mender.UpdateStatus
-	downloading := true
-	for downloading {
-		select {
-		case newStatus := <-status:
-			if newStatus.Status == mender.PauseBeforeInstalling {
-				downloading = false
-				break
-			}
-			r.Equal(newStatus.Progress, lastStatus.Progress+1)
-			lastStatus = newStatus
-		case <-time.After(10 * time.Millisecond):
-			r.Fail("shouldn't be here")
-		}
+	select {
+	case <-downloadFinished:
+	case <-time.After(1 * time.Millisecond):
+		ms.FailNow("failed at downloading")
 	}
+
 	// We should receive status 'downloading'
 	req.Equal("downloading", bodyStatus[0]["status"])
 	// Then we should receive status 'pause_before_installing'
@@ -763,52 +944,49 @@ func (ms *MenderTestSuite) TestUpdate() {
 	// Now we should expect some install calls
 	progressChan = make(chan int, 100)
 	for i := 1; i <= 100; i++ {
+		mockCallbacks.EXPECT().Update(mender.Installing, i)
 		progressChan <- i
 	}
+
 	errChan = make(chan error, 1)
 	mockInstaller.EXPECT().Install(gomock.Any()).Return(progressChan, errChan, nil)
 
-	// Start next step
-	next <- true
-	lastStatus.Progress = 0
-	installing := true
-	for installing {
-		select {
-		case newStatus := <-status:
-			if newStatus.Status == mender.PauseBeforeRebooting {
-				installing = false
-				break
-			}
-			r.Equal(newStatus.Progress, lastStatus.Progress+1)
-			lastStatus = newStatus
-		case <-time.After(10 * time.Millisecond):
-			r.Fail("shouldn't be here")
-		}
+	installFinished := make(chan struct{})
+	startReboot := make(chan struct{})
+
+	mockCallbacks.EXPECT().Update(mender.PauseBeforeRebooting, 100).Times(1)
+	mockCallbacks.EXPECT().NextState(mender.Rebooting).Return(true).Do(func(any) {
+		installFinished <- struct{}{}
+		<-startReboot
+	})
+
+	// Start installl
+	close(startInstall)
+
+	select {
+	case <-installFinished:
+	case <-time.After(1 * time.Millisecond):
+		ms.FailNow("failed at installing")
 	}
+
 	// We should receive status 'installing'
 	req.Equal("installing", bodyStatus[2]["status"])
 	// Then we should receive status 'pause_before_rebooting'
 	req.Equal("pause_before_rebooting", bodyStatus[3]["status"])
 
-	// Clean update status loop
-	for len(status) > 0 {
-		fmt.Println("looping")
-		<-status
-	}
+	rebootFinished := make(chan struct{})
+	mockCallbacks.EXPECT().Update(mender.Rebooting, 1).Times(1)
 
-	mockRebooter.EXPECT().Reboot().Return(nil)
-	// Expect Reboot
-	next <- true
+	mockRebooter.EXPECT().Reboot().Return(nil).Do(func() {
+		rebootFinished <- struct{}{}
+	})
 
+	close(startReboot)
 	select {
-	case lastStatus = <-status:
-		// We should receive next status
-		req.Equal(mender.Rebooting, lastStatus.Status)
-	case <-time.After(10 * time.Millisecond):
-		req.Fail("unexpected delay")
-
+	case <-rebootFinished:
+	case <-time.After(1 * time.Millisecond):
+		ms.FailNow("failed at rebooting")
 	}
 	// Then we should receive status 'pause_before_rebooting'
 	req.Equal("rebooting", bodyStatus[4]["status"])
-
 }

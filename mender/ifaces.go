@@ -42,7 +42,7 @@ type Installer interface {
 
 // Downloader downloads file from url
 type Downloader interface {
-	Download(dst, srcUrl string) (progress chan int, errCh chan error, err error) // progress should return int in range <0, 100> (%)
+	Download(dst, srcURL string) (progress chan int, errCh chan error, err error) // progress should return int in range <0, 100> (%)
 }
 
 // Rebooter allows to reboot device
@@ -54,4 +54,10 @@ type Rebooter interface {
 type LoadSaver interface {
 	Save(key string, data interface{}) error
 	Load(key string) interface{}
+}
+
+type Callbacks interface {
+	Update(status DeploymentStatus, progress int)
+	NextState(status DeploymentStatus) bool
+	Error(err error)
 }

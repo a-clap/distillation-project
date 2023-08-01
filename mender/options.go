@@ -62,3 +62,10 @@ func WithLoadSaver(saver LoadSaver) Option {
 		return nil
 	}
 }
+
+func WithCallbacks(callbacks Callbacks) Option {
+	return func(c *Client) error {
+		c.Callbacks = callbacks
+		return nil
+	}
+}

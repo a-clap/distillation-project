@@ -17,7 +17,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-//go:generate mockgen -package mocks -destination mocks/mocks_mender.go . Signer,Device,Downloader,Installer,Rebooter,LoadSaver
+//go:generate mockgen -package mocks -destination mocks/mocks_mender.go . Signer,Device,Downloader,Installer,Rebooter,LoadSaver,Callbacks
 
 type Client struct {
 	Timeout time.Duration
@@ -27,13 +27,13 @@ type Client struct {
 	Installer
 	Rebooter
 	LoadSaver
+	Callbacks
 
 	teenantToken string
 	jwtToken     string
 	paths        *serverPaths
 	artifacts    []DeploymentInstructions
 	updating     atomic.Bool
-	updateStatus chan UpdateStatus
 }
 
 const (
@@ -89,6 +89,10 @@ func (c *Client) verify() error {
 
 	if c.LoadSaver == nil {
 		errs = append(errs, ErrNeedLoadSaver)
+	}
+
+	if c.Callbacks == nil {
+		errs = append(errs, ErrNeedCallbacks)
 	}
 
 	return errors.Join(errs...)
@@ -254,7 +258,7 @@ func (c *Client) Arti() Artifacts {
 	return artifact
 }
 
-func (c *Client) notifyServer(status DeploymentStatus, artifactName string) error {
+func (c *Client) NotifyServer(status DeploymentStatus, artifactName string) error {
 	ins, err := c.getInstructions(artifactName)
 	if err != nil {
 		return err
@@ -281,23 +285,20 @@ func (c *Client) notifyServer(status DeploymentStatus, artifactName string) erro
 	return err
 }
 
-func (c *Client) Update(artifactName string) (<-chan UpdateStatus, chan<- bool, error) {
+func (c *Client) Update(artifactName string) error {
 	if c.IsDuringUpdate() {
-		return nil, nil, fmt.Errorf("already during update")
+		return fmt.Errorf("already during update")
 	}
 
 	instructions, err := c.getInstructions(artifactName)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	c.updating.Store(true)
-	allowContinue := make(chan bool)
-	// We don't want to block
-	c.updateStatus = make(chan UpdateStatus, 10)
-	go c.handleUpdate(instructions, allowContinue)
+	go c.handleUpdate(instructions)
 
-	return c.updateStatus, allowContinue, nil
+	return nil
 }
 
 func (c *Client) IsDuringUpdate() bool {
@@ -314,58 +315,55 @@ func (c *Client) StopUpdate() error {
 }
 
 func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
-	if err := c.notifyServer(Downloading, artifactName); err != nil {
-		c.notifyUser(0, Downloading, fmt.Errorf("failed to send Downloading status: %w", err))
+	if err := c.NotifyServer(Downloading, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to send Downloading status: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return "", err
 	}
 
 	dst := path.Join(os.TempDir(), artifactName, ".tmp")
-	progress, errs, err := c.Downloader.Download(dst, srcUri)
+	downloading, errs, err := c.Downloader.Download(dst, srcUri)
 	if err != nil {
-		c.notifyUser(0, Downloading, fmt.Errorf("download %v failed: %w", srcUri, err))
+		c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcUri, err))
 		c.doCleanup(Failure, artifactName)
 		return "", err
 	}
 
-	status := UpdateStatus{
-		Status: Downloading,
-	}
-
-	for status.Progress < 100 {
+	progress := 0
+	for progress < 100 {
 		select {
-		case status.Progress = <-progress:
-			status.Error = nil
-		case status.Error = <-errs:
+		case progress = <-downloading:
+			c.Callbacks.Update(Downloading, progress)
+		case err := <-errs:
+			c.Callbacks.Error(err)
 		}
-		c.updateStatus <- status
 	}
 
 	// Download finished - notify server
-	if err := c.notifyServer(PauseBeforeInstalling, artifactName); err != nil {
-		c.notifyUser(0, PauseBeforeInstalling, fmt.Errorf("failed to notify server: %w", err))
+	if err := c.NotifyServer(PauseBeforeInstalling, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to notify server: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return "", err
 	}
 
 	// PauseBeforeInstall - notify user
-	c.notifyUser(0, PauseBeforeInstalling, nil)
+	c.Callbacks.Update(PauseBeforeInstalling, 100)
 
 	return dst, nil
 }
 
 func (c *Client) handleReboot(artifactName string) error {
-	if err := c.notifyServer(Rebooting, artifactName); err != nil {
-		c.notifyUser(0, Rebooting, fmt.Errorf("failed to send Rebooting status: %w", err))
+	if err := c.NotifyServer(Rebooting, artifactName); err != nil {
+		c.Error(fmt.Errorf("failed to send Rebooting status: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
 	}
 
 	// we can notify user, however.. after a second we will reboot so, doest it matter?
-	c.notifyUser(0, Rebooting, nil)
+	c.Callbacks.Update(Rebooting, 1)
 
 	if err := c.Rebooter.Reboot(); err != nil {
-		c.notifyUser(0, Rebooting, fmt.Errorf("failed to reboot: %w", err))
+		c.Callbacks.Error(fmt.Errorf("failed to reboot: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
 	}
@@ -373,56 +371,52 @@ func (c *Client) handleReboot(artifactName string) error {
 }
 
 func (c *Client) handleInstall(artifactName, src string) error {
-	if err := c.notifyServer(Installing, artifactName); err != nil {
-		c.notifyUser(0, Installing, fmt.Errorf("failed to send Installing status: %w", err))
+	if err := c.NotifyServer(Installing, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to send Installing status: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
 	}
 
-	progress, errs, err := c.Installer.Install(src)
+	progressChan, errs, err := c.Installer.Install(src)
 	if err != nil {
-		c.notifyUser(0, Installing, fmt.Errorf("install %v failed: %w", src, err))
+		c.Callbacks.Error(fmt.Errorf("install %v failed: %w", src, err))
 		c.doCleanup(Failure, artifactName)
 		return err
 	}
 
-	status := UpdateStatus{
-		Status: Installing,
-	}
-
-	for status.Progress < 100 {
+	progress := 0
+	for progress < 100 {
 		select {
-		case status.Progress = <-progress:
-			status.Error = nil
-		case status.Error = <-errs:
+		case progress = <-progressChan:
+			c.Callbacks.Update(Installing, progress)
+		case err := <-errs:
+			c.Callbacks.Error(err)
 		}
-		c.updateStatus <- status
 	}
 
 	// Install finished - notify server
-	if err := c.notifyServer(PauseBeforeRebooting, artifactName); err != nil {
-		c.notifyUser(0, PauseBeforeRebooting, fmt.Errorf("failed to notify server: %w", err))
+	if err := c.NotifyServer(PauseBeforeRebooting, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to notify server: %w", err))
 		c.doCleanup(Failure, artifactName)
 		return err
 	}
 
 	// Install finished - notify user
-	c.notifyUser(0, PauseBeforeRebooting, nil)
+	c.Callbacks.Update(PauseBeforeRebooting, 100)
 	return nil
 
 }
 
 func (c *Client) doCleanup(status DeploymentStatus, artifactName string) {
-	_ = c.notifyServer(status, artifactName)
-	close(c.updateStatus)
+	_ = c.NotifyServer(status, artifactName)
 	c.updating.Store(false)
 }
 
-func (c *Client) handleUpdate(ins *DeploymentInstructions, conn <-chan bool) {
+func (c *Client) handleUpdate(ins *DeploymentInstructions) {
 	// TODO: maybe it should be more like state machine
 	// What if we will want to start from specific stage?
-	shouldContinue := func() bool {
-		if got := <-conn; !got {
+	shouldContinue := func(status DeploymentStatus) bool {
+		if next := c.Callbacks.NextState(status); !next {
 			// Cleanup
 			c.doCleanup(Failure, ins.Artifact.Name)
 			return false
@@ -437,7 +431,7 @@ func (c *Client) handleUpdate(ins *DeploymentInstructions, conn <-chan bool) {
 	}
 
 	// Wait for confirmation
-	if !shouldContinue() {
+	if !shouldContinue(Installing) {
 		return
 	}
 
@@ -447,7 +441,7 @@ func (c *Client) handleUpdate(ins *DeploymentInstructions, conn <-chan bool) {
 	}
 
 	// Wait for confirmation
-	if !shouldContinue() {
+	if !shouldContinue(Rebooting) {
 		return
 	}
 
@@ -462,14 +456,6 @@ func (c *Client) handleUpdate(ins *DeploymentInstructions, conn <-chan bool) {
 func (c *Client) Verify(data []byte, sig []byte) error {
 	sig = maybeDecodeBase64(sig)
 	return c.Signer.Verify(data, sig)
-}
-
-func (c *Client) notifyUser(progress int, status DeploymentStatus, err error) {
-	c.updateStatus <- UpdateStatus{
-		Progress: progress,
-		Status:   status,
-		Error:    err,
-	}
 }
 
 // getInstructions finds proper instructions in internal DeploymentInstructions
