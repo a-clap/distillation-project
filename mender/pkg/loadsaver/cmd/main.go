@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
+	"path"
 
 	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
 )
@@ -12,12 +13,13 @@ type Release struct {
 	State string `mapstructure:"state"`
 }
 
-type Releases struct {
-	Values []Release `mapstructure:"releases"`
-}
-
 func main() {
-	ls, err := loadsaver.New("/home/adamclap/repo/.go/ota/config13.yaml")
+	p, err := os.Getwd()
+	if err != nil {
+		log.Fatal(p)
+	}
+
+	ls, err := loadsaver.New(path.Join(p, "config.yaml"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,6 +28,8 @@ func main() {
 		Name:  "1",
 		State: "2",
 	}
-	err = ls.Save("relesae", r)
-	fmt.Println(err)
+
+	if err = ls.Save("release", r); err != nil {
+		log.Fatal(err)
+	}
 }

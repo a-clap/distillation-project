@@ -2,8 +2,8 @@ package loadsaver
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -13,17 +13,12 @@ type LoadSaver struct {
 }
 
 func New(configFile string) (*LoadSaver, error) {
-	// Create file if it doesn't exist
-	if err := touchFile(configFile); err != nil {
-		return nil, err
-	}
-
 	dir, file := filepath.Split(configFile)
 	ext := filepath.Ext(file)
 
 	v := viper.New()
 	v.AddConfigPath(dir)
-	v.SetConfigName(file)
+	v.SetConfigName(strings.TrimSuffix(file, ext))
 
 	if len(ext) > 0 {
 		// Skip dot
@@ -31,7 +26,12 @@ func New(configFile string) (*LoadSaver, error) {
 	}
 
 	if err := v.ReadInConfig(); err != nil {
-		return nil, err
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("failed to read config: %w", err)
+		}
+		if err := v.SafeWriteConfig(); err != nil {
+			return nil, fmt.Errorf("failed to create config: %w", err)
+		}
 	}
 
 	return &LoadSaver{v: v}, nil
@@ -44,15 +44,4 @@ func (l *LoadSaver) Save(key string, data interface{}) error {
 
 func (l *LoadSaver) Load(key string) interface{} {
 	return l.v.Get(key)
-}
-
-func touchFile(configFile string) error {
-	file, err := os.OpenFile(configFile, os.O_RDONLY|os.O_CREATE, 0666)
-	if err != nil {
-		fmt.Print("oj")
-		return err
-	}
-
-	file.Close()
-	return nil
 }
