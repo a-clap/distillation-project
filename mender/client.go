@@ -32,12 +32,13 @@ type Client struct {
 	teenantToken string
 	jwtToken     string
 	paths        *serverPaths
-	artifacts    []DeploymentInstructions
+	artifacts    Artifacts
 	updating     atomic.Bool
 }
 
 const (
 	defaultTimeout = 1 * time.Second
+	artifactsKey   = "artifacts"
 )
 
 func New(options ...Option) (*Client, error) {
@@ -55,7 +56,11 @@ func New(options ...Option) (*Client, error) {
 		return nil, err
 	}
 
-	c.artifacts = make([]DeploymentInstructions, 0)
+	if maybeData := c.LoadSaver.Load(artifactsKey); maybeData != nil {
+		if rawBytes, err := json.Marshal(maybeData); err == nil {
+			_ = json.Unmarshal(rawBytes, &c.artifacts)
+		}
+	}
 
 	return c, nil
 }
@@ -228,34 +233,32 @@ func (c *Client) PullReleases() (newRelease bool, err error) {
 		return false, fmt.Errorf("http request error: %w", err)
 	}
 
+	// Make sure this release is compatible with us
 	if idx := slices.Index(artifact.Artifact.Compatible, info.DeviceType); idx == -1 {
 		return false, nil
 	}
 
-	c.artifacts = append(c.artifacts, artifact)
+	// Make sure we already don't have such artifacts
+	if idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
+		return instructions.ID == artifact.ID
+	}); idx != -1 {
+		return false, nil
+	}
+
+	c.artifacts.Archive = append(c.artifacts.Archive, artifact)
+	if err := c.LoadSaver.Save(artifactsKey, c.artifacts); err != nil {
+		return false, fmt.Errorf("failed to save artifacts: %w", err)
+	}
 
 	return true, nil
 }
 
 func (c *Client) AvailableReleases() []string {
-	releases := make([]string, 0, len(c.artifacts))
-	for _, artifact := range c.artifacts {
+	releases := make([]string, 0, len(c.artifacts.Archive))
+	for _, artifact := range c.artifacts.Archive {
 		releases = append(releases, artifact.Artifact.Name)
 	}
 	return releases
-}
-
-func (c *Client) Arti() Artifacts {
-	artifact := Artifacts{
-		Current: &ArtifactDeploymentStatus{
-			State:              Downloading,
-			DeploymentArtifact: c.artifacts[0].Artifact,
-		},
-		Archive: c.artifacts,
-	}
-	artifact.Current = nil
-
-	return artifact
 }
 
 func (c *Client) NotifyServer(status DeploymentStatus, artifactName string) error {
@@ -460,14 +463,14 @@ func (c *Client) Verify(data []byte, sig []byte) error {
 
 // getInstructions finds proper instructions in internal DeploymentInstructions
 func (c *Client) getInstructions(artifactName string) (*DeploymentInstructions, error) {
-	idx := slices.IndexFunc(c.artifacts, func(instructions DeploymentInstructions) bool {
+	idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
 		return instructions.Artifact.Name == artifactName
 	})
 
 	if idx == -1 {
 		return nil, fmt.Errorf("artifact %v not found", artifactName)
 	}
-	return &c.artifacts[idx], nil
+	return &c.artifacts.Archive[idx], nil
 }
 
 // maybeDecodeBase64 checks if it is possible to decode string with base64 encoding

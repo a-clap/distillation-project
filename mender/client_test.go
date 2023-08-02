@@ -52,6 +52,10 @@ func (ms *MenderTestSuite) TestNew() {
 	req.NotNil(keys)
 
 	ctrl := gomock.NewController(ms.T())
+
+	mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+	mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
+
 	defer ctrl.Finish()
 
 	args := []struct {
@@ -122,7 +126,7 @@ func (ms *MenderTestSuite) TestNew() {
 		{
 			name: "with loadsaver",
 			opts: []mender.Option{
-				mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+				mender.WithLoadSaver(mockLoadSaver),
 			},
 			expectedErr: true,
 			errorsIs: []error{mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
@@ -149,7 +153,7 @@ func (ms *MenderTestSuite) TestNew() {
 				mender.WithDownloader(mocks.NewMockDownloader(ctrl)),
 				mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 				mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
-				mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+				mender.WithLoadSaver(mockLoadSaver),
 				mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 			},
 			expectedErr: false,
@@ -269,6 +273,8 @@ func (ms *MenderTestSuite) TestConnect() {
 
 		ctrl := gomock.NewController(ms.T())
 		dev := mocks.NewMockDevice(ctrl)
+		mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+		mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
 
 		if arg.onID != nil {
 			dev.EXPECT().ID().Return(arg.onID.attribute, arg.onID.err).AnyTimes()
@@ -281,7 +287,7 @@ func (ms *MenderTestSuite) TestConnect() {
 			mender.WithDownloader(mocks.NewMockDownloader(ctrl)),
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
-			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithLoadSaver(mockLoadSaver),
 			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
@@ -363,8 +369,8 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 			retAttrErr:   nil,
 		},
 	}
-	for _, arg := range args {
 
+	for _, arg := range args {
 		header := make(http.Header)
 		body := make([]byte, 0, 512)
 
@@ -397,6 +403,9 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 
 		ctrl := gomock.NewController(ms.T())
 		dev := mocks.NewMockDevice(ctrl)
+		mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+
+		mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
 
 		dev.EXPECT().Attributes().Return(arg.retAttr, arg.retAttrErr)
 		dev.EXPECT().ID().Return(arg.retID, arg.retIDErr)
@@ -409,7 +418,7 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 			mender.WithDownloader(mocks.NewMockDownloader(ctrl)),
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
-			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithLoadSaver(mockLoadSaver),
 			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
@@ -535,8 +544,8 @@ func (ms *MenderTestSuite) TestSendStatus() {
 			err:            nil,
 		},
 	}
-	for _, arg := range args {
 
+	for _, arg := range args {
 		handle := http.NewServeMux()
 		// Return token
 		handle.Handle("/api/devices/v1/authentication/auth_requests", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -577,6 +586,10 @@ func (ms *MenderTestSuite) TestSendStatus() {
 
 		ctrl := gomock.NewController(ms.T())
 		dev := mocks.NewMockDevice(ctrl)
+		mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+
+		mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
+		mockLoadSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 
 		dev.EXPECT().ID().Return([]device.Attribute{{Name: "id", Value: []string{"id"}}}, nil)
 		dev.EXPECT().Info().Return(device.Info{DeviceType: "device", ArtifactName: "artifact"}, nil)
@@ -588,7 +601,7 @@ func (ms *MenderTestSuite) TestSendStatus() {
 			mender.WithDownloader(mocks.NewMockDownloader(ctrl)),
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
-			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithLoadSaver(mockLoadSaver),
 			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
@@ -739,8 +752,8 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 			releaseErr:  nil,
 		},
 	}
-	for _, arg := range args {
 
+	for _, arg := range args {
 		header := make(http.Header)
 		values := make(url.Values)
 
@@ -768,6 +781,12 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 		ctrl := gomock.NewController(ms.T())
 		dev := mocks.NewMockDevice(ctrl)
 
+		mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+		mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
+		if arg.releaseName != "" {
+			mockLoadSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
+		}
+
 		// dev.EXPECT().Attributes().Return([]device.Attribute{{Name: "attr", Value: []string{"value"}}}, nil)
 		dev.EXPECT().ID().Return([]device.Attribute{{Name: "id", Value: []string{"id"}}}, nil)
 		dev.EXPECT().Info().Return(arg.devInfo, nil)
@@ -779,7 +798,7 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 			mender.WithDownloader(mocks.NewMockDownloader(ctrl)),
 			mender.WithInstaller(mocks.NewMockInstaller(ctrl)),
 			mender.WithRebooter(mocks.NewMockRebooter(ctrl)),
-			mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+			mender.WithLoadSaver(mockLoadSaver),
 			mender.WithCallbacks(mocks.NewMockCallbacks(ctrl)),
 		)
 
@@ -885,6 +904,10 @@ func (ms *MenderTestSuite) TestUpdate() {
 	mockInstaller := mocks.NewMockInstaller(ctrl)
 	mockRebooter := mocks.NewMockRebooter(ctrl)
 	mockCallbacks := mocks.NewMockCallbacks(ctrl)
+	mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+
+	mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
+	mockLoadSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 
 	client, err := mender.New(
 		mender.WithServer(srv.URL, "teenant token"),
@@ -893,7 +916,7 @@ func (ms *MenderTestSuite) TestUpdate() {
 		mender.WithDownloader(mockDownloader),
 		mender.WithInstaller(mockInstaller),
 		mender.WithRebooter(mockRebooter),
-		mender.WithLoadSaver(mocks.NewMockLoadSaver(ctrl)),
+		mender.WithLoadSaver(mockLoadSaver),
 		mender.WithCallbacks(mockCallbacks),
 	)
 

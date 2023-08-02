@@ -1,6 +1,9 @@
 package mender
 
 import (
+	"fmt"
+	"os"
+	"path"
 	"time"
 
 	"github.com/a-clap/distillation-ota/pkg/mender/downloader"
@@ -12,6 +15,7 @@ import (
 
 type Builder struct {
 	url, token     string
+	callbacks      Callbacks
 	device         Device
 	signerVerifier Signer
 	timeout        time.Duration
@@ -41,11 +45,19 @@ func (b *Builder) Build() (*Client, error) {
 	opts := make([]Option, 0, 8)
 
 	if b.signerVerifier == nil {
-		signer, err := signer.New(signer.WithNewKey())
+		sign, err := signer.New(signer.WithNewKey())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to create signer: %w", err)
 		}
-		b.signerVerifier = &builderSignerVerifier{signer}
+		b.signerVerifier = &builderSignerVerifier{sign}
+	}
+
+	if b.loadSaver == nil {
+		saver, err := loadsaver.New(path.Join(os.TempDir(), "mender.json"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create loadSaver: %w", err)
+		}
+		b.loadSaver = &builderLoadSaver{saver}
 	}
 
 	opts = append(opts, WithSigner(b.signerVerifier))
@@ -53,6 +65,7 @@ func (b *Builder) Build() (*Client, error) {
 	opts = append(opts, WithDownloader(b.downloader))
 	opts = append(opts, WithInstaller(b.installer))
 	opts = append(opts, WithRebooter(b.rebooter))
+	opts = append(opts, WithCallbacks(b.callbacks))
 
 	if b.device != nil {
 		opts = append(opts, WithDevice(b.device))
@@ -81,6 +94,11 @@ func (b *Builder) WithServer(url, token string) *Builder {
 
 func (b *Builder) WithDevice(d Device) *Builder {
 	b.device = d
+	return b
+}
+
+func (b *Builder) WithCallbacks(cb Callbacks) *Builder {
+	b.callbacks = cb
 	return b
 }
 
@@ -121,6 +139,7 @@ var (
 	_ Installer  = (*builderInstaller)(nil)
 	_ Rebooter   = (*builderRebooter)(nil)
 	_ Signer     = (*builderSignerVerifier)(nil)
+	_ LoadSaver  = (*builderLoadSaver)(nil)
 )
 
 type builderSignerVerifier struct {
@@ -128,6 +147,10 @@ type builderSignerVerifier struct {
 }
 
 type builderRebooter struct {
+}
+
+type builderLoadSaver struct {
+	*loadsaver.LoadSaver
 }
 
 // Reboot implements Rebooter.

@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path"
 	"time"
-
-	json "github.com/json-iterator/go"
 
 	"github.com/a-clap/distillation-ota/pkg/mender"
 	"github.com/a-clap/distillation-ota/pkg/mender/device"
@@ -48,10 +48,39 @@ func (f FakeDevice) Attributes() ([]device.Attribute, error) {
 	}, nil
 }
 
+type callback struct {
+}
+
+func (c callback) Update(status mender.DeploymentStatus, progress int) {
+	fmt.Printf("Update: %v %v\n", status, progress)
+}
+
+func (c callback) NextState(status mender.DeploymentStatus) bool {
+	fmt.Printf("NextState: %v\n", status)
+	return false
+}
+
+func (c callback) Error(err error) {
+	fmt.Println("Error:", err)
+}
+
+var (
+	_ mender.Callbacks = (*callback)(nil)
+)
+
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	keys, err := signer.New(signer.WithPrivKey([]byte(PrivPem)))
+	if err != nil {
+		log.Fatal(err)
+	}
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	saver, err := loadsaver.New(path.Join(pwd, "mender.json"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,6 +90,8 @@ func main() {
 		WithTimeout(time.Second).
 		WithSignerVerifier(keys).
 		WithServer(MenderSrv, MenderSrvToken).
+		WithLoadSaver(saver).
+		WithCallbacks(&callback{}).
 		Build()
 
 	if err != nil {
@@ -78,51 +109,14 @@ func main() {
 	}
 
 	got, err := client.PullReleases()
-
-	fmt.Println(got)
-	fmt.Println(err)
-
+	if err != nil {
+		fmt.Println("Failed to pull releases:", err)
+	}
 	if !got {
 		fmt.Println("no artifact to install")
-		return
 	}
 
-	ls, err := loadsaver.New("/home/adamclap/repo/.go/ota/config.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	parse := func(maybe interface{}) (*mender.Artifacts, error) {
-		if maybe == nil {
-			return nil, fmt.Errorf("nil")
-		}
-
-		raw, err := json.Marshal(maybe)
-		if err != nil {
-			return nil, err
-		}
-		var artifacts mender.Artifacts
-		if err := json.Unmarshal(raw, &artifacts); err != nil {
-			return nil, err
-		}
-		return &artifacts, nil
-	}
-
-	currentArtifact := client.Arti()
-
-	fmt.Println(currentArtifact)
-	maybeArtifacts := ls.Load("artifacts")
-	artifacts, err := parse(maybeArtifacts)
-	if err != nil {
-		log.Println("no artifacts stored")
-	} else {
-		log.Println("got artifacts")
-		fmt.Printf("%#v\n", artifacts)
-		if artifacts.Current == nil {
-			fmt.Println("no current state")
-		}
-	}
-
-	ls.Save("artifacts", currentArtifact)
+	avail := client.AvailableReleases()
+	fmt.Println("Available releases:", avail)
 
 }
