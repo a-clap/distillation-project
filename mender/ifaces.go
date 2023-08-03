@@ -5,14 +5,14 @@ import (
 )
 
 var (
-	getDeploymentStatus = func() func(s DeploymentStatus) string {
+	deploymentStatus = func() func(s DeploymentStatus) string {
 		toStatus := map[DeploymentStatus]string{
 			Downloading:           "downloading",
 			PauseBeforeInstalling: "pause_before_installing",
 			Installing:            "installing",
 			PauseBeforeRebooting:  "pause_before_rebooting",
 			Rebooting:             "rebooting",
-			PauseBeforeCommiting:  "pause_before_committing",
+			PauseBeforeCommitting: "pause_before_committing",
 			Success:               "success",
 			Failure:               "failure",
 			AlreadyInstalled:      "already-installed",

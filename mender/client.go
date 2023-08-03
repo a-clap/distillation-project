@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -58,8 +59,19 @@ func New(options ...Option) (*Client, error) {
 
 	if maybeData := c.LoadSaver.Load(artifactsKey); maybeData != nil {
 		if rawBytes, err := json.Marshal(maybeData); err == nil {
-			_ = json.Unmarshal(rawBytes, &c.artifacts)
+			if err := json.Unmarshal(rawBytes, &c.artifacts); err != nil {
+				log.Fatal(err)
+			}
 		}
+	}
+
+	// Should we continue update?
+	if c.artifacts.Current != nil {
+		// We need token
+		if err := c.Connect(); err != nil {
+			return nil, err
+		}
+		c.updateFromState(c.artifacts.Current.State, &c.artifacts.Current.DeploymentInstructions)
 	}
 
 	return c, nil
@@ -270,7 +282,7 @@ func (c *Client) NotifyServer(status DeploymentStatus, artifactName string) erro
 	jsonStatus := struct {
 		Status string `json:"status"`
 	}{
-		Status: getDeploymentStatus(status),
+		Status: deploymentStatus(status),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
@@ -298,8 +310,7 @@ func (c *Client) Update(artifactName string) error {
 		return err
 	}
 
-	c.updating.Store(true)
-	go c.handleUpdate(instructions)
+	c.updateFromState(Downloading, instructions)
 
 	return nil
 }
@@ -309,7 +320,6 @@ func (c *Client) IsDuringUpdate() bool {
 }
 
 func (c *Client) StopUpdate() error {
-	// If not during update process - nothing to do
 	if !c.IsDuringUpdate() {
 		return nil
 	}
@@ -317,17 +327,87 @@ func (c *Client) StopUpdate() error {
 	return nil
 }
 
-func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
-	if err := c.NotifyServer(Downloading, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to send Downloading status: %w", err))
+func (c *Client) updateFromState(state DeploymentStatus, ins *DeploymentInstructions) {
+	c.updating.Store(true)
+	go c.handleUpdate(state, ins)
+}
+
+func (c *Client) handleUpdate(state DeploymentStatus, ins *DeploymentInstructions) {
+	shouldContinue := func(status DeploymentStatus) bool {
+		if next := c.Callbacks.NextState(status); !next {
+			// Cleanup
+			c.doCleanup(Failure, ins.Artifact.Name)
+			return false
+		}
+		return true
+	}
+
+	var err error
+	var downloadedFile string
+
+	for c.updating.Load() {
+		switch state {
+		case Downloading:
+			// Save state
+			downloadedFile, err = c.handleDownload(ins.Artifact.Name, ins.Artifact.Source.URI)
+			if err != nil {
+				return
+			}
+			state = PauseBeforeInstalling
+		case PauseBeforeInstalling:
+			if !shouldContinue(Installing) {
+				return
+			}
+			state = Installing
+		case Installing:
+			if err := c.handleInstall(ins.Artifact.Name, downloadedFile); err != nil {
+				return
+			}
+			state = PauseBeforeRebooting
+		case PauseBeforeRebooting:
+			if !shouldContinue(Rebooting) {
+				return
+			}
+			state = Rebooting
+		case Rebooting:
+			if err := c.handleReboot(ins.Artifact.Name); err != nil {
+				return
+			}
+			c.updating.Store(false)
+		case PauseBeforeCommitting:
+			if !shouldContinue(Success) {
+				return
+			}
+			state = Success
+		case Success:
+			if err := c.notifyServerDuringUpdate(Success, ins.Artifact.Name); err != nil {
+				return
+			}
+		default:
+			panic("unsupported state")
+			// Shouldn't achieve this state
+		}
+	}
+}
+
+func (c *Client) notifyServerDuringUpdate(status DeploymentStatus, artifactName string) error {
+	if err := c.NotifyServer(status, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", deploymentStatus(status), err))
 		c.doCleanup(Failure, artifactName)
+		return err
+	}
+	return nil
+}
+
+func (c *Client) handleDownload(artifactName, srcURL string) (string, error) {
+	if err := c.notifyServerDuringUpdate(Downloading, artifactName); err != nil {
 		return "", err
 	}
 
 	dst := path.Join(os.TempDir(), artifactName, ".tmp")
-	downloading, errs, err := c.Downloader.Download(dst, srcUri)
+	downloading, errs, err := c.Downloader.Download(dst, srcURL)
 	if err != nil {
-		c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcUri, err))
+		c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcURL, err))
 		c.doCleanup(Failure, artifactName)
 		return "", err
 	}
@@ -343,9 +423,7 @@ func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
 	}
 
 	// Download finished - notify server
-	if err := c.NotifyServer(PauseBeforeInstalling, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to notify server: %w", err))
-		c.doCleanup(Failure, artifactName)
+	if err := c.notifyServerDuringUpdate(PauseBeforeInstalling, artifactName); err != nil {
 		return "", err
 	}
 
@@ -356,9 +434,7 @@ func (c *Client) handleDownload(artifactName, srcUri string) (string, error) {
 }
 
 func (c *Client) handleReboot(artifactName string) error {
-	if err := c.NotifyServer(Rebooting, artifactName); err != nil {
-		c.Error(fmt.Errorf("failed to send Rebooting status: %w", err))
-		c.doCleanup(Failure, artifactName)
+	if err := c.notifyServerDuringUpdate(Rebooting, artifactName); err != nil {
 		return err
 	}
 
@@ -374,9 +450,7 @@ func (c *Client) handleReboot(artifactName string) error {
 }
 
 func (c *Client) handleInstall(artifactName, src string) error {
-	if err := c.NotifyServer(Installing, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to send Installing status: %w", err))
-		c.doCleanup(Failure, artifactName)
+	if err := c.notifyServerDuringUpdate(Installing, artifactName); err != nil {
 		return err
 	}
 
@@ -398,9 +472,7 @@ func (c *Client) handleInstall(artifactName, src string) error {
 	}
 
 	// Install finished - notify server
-	if err := c.NotifyServer(PauseBeforeRebooting, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to notify server: %w", err))
-		c.doCleanup(Failure, artifactName)
+	if err := c.notifyServerDuringUpdate(PauseBeforeRebooting, artifactName); err != nil {
 		return err
 	}
 
@@ -415,46 +487,6 @@ func (c *Client) doCleanup(status DeploymentStatus, artifactName string) {
 	c.updating.Store(false)
 }
 
-func (c *Client) handleUpdate(ins *DeploymentInstructions) {
-	// TODO: maybe it should be more like state machine
-	// What if we will want to start from specific stage?
-	shouldContinue := func(status DeploymentStatus) bool {
-		if next := c.Callbacks.NextState(status); !next {
-			// Cleanup
-			c.doCleanup(Failure, ins.Artifact.Name)
-			return false
-		}
-		return true
-	}
-
-	// Download
-	dst, err := c.handleDownload(ins.Artifact.Name, ins.Artifact.Source.URI)
-	if err != nil {
-		return
-	}
-
-	// Wait for confirmation
-	if !shouldContinue(Installing) {
-		return
-	}
-
-	// Install
-	if err := c.handleInstall(ins.Artifact.Name, dst); err != nil {
-		return
-	}
-
-	// Wait for confirmation
-	if !shouldContinue(Rebooting) {
-		return
-	}
-
-	// Reboot
-	if err := c.handleReboot(ins.Artifact.Name); err != nil {
-		return
-	}
-
-}
-
 // Verify overloads SignerVerifier - it checks first, if sig is base64 encoded
 func (c *Client) Verify(data []byte, sig []byte) error {
 	sig = maybeDecodeBase64(sig)
@@ -463,6 +495,12 @@ func (c *Client) Verify(data []byte, sig []byte) error {
 
 // getInstructions finds proper instructions in internal DeploymentInstructions
 func (c *Client) getInstructions(artifactName string) (*DeploymentInstructions, error) {
+	// Maybe we are using current artifact
+	if c.artifacts.Current != nil &&
+		c.artifacts.Current.DeploymentInstructions.Artifact.Name == artifactName {
+		return &c.artifacts.Current.DeploymentInstructions, nil
+	}
+
 	idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
 		return instructions.Artifact.Name == artifactName
 	})

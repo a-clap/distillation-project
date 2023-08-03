@@ -514,7 +514,7 @@ func (ms *MenderTestSuite) TestSendStatus() {
 		{
 			name:           "NoContent",
 			statusCode:     http.StatusNoContent,
-			sendStatus:     mender.PauseBeforeCommiting,
+			sendStatus:     mender.PauseBeforeCommitting,
 			expectedStatus: "pause_before_committing",
 			deployID:       "1233",
 			err:            nil,
@@ -1012,4 +1012,103 @@ func (ms *MenderTestSuite) TestUpdate() {
 	}
 	// Then we should receive status 'pause_before_rebooting'
 	req.Equal("rebooting", bodyStatus[4]["status"])
+}
+
+func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
+	req := ms.Require()
+
+	const (
+		deployID     = "1234"
+		artifactName = "my-app-0.1"
+	)
+
+	// Prepare server
+	handle := http.NewServeMux()
+	// Return token
+	handle.Handle("/api/devices/v1/authentication/auth_requests", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusOK)
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write([]byte("token"))
+	}))
+
+	handle.Handle("/api/devices/v1/deployments/device/deployments/next", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusNoContent)
+	}))
+
+	type jsonStatus map[string]string
+	bodyStatus := make([]jsonStatus, 0)
+
+	deployURL := fmt.Sprintf("/api/devices/v1/deployments/device/deployments/%v/status", deployID)
+	handle.Handle(deployURL, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		// Proper response
+		writer.WriteHeader(http.StatusOK)
+		// Get body
+		body, _ := io.ReadAll(request.Body)
+		_ = request.Body.Close()
+		// Parse body to json
+		js := make(jsonStatus)
+		// Make sure it is correct
+		req.Nil(json.Unmarshal(body, &js))
+		bodyStatus = append(bodyStatus, js)
+	}))
+
+	srv := httptest.NewServer(handle)
+
+	ctrl := gomock.NewController(ms.T())
+	mockDevice := mocks.NewMockDevice(ctrl)
+
+	mockDownloader := mocks.NewMockDownloader(ctrl)
+	mockInstaller := mocks.NewMockInstaller(ctrl)
+	mockRebooter := mocks.NewMockRebooter(ctrl)
+	mockCallbacks := mocks.NewMockCallbacks(ctrl)
+	mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
+
+	arti := mender.Artifacts{
+		Current: &mender.CurrentDeployment{
+			State: mender.PauseBeforeCommitting,
+			DeploymentInstructions: mender.DeploymentInstructions{
+				ID: deployID,
+				Artifact: mender.DeploymentArtifact{
+					Name: artifactName,
+					Source: mender.DeploymentSource{
+						URI:    "https://aws.my_update_bucket.com/image_123",
+						Expire: "2016-03-11T13:03:17.063493443Z",
+					},
+					Compatible: []string{"device"},
+				},
+			},
+		},
+		Archive: nil,
+	}
+
+	mockLoadSaver.EXPECT().Load(gomock.Any()).Return(arti)
+
+	wait := make(chan struct{})
+	// Should continue update
+	mockCallbacks.EXPECT().NextState(mender.Success).Return(false).Do(func(any) {
+		close(wait)
+	})
+
+	client, err := mender.New(
+		mender.WithServer(srv.URL, "teenant token"),
+		mender.WithSigner(keys),
+		mender.WithDevice(mockDevice),
+		mender.WithDownloader(mockDownloader),
+		mender.WithInstaller(mockInstaller),
+		mender.WithRebooter(mockRebooter),
+		mender.WithLoadSaver(mockLoadSaver),
+		mender.WithCallbacks(mockCallbacks),
+	)
+
+	req.Nil(err)
+	req.NotNil(client)
+
+	select {
+	case <-wait:
+	case <-time.After(1 * time.Millisecond):
+		req.Fail("client should have already called NextState")
+	}
+
+	// We should receive status 'downloading'
+	req.Equal("downloading", bodyStatus[0]["status"])
 }

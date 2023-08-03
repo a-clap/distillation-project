@@ -8,7 +8,7 @@ const (
 	Installing
 	PauseBeforeRebooting
 	Rebooting
-	PauseBeforeCommiting
+	PauseBeforeCommitting
 	Success
 	Failure
 	AlreadyInstalled
@@ -31,12 +31,12 @@ type DeploymentInstructions struct {
 	Artifact DeploymentArtifact `json:"artifact"`
 }
 
-type ArtifactDeploymentStatus struct {
+type CurrentDeployment struct {
 	State DeploymentStatus `json:"state"`
-	DeploymentArtifact
+	DeploymentInstructions
 }
 
 type Artifacts struct {
-	Current *ArtifactDeploymentStatus `json:"current"`
-	Archive []DeploymentInstructions  `json:"archive"`
+	Current *CurrentDeployment       `json:"current"`
+	Archive []DeploymentInstructions `json:"archive"`
 }
