@@ -127,6 +127,16 @@ func (b *Builder) WithLoadSaver(saver LoadSaver) *Builder {
 	return b
 }
 
+func (b *Builder) WithArtifactsFile(file string) *Builder {
+	saver, err := loadsaver.New(file)
+	if err != nil {
+		// Can't do anything about it, fail fast
+		panic(err)
+	}
+	b.loadSaver = saver
+	return b
+}
+
 func (b *Builder) WithStore(configFilePath string) *Builder {
 	if saver, err := loadsaver.New(configFilePath); err == nil {
 		b.loadSaver = saver
