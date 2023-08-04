@@ -14,4 +14,5 @@ var (
 	ErrNeedRebooter          = errors.New("Rebooter is mandatory")
 	ErrNeedLoadSaver         = errors.New("LoadSaver is mandatory")
 	ErrNeedCallbacks         = errors.New("Callbacks are mandatory")
+	ErrDuringUpdate          = errors.New("currently during update")
 )

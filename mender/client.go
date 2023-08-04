@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -19,7 +18,6 @@ import (
 )
 
 //go:generate mockgen -package mocks -destination mocks/mocks_mender.go . Signer,Device,Downloader,Installer,Rebooter,LoadSaver,Callbacks
-
 type Client struct {
 	Timeout time.Duration
 	Signer
@@ -57,13 +55,7 @@ func New(options ...Option) (*Client, error) {
 		return nil, err
 	}
 
-	if maybeData := c.LoadSaver.Load(artifactsKey); maybeData != nil {
-		if rawBytes, err := json.Marshal(maybeData); err == nil {
-			if err := json.Unmarshal(rawBytes, &c.artifacts); err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
+	c.loadArtifacts()
 
 	// Should we continue update?
 	if c.artifacts.Current != nil {
@@ -71,7 +63,7 @@ func New(options ...Option) (*Client, error) {
 		if err := c.Connect(); err != nil {
 			return nil, err
 		}
-		c.updateFromState(c.artifacts.Current.State, &c.artifacts.Current.DeploymentInstructions)
+		c.updateFromState(c.artifacts.Current.State, c.artifacts.Current.DeploymentInstructions)
 	}
 
 	return c, nil
@@ -212,6 +204,10 @@ func (c *Client) UpdateInventory() error {
 }
 
 func (c *Client) PullReleases() (newRelease bool, err error) {
+	if c.IsDuringUpdate() {
+		return false, ErrDuringUpdate
+	}
+
 	info, err := c.Device.Info()
 	if err != nil {
 		return
@@ -250,16 +246,14 @@ func (c *Client) PullReleases() (newRelease bool, err error) {
 		return false, nil
 	}
 
-	// Make sure we already don't have such artifacts
-	if idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
-		return instructions.ID == artifact.ID
-	}); idx != -1 {
+	// Make sure we already don't have such artifact
+	if _, err := c.getInstructions(artifact.Artifact.Name); err == nil {
 		return false, nil
 	}
 
 	c.artifacts.Archive = append(c.artifacts.Archive, artifact)
-	if err := c.LoadSaver.Save(artifactsKey, c.artifacts); err != nil {
-		return false, fmt.Errorf("failed to save artifacts: %w", err)
+	if err := c.saveArtifacts(); err != nil {
+		return false, err
 	}
 
 	return true, nil
@@ -302,7 +296,7 @@ func (c *Client) NotifyServer(status DeploymentStatus, artifactName string) erro
 
 func (c *Client) Update(artifactName string) error {
 	if c.IsDuringUpdate() {
-		return fmt.Errorf("already during update")
+		return ErrDuringUpdate
 	}
 
 	instructions, err := c.getInstructions(artifactName)
@@ -329,63 +323,81 @@ func (c *Client) StopUpdate() error {
 
 func (c *Client) updateFromState(state DeploymentStatus, ins *DeploymentInstructions) {
 	c.updating.Store(true)
-	go c.handleUpdate(state, ins)
+	c.artifacts.Current = &CurrentDeployment{
+		State:                  state,
+		DeploymentInstructions: ins,
+	}
+	go c.handleUpdate()
 }
 
-func (c *Client) handleUpdate(state DeploymentStatus, ins *DeploymentInstructions) {
+func (c *Client) handleUpdate() {
+	var (
+		artifactName   = c.artifacts.Current.DeploymentInstructions.Artifact.Name
+		srcURL         = c.artifacts.Current.DeploymentInstructions.Artifact.Source.URI
+		err            error
+		downloadedFile string
+	)
+
 	shouldContinue := func(status DeploymentStatus) bool {
 		if next := c.Callbacks.NextState(status); !next {
 			// Cleanup
-			c.doCleanup(Failure, ins.Artifact.Name)
+			c.doCleanup(Failure, srcURL)
 			return false
 		}
 		return true
 	}
 
-	var err error
-	var downloadedFile string
-
 	for c.updating.Load() {
-		switch state {
+		switch c.artifacts.Current.State {
 		case Downloading:
-			// Save state
-			downloadedFile, err = c.handleDownload(ins.Artifact.Name, ins.Artifact.Source.URI)
+			// Save c.artifacts.Current.State
+			downloadedFile, err = c.handleDownload(artifactName, srcURL)
 			if err != nil {
 				return
 			}
-			state = PauseBeforeInstalling
+			c.artifacts.Current.State = PauseBeforeInstalling
 		case PauseBeforeInstalling:
 			if !shouldContinue(Installing) {
 				return
 			}
-			state = Installing
+			c.artifacts.Current.State = Installing
 		case Installing:
-			if err := c.handleInstall(ins.Artifact.Name, downloadedFile); err != nil {
+			if err := c.handleInstall(artifactName, downloadedFile); err != nil {
 				return
 			}
-			state = PauseBeforeRebooting
+			c.artifacts.Current.State = PauseBeforeRebooting
 		case PauseBeforeRebooting:
 			if !shouldContinue(Rebooting) {
 				return
 			}
-			state = Rebooting
+			c.artifacts.Current.State = Rebooting
 		case Rebooting:
-			if err := c.handleReboot(ins.Artifact.Name); err != nil {
+			// Store state before reboot
+			if err := c.saveArtifacts(); err != nil {
+				c.Callbacks.Error(err)
+				c.doCleanup(Failure, artifactName)
 				return
 			}
+			// Execute reboot
+			if err := c.handleReboot(artifactName); err != nil {
+				return
+			}
+			// Well... we shouldn't be here
 			c.updating.Store(false)
 		case PauseBeforeCommitting:
 			if !shouldContinue(Success) {
 				return
 			}
-			state = Success
+			c.artifacts.Current.State = Success
 		case Success:
-			if err := c.notifyServerDuringUpdate(Success, ins.Artifact.Name); err != nil {
-				return
-			}
+			// Everything went fine
+			c.handleSuccess(artifactName)
+		case Failure:
+			c.updating.Store(false)
 		default:
-			panic("unsupported state")
 			// Shouldn't achieve this state
+			c.Callbacks.Error(fmt.Errorf("unsupported state: %v", c.artifacts.Current.State))
+			c.updating.Store(false)
 		}
 	}
 }
@@ -397,6 +409,27 @@ func (c *Client) notifyServerDuringUpdate(status DeploymentStatus, artifactName 
 		return err
 	}
 	return nil
+}
+
+func (c *Client) handleSuccess(artifactName string) {
+	// Finished
+	c.updating.Store(false)
+
+	// Remove just installed artifact from Archive
+	c.artifacts.Archive = slices.DeleteFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
+		return c.artifacts.Current.Artifact.Name == instructions.Artifact.Name
+	})
+
+	// And current artifact itself
+	c.artifacts.Current = nil
+	// Store updated artifacts
+	if err := c.saveArtifacts(); err != nil {
+		c.Callbacks.Error(err)
+	}
+	// Notify server that we are done
+	if err := c.NotifyServer(Success, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", deploymentStatus(Success), err))
+	}
 }
 
 func (c *Client) handleDownload(artifactName, srcURL string) (string, error) {
@@ -482,6 +515,28 @@ func (c *Client) handleInstall(artifactName, src string) error {
 
 }
 
+func (c *Client) loadArtifacts() {
+	maybeData := c.LoadSaver.Load(artifactsKey)
+	if maybeData == nil {
+		return
+	}
+
+	rawBytes, err := json.Marshal(maybeData)
+	if err != nil {
+		return
+	}
+
+	_ = json.Unmarshal(rawBytes, &c.artifacts)
+
+}
+
+func (c *Client) saveArtifacts() error {
+	if err := c.LoadSaver.Save(artifactsKey, c.artifacts); err != nil {
+		return fmt.Errorf("failed to save artifacts: %w", err)
+	}
+	return nil
+}
+
 func (c *Client) doCleanup(status DeploymentStatus, artifactName string) {
 	_ = c.NotifyServer(status, artifactName)
 	c.updating.Store(false)
@@ -498,7 +553,7 @@ func (c *Client) getInstructions(artifactName string) (*DeploymentInstructions, 
 	// Maybe we are using current artifact
 	if c.artifacts.Current != nil &&
 		c.artifacts.Current.DeploymentInstructions.Artifact.Name == artifactName {
-		return &c.artifacts.Current.DeploymentInstructions, nil
+		return c.artifacts.Current.DeploymentInstructions, nil
 	}
 
 	idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {

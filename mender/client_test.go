@@ -850,6 +850,20 @@ func (ms *MenderTestSuite) TestUpdate() {
 		artifactName = "my-app-0.1"
 	)
 
+	var (
+		deployArtifact = mender.DeploymentInstructions{
+			ID: deployID,
+			Artifact: mender.DeploymentArtifact{
+				Name: artifactName,
+				Source: mender.DeploymentSource{
+					URI:    "https://aws.my_update_bucket.com/image_123",
+					Expire: "2016-03-11T13:03:17.063493443Z",
+				},
+				Compatible: []string{"device"},
+			},
+		}
+	)
+
 	// Prepare server
 	handle := http.NewServeMux()
 	// Return token
@@ -861,17 +875,7 @@ func (ms *MenderTestSuite) TestUpdate() {
 
 	handle.Handle("/api/devices/v1/deployments/device/deployments/next", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)
-		body, _ := json.Marshal(mender.DeploymentInstructions{
-			ID: deployID,
-			Artifact: mender.DeploymentArtifact{
-				Name: artifactName,
-				Source: mender.DeploymentSource{
-					URI:    "https://aws.my_update_bucket.com/image_123",
-					Expire: "2016-03-11T13:03:17.063493443Z",
-				},
-				Compatible: []string{"device"},
-			},
-		})
+		body, _ := json.Marshal(deployArtifact)
 		_, _ = writer.Write(body)
 	}))
 
@@ -907,6 +911,7 @@ func (ms *MenderTestSuite) TestUpdate() {
 	mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
 
 	mockLoadSaver.EXPECT().Load(gomock.Any()).Return(nil)
+	// First call on init
 	mockLoadSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 
 	client, err := mender.New(
@@ -1004,7 +1009,19 @@ func (ms *MenderTestSuite) TestUpdate() {
 		rebootFinished <- struct{}{}
 	})
 
+	// Client should store this data
+	expectedSaveData := mender.Artifacts{
+		Current: &mender.CurrentDeployment{
+			State:                  mender.Rebooting,
+			DeploymentInstructions: &deployArtifact,
+		},
+		Archive: []mender.DeploymentInstructions{deployArtifact},
+	}
+
+	mockLoadSaver.EXPECT().Save(gomock.Any(), expectedSaveData).Return(nil)
+
 	close(startReboot)
+
 	select {
 	case <-rebootFinished:
 	case <-time.After(1 * time.Millisecond):
@@ -1066,7 +1083,7 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	arti := mender.Artifacts{
 		Current: &mender.CurrentDeployment{
 			State: mender.PauseBeforeCommitting,
-			DeploymentInstructions: mender.DeploymentInstructions{
+			DeploymentInstructions: &mender.DeploymentInstructions{
 				ID: deployID,
 				Artifact: mender.DeploymentArtifact{
 					Name: artifactName,
