@@ -1,0 +1,180 @@
+= Embedded
+:toc: preamble
+:toclevels: 5
+:distro-link: https://github.com/a-clap/distillation-distro
+:imagesdir: docs/images/
+
+Linux embedded components.
+
+== What is this?
+
+This repo contains embedded-like components with REST/gRPC API.
+
+== Hardware
+
+Components are designed to run on https://wiki.banana-pi.org/Banana_Pi_BPI-M2_ZERO[BananaPi Zero] and {distro-link}[distillation distro].
+
+== Software
+
+This repo is responsible for actual hardware handling, we can call this part 'realtime'.
+
+It is responsible for handling pt100 sensors, onewire sensors, gpio, heaters etc.
+Right now it handles and allow to use:
+
+* pt100 sensors on MAX31865 (which are connected as /dev/spidev)
+* ds18b20 onewire sensors on many buses (which are visible on Linux in /sys/bus/w1/devices/*master*)
+* heaters: which are handled via digital output:
+** a thyristor is turned on (or off) in 'zero voltage' cross, in this way we can achieve 0 to 100% with 1% step regulation
+* digital outputs: just turn it off or on,
+* user interface via REST API or gRPC
+
+== Packages
+
+=== DS18B20
+
+This package can handle DS18B20 onewire sensors via Linux onewire bus.
+You can:
+
+* detect sensors on each created Bus,
+* create sensor from ID,
+* set Resolution (9, 10, 11 or 12 bit) for each Sensor,
+* set number of Samples, which will be used to calculate average Temperature,
+* get Temperature by hand or
+* set up Sensor to automatically update temperature in background and then get whole slice of collected temperatures,
+
+Take a look at example:
+
+[source,go]
+----
+include::pkg/ds18b20/example/ds18b20_example.go[]
+----
+
+=== MAX31865
+
+This package can handle PT100 sensors connected through spidev via Linux /dev/spidev.
+You can:
+
+* define sensor wiring (2-, 3- or 4-wire),
+* define reference resistor of max31865 chip (which is usually 430.0 Ω or 400.0 Ω for PT100)
+* define nominal resistance of sensor (which is resistance at which temperature is 0 °C)
+** for PT100 it will be just 100 Ω
+** for PT1000 it will be 1000 Ω
+* set number of Samples, which will be used to calculate average Temperature,
+* get Temperature by hand or
+* set up Sensor to automatically update temperature in background and then get whole slice of collected temperatures,
+** package can read state of DRDY pin via Ready interface or
+** just poll every configured milliseconds,
+* configure sensor hardware ID and Name for easier identifying,
+
+
+Take a look at example:
+[source, go]
+----
+include::pkg/max31865/example/max31865_example.go[]
+----
+
+=== Heater
+
+Simple wrapper on libgpio, which allows to control heater power via digital output:
+
+* output is switched off/on in 'zero voltage cross',
+* you can run it in background and then just change power on the fly
+
+Take a look at example:
+[source, go]
+----
+include::pkg/heater/example/heater_example.go[]
+----
+
+=== GPIO
+
+Wrapper for https://github.com/warthog618/gpiod[libgpiod] - with move verbose error handling and API wrapper for embedded package.
+
+=== Wifi
+
+Another wrapper for https://github.com/theojulienne/go-wireless[go-wireless] - go-wireless sometimes goes into a rabbit hole, so I just solved those problems locally to achieve stability.
+
+=== Restclient
+
+Generic REST Client used in embedded REST API user interface.
+
+=== Embeddedproto
+
+This just contains precompiled protobuf structures used with gRPC.
+
+== Embedded
+
+This package contains all subpackages (ds, heaters, max etc.) and allows user to interact with them - via REST API or gRPC. Take a look at *cmd* to see how it is used.
+
+Also in this package you can find apropriate clients to read data from it. Depends on what kind of user interface you chosed, you should pick rest clients or gRPC clients. They both share same interface, so they are interchangeable.
+
+=== REST clients
+
+Take a look at example, how to create appropriate rest clients:
+
+[source, go]
+----
+package clients
+
+import (
+	"time"
+
+	"github.com/a-clap/embedded/pkg/embedded"
+)
+
+func restClients() {
+	const addr = "http://localhost:50001"
+	const timeout = time.Second
+
+	heaterClient := embedded.NewHeaterClient(addr, timeout)
+	gpioClient := embedded.NewGPIOClient(addr, timeout)
+	dsClient := embedded.NewDS18B20Client(addr, timeout)
+	ptClient := embedded.NewPTClient(addr, timeout)
+    ...
+}
+----
+
+=== gRPC clients
+
+Take a look at example, how to create appropriate gRPC clients:
+
+[source, go]
+----
+package clients
+
+import (
+	"log"
+	"time"
+
+	"github.com/a-clap/embedded/pkg/embedded"
+)
+
+func rpcClients() {
+	const addr = "localhost:50001"
+	const timeout = time.Second
+
+	heaterClient, err := embedded.NewHeaterRPCCLient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	gpioClient, err := embedded.NewGPIORPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dsClient, err := embedded.NewDSRPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ptClient, err := embedded.NewPTRPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+    ...
+}
+----
+
+
+
+
+
+
