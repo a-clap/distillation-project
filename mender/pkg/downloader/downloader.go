@@ -73,7 +73,7 @@ func Download(dstFilePath, srcUrl string) (progress chan int, errCh chan error, 
 		return
 	}
 
-	file, err := os.CreateTemp(os.TempDir(), dstFilePath)
+	file, err := os.CreateTemp(os.TempDir(), "*.mender")
 	if err != nil {
 		return
 	}
