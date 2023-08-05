@@ -130,7 +130,6 @@ func handlePipes(finish chan struct{}, pipes ...io.ReadCloser) chan string {
 			select {
 			case <-finish:
 				running = false
-				break
 			default:
 			}
 		}

@@ -22,7 +22,6 @@ func TestInstaller(t *testing.T) {
 }
 
 var (
-	sizeMsg     = `Installing Artifact of size 162508800...`
 	percentsMsg = []string{
 		"", // empty msg, to match idx with %
 		"                                                                    1%\n",
@@ -328,13 +327,11 @@ func (i *InstallerSuite) TestInstallSuccess() {
 	r.NotNil(progress)
 	r.NotNil(errs)
 
-	responses := make([]int, 0, 100)
 	var running atomic.Bool
 	running.Store(true)
 	for running.Load() {
 		select {
 		case resp := <-progress:
-			responses = append(responses, resp)
 			if resp == 100 {
 				// Sounds like success
 				close(wait)

@@ -448,7 +448,7 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 		req.Nil(json.Unmarshal(body, &attrs))
 
 		// Attributes should contain also info
-		expectedAttr := append(arg.retAttr, []device.Attribute{
+		arg.retAttr = append(arg.retAttr, []device.Attribute{
 			{
 				Name:  "device_type",
 				Value: []string{arg.retInfo.DeviceType},
@@ -459,7 +459,7 @@ func (ms *MenderTestSuite) TestUpdateInventory() {
 			},
 		}...)
 
-		req.ElementsMatch(expectedAttr, attrs, arg.name)
+		req.ElementsMatch(arg.retAttr, attrs, arg.name)
 
 		// Verify sent token
 		token := header["Authorization"][0]
