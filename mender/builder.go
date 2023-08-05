@@ -1,11 +1,14 @@
 package mender
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
+	"github.com/a-clap/distillation-ota/pkg/mender/device"
 	"github.com/a-clap/distillation-ota/pkg/mender/downloader"
 	"github.com/a-clap/distillation-ota/pkg/mender/installer"
 	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
@@ -60,15 +63,8 @@ func (b *Builder) Build() (*Client, error) {
 		b.loadSaver = &builderLoadSaver{saver}
 	}
 
-	opts = append(opts, WithSigner(b.signerVerifier))
-	opts = append(opts, WithTimeout(b.timeout))
-	opts = append(opts, WithDownloader(b.downloader))
-	opts = append(opts, WithInstaller(b.installer))
-	opts = append(opts, WithRebooter(b.rebooter))
-	opts = append(opts, WithCallbacks(b.callbacks))
-
-	if b.device != nil {
-		opts = append(opts, WithDevice(b.device))
+	if b.device == nil {
+		b.device = device.New()
 	}
 
 	if b.url != "" && b.token != "" {
@@ -78,6 +74,14 @@ func (b *Builder) Build() (*Client, error) {
 	if b.loadSaver != nil {
 		opts = append(opts, WithLoadSaver(b.loadSaver))
 	}
+
+	opts = append(opts, WithSigner(b.signerVerifier))
+	opts = append(opts, WithTimeout(b.timeout))
+	opts = append(opts, WithDownloader(b.downloader))
+	opts = append(opts, WithInstaller(b.installer))
+	opts = append(opts, WithRebooter(b.rebooter))
+	opts = append(opts, WithCallbacks(b.callbacks))
+	opts = append(opts, WithDevice(b.device))
 
 	return New(opts...)
 }
@@ -127,7 +131,7 @@ func (b *Builder) WithLoadSaver(saver LoadSaver) *Builder {
 	return b
 }
 
-func (b *Builder) WithArtifactsFile(file string) *Builder {
+func (b *Builder) WithStore(file string) *Builder {
 	saver, err := loadsaver.New(file)
 	if err != nil {
 		// Can't do anything about it, fail fast
@@ -137,10 +141,8 @@ func (b *Builder) WithArtifactsFile(file string) *Builder {
 	return b
 }
 
-func (b *Builder) WithStore(configFilePath string) *Builder {
-	if saver, err := loadsaver.New(configFilePath); err == nil {
-		b.loadSaver = saver
-	}
+func (b *Builder) WithStdIOInterface() *Builder {
+	b.callbacks = &builderStdIOCallbacks{}
 	return b
 }
 
@@ -150,6 +152,7 @@ var (
 	_ Rebooter   = (*builderRebooter)(nil)
 	_ Signer     = (*builderSignerVerifier)(nil)
 	_ LoadSaver  = (*builderLoadSaver)(nil)
+	_ Callbacks  = (*builderStdIOCallbacks)(nil)
 )
 
 type builderSignerVerifier struct {
@@ -163,7 +166,6 @@ type builderLoadSaver struct {
 	*loadsaver.LoadSaver
 }
 
-// Reboot implements Rebooter.
 func (*builderRebooter) Reboot() error {
 	return rebooter.Reboot()
 }
@@ -172,7 +174,6 @@ type builderInstaller struct {
 	*installer.Installer
 }
 
-// Install implements Installer.
 func (b *builderInstaller) Install(src string) (progress chan int, errCh chan error, err error) {
 	return b.Installer.Install(src)
 }
@@ -180,7 +181,67 @@ func (b *builderInstaller) Install(src string) (progress chan int, errCh chan er
 type builderDownloader struct {
 }
 
-// Download implements Downloader.
-func (*builderDownloader) Download(dst string, srcUrl string) (progress chan int, errCh chan error, err error) {
-	return downloader.Download(dst, srcUrl)
+func (*builderDownloader) Download(dst string, srcURL string) (progress chan int, errCh chan error, err error) {
+	return downloader.Download(dst, srcURL)
+}
+
+type builderStdIOCallbacks struct {
+	lastStatus DeploymentStatus
+}
+
+func (b *builderStdIOCallbacks) Update(status DeploymentStatus, progress int) {
+	if b.lastStatus != status {
+		fmt.Println("Starting with", toReadableStatus(status))
+		b.lastStatus = status
+	}
+
+	b.updateProgressBar(progress)
+	if progress == 100 {
+		// Add new line
+		fmt.Printf("\n")
+		fmt.Println(toReadableStatus(status), "finished!")
+	}
+}
+
+func (b *builderStdIOCallbacks) NextState(status DeploymentStatus) bool {
+	validResponse := false
+	continueUpdate := false
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for !validResponse {
+		fmt.Println(`Updater want to move to next state:`, toServerStatus(status))
+		fmt.Println(`Would you like to proceed? [Y\n]`)
+
+		scanner.Scan()
+		fromUser := scanner.Text()
+
+		validResponse = fromUser == "Y" || fromUser == "n"
+		continueUpdate = fromUser == "Y"
+
+		if !validResponse {
+			fmt.Println(`I don't understand, please try again.`)
+		}
+	}
+
+	if continueUpdate {
+		fmt.Println("I will continue update")
+	} else {
+		fmt.Println("Update aborted by user")
+	}
+
+	return continueUpdate
+}
+
+func (b *builderStdIOCallbacks) Error(err error) {
+	fmt.Println("Updater error:", err)
+}
+
+func (b *builderStdIOCallbacks) updateProgressBar(v int) {
+	if v == 0 {
+		fmt.Printf("\r[>%s] %v %%", strings.Repeat(" ", 100), v)
+	} else if v == 100 {
+		fmt.Printf("\r[%s] %v %%", strings.Repeat("=", 100), v)
+	} else {
+		fmt.Printf("\r[%s>%s] %v %%", strings.Repeat("=", v), strings.Repeat(" ", 100-v), v)
+	}
 }

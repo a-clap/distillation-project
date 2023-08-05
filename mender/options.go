@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Option func(m *Client) error
+type Option func(c *Client) error
 
 func WithSigner(sv Signer) Option {
 	return func(c *Client) error {

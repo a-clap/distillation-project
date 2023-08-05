@@ -3,7 +3,7 @@ package mender
 type DeploymentStatus int
 
 const (
-	Downloading DeploymentStatus = iota
+	Downloading DeploymentStatus = iota + 1
 	PauseBeforeInstalling
 	Installing
 	PauseBeforeRebooting

@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	deploymentStatus = func() func(s DeploymentStatus) string {
+	toServerStatus = func() func(s DeploymentStatus) string {
 		toStatus := map[DeploymentStatus]string{
 			Downloading:           "downloading",
 			PauseBeforeInstalling: "pause_before_installing",
@@ -16,6 +16,23 @@ var (
 			Success:               "success",
 			Failure:               "failure",
 			AlreadyInstalled:      "already-installed",
+		}
+		return func(s DeploymentStatus) string {
+			return toStatus[s]
+		}
+	}()
+
+	toReadableStatus = func() func(s DeploymentStatus) string {
+		toStatus := map[DeploymentStatus]string{
+			Downloading:           "Downloading",
+			PauseBeforeInstalling: "Pause before installing",
+			Installing:            "Installing",
+			PauseBeforeRebooting:  "Pause before rebooting",
+			Rebooting:             "Rebooting",
+			PauseBeforeCommitting: "Pause before committing",
+			Success:               "Success",
+			Failure:               "Failure",
+			AlreadyInstalled:      "Already installed",
 		}
 		return func(s DeploymentStatus) string {
 			return toStatus[s]

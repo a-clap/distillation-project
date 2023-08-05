@@ -276,7 +276,7 @@ func (c *Client) NotifyServer(status DeploymentStatus, artifactName string) erro
 	jsonStatus := struct {
 		Status string `json:"status"`
 	}{
-		Status: deploymentStatus(status),
+		Status: toServerStatus(status),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
@@ -404,7 +404,7 @@ func (c *Client) handleUpdate() {
 
 func (c *Client) notifyServerDuringUpdate(status DeploymentStatus, artifactName string) error {
 	if err := c.NotifyServer(status, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", deploymentStatus(status), err))
+		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", toServerStatus(status), err))
 		c.doCleanup(Failure, artifactName)
 		return err
 	}
@@ -417,7 +417,7 @@ func (c *Client) handleSuccess(artifactName string) {
 
 	// Notify server that we are done
 	if err := c.NotifyServer(Success, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", deploymentStatus(Success), err))
+		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", toServerStatus(Success), err))
 	}
 
 	// Remove just installed artifact from Archive
