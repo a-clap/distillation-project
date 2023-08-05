@@ -191,7 +191,7 @@ type builderStdIOCallbacks struct {
 
 func (b *builderStdIOCallbacks) Update(status DeploymentStatus, progress int) {
 	if b.lastStatus != status {
-		fmt.Println("Starting with", toReadableStatus(status))
+		fmt.Println(toReadableStatus(status), "...")
 		b.lastStatus = status
 	}
 

@@ -1024,7 +1024,7 @@ func (ms *MenderTestSuite) TestUpdate() {
 	// Client should store this data
 	expectedSaveData := mender.Artifacts{
 		Current: &mender.CurrentDeployment{
-			State:                  mender.Rebooting,
+			State:                  mender.PauseBeforeCommitting,
 			DeploymentInstructions: &deployArtifact,
 		},
 		Archive: []mender.DeploymentInstructions{deployArtifact},
