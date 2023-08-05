@@ -880,7 +880,8 @@ func (ms *MenderTestSuite) TestUpdate() {
 	}))
 
 	type jsonStatus map[string]string
-	bodyStatus := make([]jsonStatus, 0)
+	// Make chan big enough to not block
+	serverReceivedStatuses := make(chan jsonStatus, 10)
 
 	deployURL := fmt.Sprintf("/api/devices/v1/deployments/device/deployments/%v/status", deployID)
 	handle.Handle(deployURL, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -893,7 +894,8 @@ func (ms *MenderTestSuite) TestUpdate() {
 		js := make(jsonStatus)
 		// Make sure it is correct
 		req.Nil(json.Unmarshal(body, &js))
-		bodyStatus = append(bodyStatus, js)
+
+		serverReceivedStatuses <- js
 	}))
 
 	srv := httptest.NewServer(handle)
@@ -964,10 +966,15 @@ func (ms *MenderTestSuite) TestUpdate() {
 		ms.FailNow("failed at downloading")
 	}
 
-	// We should receive status 'downloading'
-	req.Equal("downloading", bodyStatus[0]["status"])
-	// Then we should receive status 'pause_before_installing'
-	req.Equal("pause_before_installing", bodyStatus[1]["status"])
+	// We expect to receive statuses as follows:
+	for _, expectedStatus := range []string{"downloading", "pause_before_installing"} {
+		select {
+		case status := <-serverReceivedStatuses:
+			req.Equal(expectedStatus, status["status"])
+		case <-time.After(1 * time.Millisecond):
+			req.Fail("failed to receive proper status:", expectedStatus)
+		}
+	}
 
 	// Now we should expect some install calls
 	progressChan = make(chan int, 100)
@@ -997,10 +1004,15 @@ func (ms *MenderTestSuite) TestUpdate() {
 		ms.FailNow("failed at installing")
 	}
 
-	// We should receive status 'installing'
-	req.Equal("installing", bodyStatus[2]["status"])
-	// Then we should receive status 'pause_before_rebooting'
-	req.Equal("pause_before_rebooting", bodyStatus[3]["status"])
+	// We expect to receive statuses as follows:
+	for _, expectedStatus := range []string{"installing", "pause_before_rebooting"} {
+		select {
+		case status := <-serverReceivedStatuses:
+			req.Equal(expectedStatus, status["status"])
+		case <-time.After(1 * time.Millisecond):
+			req.Fail("failed to receive proper status:", expectedStatus)
+		}
+	}
 
 	rebootFinished := make(chan struct{})
 	mockCallbacks.EXPECT().Update(mender.Rebooting, 1).Times(1)
@@ -1027,8 +1039,15 @@ func (ms *MenderTestSuite) TestUpdate() {
 	case <-time.After(1 * time.Millisecond):
 		ms.FailNow("failed at rebooting")
 	}
-	// Then we should receive status 'pause_before_rebooting'
-	req.Equal("rebooting", bodyStatus[4]["status"])
+	// We expect to receive statuses as follows:
+	for _, expectedStatus := range []string{"rebooting"} {
+		select {
+		case status := <-serverReceivedStatuses:
+			req.Equal(expectedStatus, status["status"])
+		case <-time.After(1 * time.Millisecond):
+			req.Fail("failed to receive proper status:", expectedStatus)
+		}
+	}
 }
 
 func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
