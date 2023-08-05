@@ -373,6 +373,7 @@ func (c *Client) handleUpdate() {
 			c.artifacts.Current.State = Rebooting
 		case Rebooting:
 			// Store state before reboot
+			c.artifacts.Current.State = PauseBeforeCommitting
 			if err := c.saveArtifacts(); err != nil {
 				c.Callbacks.Error(err)
 				c.doCleanup(Failure, artifactName)
@@ -438,7 +439,7 @@ func (c *Client) handleDownload(artifactName, srcURL string) (string, error) {
 		return "", err
 	}
 
-	dst := path.Join(os.TempDir(), artifactName, ".tmp")
+	dst := path.Join(os.TempDir(), artifactName+".mender")
 	downloading, errs, err := c.Downloader.Download(dst, srcURL)
 	if err != nil {
 		c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcURL, err))
@@ -452,7 +453,9 @@ func (c *Client) handleDownload(artifactName, srcURL string) (string, error) {
 		case progress = <-downloading:
 			c.Callbacks.Update(Downloading, progress)
 		case err := <-errs:
-			c.Callbacks.Error(err)
+			c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcURL, err))
+			c.doCleanup(Failure, artifactName)
+			return "", err
 		}
 	}
 
@@ -501,7 +504,9 @@ func (c *Client) handleInstall(artifactName, src string) error {
 		case progress = <-progressChan:
 			c.Callbacks.Update(Installing, progress)
 		case err := <-errs:
-			c.Callbacks.Error(err)
+			c.Callbacks.Error(fmt.Errorf("install %v failed: %w", src, err))
+			c.doCleanup(Failure, artifactName)
+			return err
 		}
 	}
 
