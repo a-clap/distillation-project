@@ -1,0 +1,97 @@
+= Distillation
+:toc: preamble
+:toclevels: 5
+:distro-link: https://github.com/a-clap/distillation-distro
+
+Linux distillation process component.
+
+== What is this?
+
+This repo contains software components, which aim is to handle distillation process ;)
+
+== Hardware
+
+Components are designed to run on https://wiki.banana-pi.org/Banana_Pi_BPI-M2_ZERO[BananaPi Zero] and {distro-link}[distillation distro].
+
+== Distillation
+
+This pkg was mainly developed to configure Embedded endpoint properly and handle distillation process.
+So what it does is:
+
+* communicates with embedded endpoint with gRPC or REST
+* simplifies usage of embedded (omitting unnecessary values etc.),
+* handling distillation process in 'soft' realtime manner,
+* serves as endpoint for GUI via REST or gRPC,
+
+Take a look at cmd/distillation to get a brief view how to use it.
+
+=== REST clients
+
+Take a look at example, how to create appropriate rest clients:
+[source, go]
+----
+package clients
+
+import (
+	"time"
+
+	"github.com/a-clap/distillation/pkg/distillation"
+)
+
+func restClients() {
+	const addr = "http://localhost:50002"
+	const timeout = time.Second
+
+	heaterClient := distillation.NewHeaterClient(addr, timeout)
+	gpioClient := distillation.NewGPIOClient(addr, timeout)
+	dsClient := distillation.NewDSClient(addr, timeout)
+	ptClient := distillation.NewPTClient(addr, timeout)
+	processClient := distillation.NewProcessClient(addr, timeout)
+	...
+}
+----
+
+=== gRPC clients
+Take a look at example, how to create appropriate rest clients:
+[source, go]
+----
+package clients
+
+import (
+	"log"
+	"time"
+
+	"github.com/a-clap/distillation/pkg/distillation"
+)
+
+func rpcClients() {
+	const addr = "localhost:50002"
+	const timeout = time.Second
+
+	heaterClient, err := distillation.NewHeaterRPCCLient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	gpioClient, err := distillation.NewGPIORPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dsClient, err := distillation.NewDSRPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ptClient, err := distillation.NewPTRPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	processClient, err := distillation.NewProcessRPCClient(addr, timeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	...
+}
+----
+
+
+
+

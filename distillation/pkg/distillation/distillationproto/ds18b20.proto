@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/a-clap/distillation/pkg/distillation/distillationproto";
+option java_multiple_files = true;
+
+package distillationproto;
+
+service DS {
+  rpc DSGet (google.protobuf.Empty) returns (DSConfigs) {}
+  rpc DSConfigure(DSConfig) returns (DSConfig) {}
+  rpc DSGetTemperatures(google.protobuf.Empty) returns (DSTemperatures) {}
+}
+
+message DSConfigs {
+  repeated DSConfig configs = 1;
+}
+message DSConfig {
+  string ID = 1;
+  string Name = 2;
+  float Correction = 3;
+  int32 Resolution = 4;
+  int32 PollInterval = 5;
+  uint32 Samples = 6;
+  bool Enabled = 7;
+}
+
+message DSTemperatures {
+  repeated DSTemperature temps = 1;
+}
+message DSTemperature {
+  string ID = 1;
+  float Temperature = 2;
+  int64 Stamp = 3;
+  int32 ErrorCode = 4;
+}
