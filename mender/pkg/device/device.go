@@ -3,18 +3,22 @@ package device
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"syscall"
+
+	"golang.org/x/exp/slices"
 )
 
 type Device struct {
 	path         string
 	inventoryDir string
 	identityDir  string
+	infoDir      string
 }
 
 type Attribute struct {
@@ -31,6 +35,7 @@ const (
 	DefaultPath         = "/usr/share/mender"
 	DefaultInventoryDir = "inventory"
 	DefaultIdentityDir  = "identity"
+	DefaultInfoDir      = "info"
 )
 
 func New(opts ...Option) *Device {
@@ -38,6 +43,7 @@ func New(opts ...Option) *Device {
 		path:         DefaultPath,
 		inventoryDir: DefaultInventoryDir,
 		identityDir:  DefaultIdentityDir,
+		infoDir:      DefaultInfoDir,
 	}
 
 	for _, opt := range opts {
@@ -46,8 +52,51 @@ func New(opts ...Option) *Device {
 
 	d.inventoryDir = path.Join(d.path, d.inventoryDir)
 	d.identityDir = path.Join(d.path, d.identityDir)
+	d.infoDir = path.Join(d.path, d.infoDir)
 
 	return d
+}
+
+func (d *Device) Info() (i Info, err error) {
+	const (
+		deviceTypeKey   = "device_type"
+		artifactNameKey = "artifact_name"
+	)
+
+	attrs, err := parseAttributes(d.infoDir)
+	if err != nil {
+		err = fmt.Errorf("failed to read info: %w", err)
+		return
+	}
+
+	getInfoValue := func(key string) (*string, error) {
+		idx := slices.IndexFunc(attrs, func(attribute Attribute) bool {
+			return attribute.Name == key
+		})
+		if idx == -1 {
+			return nil, fmt.Errorf("key %v not found", key)
+		}
+
+		if len(attrs[idx].Value) != 1 {
+			return nil, fmt.Errorf("key %v not found", key)
+		}
+
+		return &attrs[idx].Value[0], nil
+	}
+
+	maybeDeviceType, err := getInfoValue(deviceTypeKey)
+	if err != nil {
+		return
+	}
+	maybeArtifactName, err := getInfoValue(artifactNameKey)
+	if err != nil {
+		return
+	}
+
+	i.DeviceType = *maybeDeviceType
+	i.ArtifactName = *maybeArtifactName
+
+	return
 }
 
 func (d *Device) ID() ([]Attribute, error) {
