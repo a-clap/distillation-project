@@ -1,0 +1,27 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.8",
+    "element-plus": "^2.3.3",
+    "material-icons": "^1.13.6",
+    "pinia": "^2.0.35",
+    "vue": "^3.2.37",
+    "vue-i18n": "^9.2.2",
+    "vue-router": "^4.1.6"
+  },
+  "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^0.10.0",
+    "@vitejs/plugin-vue": "^4.1.0",
+    "sass": "^1.62.0",
+    "typescript": "^5.0.4",
+    "vite": "^4.2.2"
+  }
+}
