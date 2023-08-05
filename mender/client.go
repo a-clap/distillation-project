@@ -415,6 +415,11 @@ func (c *Client) handleSuccess(artifactName string) {
 	// Finished
 	c.updating.Store(false)
 
+	// Notify server that we are done
+	if err := c.NotifyServer(Success, artifactName); err != nil {
+		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", deploymentStatus(Success), err))
+	}
+
 	// Remove just installed artifact from Archive
 	c.artifacts.Archive = slices.DeleteFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
 		return c.artifacts.Current.Artifact.Name == instructions.Artifact.Name
@@ -425,10 +430,6 @@ func (c *Client) handleSuccess(artifactName string) {
 	// Store updated artifacts
 	if err := c.saveArtifacts(); err != nil {
 		c.Callbacks.Error(err)
-	}
-	// Notify server that we are done
-	if err := c.NotifyServer(Success, artifactName); err != nil {
-		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", deploymentStatus(Success), err))
 	}
 }
 

@@ -1053,7 +1053,8 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	}))
 
 	type jsonStatus map[string]string
-	bodyStatus := make([]jsonStatus, 0)
+	bodyStatus := make(chan jsonStatus, 3)
+	// bodyStatus := make([]jsonStatus, 0)
 
 	deployURL := fmt.Sprintf("/api/devices/v1/deployments/device/deployments/%v/status", deployID)
 	handle.Handle(deployURL, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -1066,13 +1067,15 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 		js := make(jsonStatus)
 		// Make sure it is correct
 		req.Nil(json.Unmarshal(body, &js))
-		bodyStatus = append(bodyStatus, js)
+		// bodyStatus = append(bodyStatus, js)
+		bodyStatus <- js
 	}))
 
 	srv := httptest.NewServer(handle)
 
 	ctrl := gomock.NewController(ms.T())
 	mockDevice := mocks.NewMockDevice(ctrl)
+	mockDevice.EXPECT().ID().Return([]device.Attribute{{Name: "id", Value: []string{"id"}}}, nil)
 
 	mockDownloader := mocks.NewMockDownloader(ctrl)
 	mockInstaller := mocks.NewMockInstaller(ctrl)
@@ -1099,11 +1102,16 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	}
 
 	mockLoadSaver.EXPECT().Load(gomock.Any()).Return(arti)
+	// Save should get called with new args
+	saveCalled := make(chan struct{})
+	mockLoadSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil).Do(func(any, any) {
+		close(saveCalled)
+	})
 
-	wait := make(chan struct{})
+	nextStateCalled := make(chan struct{})
 	// Should continue update
-	mockCallbacks.EXPECT().NextState(mender.Success).Return(false).Do(func(any) {
-		close(wait)
+	mockCallbacks.EXPECT().NextState(mender.Success).Return(true).Do(func(any) {
+		close(nextStateCalled)
 	})
 
 	client, err := mender.New(
@@ -1120,12 +1128,25 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	req.Nil(err)
 	req.NotNil(client)
 
+	// Wait for NextState
 	select {
-	case <-wait:
+	case <-nextStateCalled:
 	case <-time.After(1 * time.Millisecond):
 		req.Fail("client should have already called NextState")
 	}
 
-	// We should receive status 'downloading'
-	req.Equal("downloading", bodyStatus[0]["status"])
+	// Wait for Status
+	select {
+	case st := <-bodyStatus:
+		req.Equal("success", st["status"])
+	case <-time.After(1 * time.Millisecond):
+		req.Fail("didn't receive status")
+	}
+
+	// Wait for Save
+	select {
+	case <-saveCalled:
+	case <-time.After(1 * time.Millisecond):
+		req.Fail("client should have called Save already")
+	}
 }
