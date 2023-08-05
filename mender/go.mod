@@ -4,13 +4,11 @@ go 1.20
 
 require (
 	github.com/carlmjohnson/requests v0.23.4
-	github.com/godbus/dbus/v5 v5.1.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
 )
 
 require (
-	github.com/json-iterator/go v1.1.12
 	github.com/spf13/viper v1.16.0
 	golang.org/x/sys v0.10.0
 )
@@ -20,8 +18,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
