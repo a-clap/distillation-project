@@ -34,10 +34,11 @@ func setupLogging() {
 
 }
 
-func getOpts() ([]embedded.Option, []error) {
+func getOpts(configPath string) ([]embedded.Option, []error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
+	viper.AddConfigPath(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)

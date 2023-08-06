@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50001, "the server port")
-	rest = flag.Bool("rest", false, "use REST API instead of gRPC")
+	port        = flag.Int("port", 50001, "the server port")
+	rest        = flag.Bool("rest", false, "use REST API instead of gRPC")
+	configpPath = flag.String("config", ".", "config file location")
 )
 
 type handler interface {
@@ -28,7 +29,7 @@ func main() {
 
 	setupLogging()
 
-	opts, errs := getOpts()
+	opts, errs := getOpts(*configpPath)
 	if errs != nil {
 		log.Println(errs)
 	}
