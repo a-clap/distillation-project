@@ -9,8 +9,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/a-clap/embedded/pkg/max31865"
+	"embedded/pkg/embedded"
+	"embedded/pkg/max31865"
 	"github.com/a-clap/logging"
 )
 

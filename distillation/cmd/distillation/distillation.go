@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
+	"embedded/pkg/embedded"
 	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/embedded/pkg/embedded"
 )
 
 var (

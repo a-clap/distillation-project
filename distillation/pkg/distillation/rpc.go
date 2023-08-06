@@ -10,10 +10,10 @@ import (
 
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
 	"github.com/a-clap/distillation/pkg/process"
-	"github.com/a-clap/embedded/pkg/ds18b20"
-	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/a-clap/embedded/pkg/gpio"
-	"github.com/a-clap/embedded/pkg/max31865"
+	"embedded/pkg/ds18b20"
+	"embedded/pkg/embedded"
+	"embedded/pkg/gpio"
+	"embedded/pkg/max31865"
 )
 
 func gpioConfigToRPC(config *GPIOConfig) *distillationproto.GPIOConfig {

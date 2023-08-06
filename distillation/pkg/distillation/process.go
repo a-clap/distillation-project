@@ -9,7 +9,7 @@ import (
 	"errors"
 
 	"github.com/a-clap/distillation/pkg/process"
-	"github.com/a-clap/embedded/pkg/embedded"
+	"embedded/pkg/embedded"
 )
 
 // ProcessPhaseCount is JSON wrapper for process.PhaseNumber

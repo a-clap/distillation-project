@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
-	"github.com/a-clap/embedded/pkg/restclient"
+	"embedded/pkg/restclient"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
