@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"gui/backend/wifi"
 	"github.com/a-clap/logging"
+	"gui/backend/wifi"
 )
 
 type WifiConnected struct {

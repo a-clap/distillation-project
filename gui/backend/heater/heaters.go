@@ -6,8 +6,8 @@
 package heater
 
 import (
-	"gui/backend/parameters"
 	"distillation/pkg/distillation"
+	"gui/backend/parameters"
 )
 
 type Client interface {

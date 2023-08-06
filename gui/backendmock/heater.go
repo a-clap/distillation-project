@@ -3,10 +3,10 @@ package backendmock
 import (
 	"errors"
 
-	"gui/backend/heater"
 	"distillation/pkg/distillation"
 	"github.com/a-clap/logging"
 	"golang.org/x/exp/slices"
+	"gui/backend/heater"
 )
 
 var (

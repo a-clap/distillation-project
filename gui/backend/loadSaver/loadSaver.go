@@ -4,15 +4,15 @@ import (
 	"errors"
 	"log"
 
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
+	"gopkg.in/yaml.v3"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
-	"distillation/pkg/distillation"
-	"distillation/pkg/process"
-	"gopkg.in/yaml.v3"
 )
 
 type LoadSaver interface {

@@ -6,6 +6,7 @@ import (
 
 	"embedded/pkg/ds18b20"
 	embeddedgpio "embedded/pkg/gpio"
+	"github.com/a-clap/logging"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -13,7 +14,6 @@ import (
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
-	"github.com/a-clap/logging"
 )
 
 var (

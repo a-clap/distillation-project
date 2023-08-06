@@ -6,10 +6,10 @@
 package gpio
 
 import (
-	"embedded/pkg/gpio"
-	"gui/backend/parameters"
 	"distillation/pkg/distillation"
+	"embedded/pkg/gpio"
 	"golang.org/x/exp/slices"
+	"gui/backend/parameters"
 )
 
 type Client interface {

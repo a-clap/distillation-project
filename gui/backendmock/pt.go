@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"gui/backend/pt"
 	"distillation/pkg/distillation"
 	"golang.org/x/exp/slices"
+	"gui/backend/pt"
 )
 
 var (

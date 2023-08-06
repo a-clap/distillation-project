@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gui/backend/parameters"
 	"distillation/pkg/distillation"
 	"golang.org/x/exp/slices"
+	"gui/backend/parameters"
 )
 
 type Client interface {

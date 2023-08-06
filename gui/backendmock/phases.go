@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"gui/backend/phases"
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+	"gui/backend/phases"
 )
 
 var (

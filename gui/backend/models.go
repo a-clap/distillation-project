@@ -1,10 +1,10 @@
 package backend
 
 import (
-	"embedded/pkg/gpio"
-	"gui/backend/parameters"
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+	"embedded/pkg/gpio"
+	"gui/backend/parameters"
 )
 
 // Models allows us to create models.ts in frontend with needed structures
