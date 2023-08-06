@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net"
 
-	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/distillation/distillationproto"
+	"distillation/pkg/process"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )

@@ -6,8 +6,8 @@
 package parameters
 
 import (
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 )
 
 type Heater struct {

@@ -3,8 +3,8 @@ package backendmock
 import (
 	"errors"
 
-	"github.com/a-clap/distillation-gui/backend/gpio"
-	"github.com/a-clap/distillation/pkg/distillation"
+	"gui/backend/gpio"
+	"distillation/pkg/distillation"
 	"github.com/a-clap/logging"
 	"golang.org/x/exp/slices"
 )

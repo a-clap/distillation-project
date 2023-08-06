@@ -7,8 +7,8 @@ package distillation
 
 import (
 	"errors"
-	
-	"github.com/a-clap/embedded/pkg/embedded"
+
+	"embedded/pkg/embedded"
 )
 
 var (
@@ -83,18 +83,18 @@ func (g *GPIOHandler) Configure(cfg GPIOConfig) (GPIOConfig, error) {
 	io.GPIOConfig = newcfg
 	g.notify()
 	return *io, nil
-	
+
 }
 func (g *GPIOHandler) init() error {
 	if g.GPIO == nil {
 		return &GPIOError{Op: "init", Err: ErrNoGPIOInterface.Error()}
 	}
-	
+
 	ios, err := g.GPIO.Get()
 	if err != nil {
 		return &GPIOError{Op: "init.Get", Err: err.Error()}
 	}
-	
+
 	for _, io := range ios {
 		g.io[io.ID] = &GPIOConfig{GPIOConfig: io}
 	}

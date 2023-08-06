@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"github.com/a-clap/distillation-gui/backend/wifi"
+	"gui/backend/wifi"
 	"github.com/a-clap/logging"
 )
 

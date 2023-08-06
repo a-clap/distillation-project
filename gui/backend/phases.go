@@ -1,9 +1,9 @@
 package backend
 
 import (
-	"github.com/a-clap/distillation-gui/backend/phases"
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/process"
+	"gui/backend/phases"
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 	"github.com/a-clap/logging"
 )
 

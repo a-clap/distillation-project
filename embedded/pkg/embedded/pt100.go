@@ -6,7 +6,7 @@
 package embedded
 
 import (
-	"github.com/a-clap/embedded/pkg/max31865"
+	"embedded/pkg/max31865"
 )
 
 type PTSensor interface {
@@ -81,12 +81,12 @@ func (p *PTHandler) SetConfig(cfg PTSensorConfig) (newCfg PTSensorConfig, err er
 		err = &PTError{ID: cfg.ID, Op: "SetConfig.sensorBy", Err: err.Error()}
 		return
 	}
-	
+
 	if err = sensor.Configure(cfg.SensorConfig); err != nil {
 		err = &PTError{ID: cfg.ID, Op: "SetConfig.Configure", Err: err.Error()}
 		return
 	}
-	
+
 	if cfg.Enabled != sensor.Enabled {
 		if cfg.Enabled {
 			if err = sensor.Poll(); err != nil {
@@ -101,7 +101,7 @@ func (p *PTHandler) SetConfig(cfg PTSensorConfig) (newCfg PTSensorConfig, err er
 		}
 	}
 	sensor.Enabled = cfg.Enabled
-	
+
 	return p.GetConfig(cfg.ID)
 }
 

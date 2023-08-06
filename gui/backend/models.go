@@ -1,10 +1,10 @@
 package backend
 
 import (
-	"github.com/a-clap/distillation-gui/backend/parameters"
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/process"
-	"github.com/a-clap/embedded/pkg/gpio"
+	"embedded/pkg/gpio"
+	"gui/backend/parameters"
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 )
 
 // Models allows us to create models.ts in frontend with needed structures

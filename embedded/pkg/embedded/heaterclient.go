@@ -8,9 +8,9 @@ package embedded
 import (
 	"context"
 	"time"
-	
-	"github.com/a-clap/embedded/pkg/embedded/embeddedproto"
-	"github.com/a-clap/embedded/pkg/restclient"
+
+	"embedded/pkg/embedded/embeddedproto"
+	"embedded/pkg/restclient"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

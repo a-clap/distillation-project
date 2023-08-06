@@ -8,8 +8,8 @@ package distillation
 import (
 	"errors"
 
-	"github.com/a-clap/distillation/pkg/process"
-	"github.com/a-clap/embedded/pkg/embedded"
+	"distillation/pkg/process"
+	"embedded/pkg/embedded"
 )
 
 // ProcessPhaseCount is JSON wrapper for process.PhaseNumber

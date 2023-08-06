@@ -6,7 +6,7 @@
 package embedded
 
 import (
-	"github.com/a-clap/embedded/pkg/gpio"
+	"embedded/pkg/gpio"
 )
 
 type GPIOError struct {
@@ -70,7 +70,7 @@ func (g *GPIOHandler) GetConfigAll() ([]GPIOConfig, error) {
 		pos++
 	}
 	return configs, nil
-	
+
 }
 func (g *GPIOHandler) GetConfig(id string) (GPIOConfig, error) {
 	gp, err := g.gpioBy(id)

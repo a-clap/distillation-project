@@ -8,8 +8,8 @@ package distillation
 import (
 	"errors"
 
-	"github.com/a-clap/embedded/pkg/ds18b20"
-	"github.com/a-clap/embedded/pkg/embedded"
+	"embedded/pkg/ds18b20"
+	"embedded/pkg/embedded"
 	"github.com/a-clap/logging"
 )
 

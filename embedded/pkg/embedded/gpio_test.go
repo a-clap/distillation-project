@@ -13,8 +13,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/a-clap/embedded/pkg/gpio"
+	"embedded/pkg/embedded"
+	"embedded/pkg/gpio"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

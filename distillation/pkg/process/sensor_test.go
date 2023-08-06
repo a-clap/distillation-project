@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/a-clap/distillation/pkg/process/mocks"
+	"distillation/pkg/process/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

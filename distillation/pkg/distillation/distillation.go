@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/process"
 	"github.com/a-clap/logging"
 )
 

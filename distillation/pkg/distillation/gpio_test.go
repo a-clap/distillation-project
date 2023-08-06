@@ -8,7 +8,7 @@ package distillation_test
 import (
 	"testing"
 
-	"github.com/a-clap/embedded/pkg/embedded"
+	"embedded/pkg/embedded"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

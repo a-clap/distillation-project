@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/embedded/pkg/ds18b20"
-	"github.com/a-clap/embedded/pkg/embedded"
+	"distillation/pkg/distillation"
+	"embedded/pkg/ds18b20"
+	"embedded/pkg/embedded"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

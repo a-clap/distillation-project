@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 )
 
 // Client is an interface to read/set listed configs

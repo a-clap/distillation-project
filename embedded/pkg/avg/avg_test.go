@@ -8,7 +8,7 @@ package avg_test
 import (
 	"testing"
 
-	"github.com/a-clap/embedded/pkg/avg"
+	"embedded/pkg/avg"
 	"github.com/stretchr/testify/suite"
 )
 

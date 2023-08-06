@@ -9,8 +9,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/a-clap/embedded/pkg/gpio"
-	"github.com/a-clap/embedded/pkg/heater"
+	"embedded/pkg/gpio"
+	"embedded/pkg/heater"
 )
 
 func main() {

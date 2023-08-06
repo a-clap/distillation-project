@@ -10,8 +10,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/a-clap/embedded/pkg/avg"
-	"github.com/a-clap/embedded/pkg/max31865"
+	"embedded/pkg/avg"
+	"embedded/pkg/max31865"
 )
 
 type PT struct {

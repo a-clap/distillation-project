@@ -1,4 +1,4 @@
-module github.com/a-clap/embedded
+module embedded
 
 go 1.18
 
