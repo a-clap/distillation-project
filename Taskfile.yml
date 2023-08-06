@@ -1,0 +1,25 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  test:
+    cmds:
+      - task: test-distillation
+      - task: test-embedded
+      - task: test-mender
+  test-distillation:
+    silent: true
+    internal: true
+    cmds:
+      - go test ./distillation/...
+  test-embedded:
+    silent: true
+    internal: true
+    cmds:
+      - go test ./embedded/...
+  test-mender:
+    silent: true
+    internal: true
+    cmds:
+      - go test ./mender/...
