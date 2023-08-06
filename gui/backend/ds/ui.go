@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"embedded/pkg/ds18b20"
 	"github.com/a-clap/distillation-gui/backend/parameters"
 	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/embedded/pkg/ds18b20"
 	"golang.org/x/exp/slices"
 )
 

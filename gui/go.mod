@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/a-clap/distillation v0.0.0-20230507114012-5559d37bb4f5
-	github.com/a-clap/embedded v0.0.0-20230503172447-7331fca0a662
 	github.com/a-clap/logging v0.0.0-20230503053547-d9ae4a43c7a4
 	github.com/wailsapp/wails/v2 v2.5.1
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
@@ -12,6 +11,7 @@ require (
 )
 
 require (
+	github.com/a-clap/embedded v0.0.0-20230503172447-7331fca0a662 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/bytedance/sonic v1.8.8 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

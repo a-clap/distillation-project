@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"embedded/pkg/ds18b20"
+	embeddedgpio "embedded/pkg/gpio"
 	"github.com/a-clap/distillation-gui/backend/ds"
 	"github.com/a-clap/distillation-gui/backend/gpio"
 	"github.com/a-clap/distillation-gui/backend/heater"
@@ -11,8 +13,6 @@ import (
 	"github.com/a-clap/distillation-gui/backend/parameters"
 	"github.com/a-clap/distillation-gui/backend/phases"
 	"github.com/a-clap/distillation-gui/backend/pt"
-	"github.com/a-clap/embedded/pkg/ds18b20"
-	embeddedgpio "github.com/a-clap/embedded/pkg/gpio"
 	"github.com/a-clap/logging"
 )
 
