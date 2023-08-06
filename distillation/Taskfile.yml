@@ -3,17 +3,37 @@
 version: '3'
 
 tasks:
+  build:
+    deps:
+      - task: test
+    cmds:
+      - go build -ldflags="-s -w" -o build/ ./cmd/distillation
+    generates:
+      - build/distillation
+  clean:
+    cmds:
+      - rm -rf .task/
+      - rm -rf build/
+      - rm -rf pkg/distillation/distillationproto/*.pb.go
+      - rm -rf pkg/process/mocks/*.go
   run:
     cmds:
       - go run ./cmd/distillation
-  proto:
+    deps:
+      - task: generate
+  generate:
     cmds:
-      - >
-        protoc
-        --go_out=.
-        --go_opt=paths=source_relative
-        --go-grpc_out=. --go-grpc_opt=paths=source_relative
-        pkg/distillation/distillationproto/*.proto
+      - go generate ./...
+    sources:
+      - ./**/*.proto
+      - ./**/mockgen*
+    generates:
+      - ./**/*.pb.go
+      - ./**/*.mockgen.go
   test:
+    deps:
+      - task: generate
     cmds:
-     - go test ./...
+      - go test ./...
+    sources:
+      - ./**/*.go

@@ -2,4 +2,5 @@
 go.work.sum
 .task/
 *.pb.*
+*.mockgen.*
 build/

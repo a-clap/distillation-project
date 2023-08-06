@@ -1,7 +1,5 @@
 package process
 
-//go:generate mockgen -destination=mocks/mocks.go -package=mocks . Clock,Heater,Sensor,Output
-
 import (
 	"fmt"
 	"sync/atomic"
