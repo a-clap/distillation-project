@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/installer"
-	"github.com/a-clap/distillation-ota/pkg/mender/installer/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
+	"mender/pkg/installer"
+	"mender/pkg/installer/mocks"
 )
 
 type InstallerSuite struct {

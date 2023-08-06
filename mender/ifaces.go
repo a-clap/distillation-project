@@ -1,7 +1,7 @@
 package mender
 
 import (
-	"github.com/a-clap/distillation-ota/pkg/mender/device"
+	"mender/pkg/device"
 )
 
 var (

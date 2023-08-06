@@ -4,8 +4,8 @@ import (
 	"crypto/rsa"
 	"testing"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/signer"
 	"github.com/stretchr/testify/suite"
+	"mender/pkg/signer"
 )
 
 type SignerTestSuite struct {

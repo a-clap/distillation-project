@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/device"
-	"github.com/a-clap/distillation-ota/pkg/mender/downloader"
-	"github.com/a-clap/distillation-ota/pkg/mender/installer"
-	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
-	"github.com/a-clap/distillation-ota/pkg/mender/rebooter"
-	"github.com/a-clap/distillation-ota/pkg/mender/signer"
+	"mender/pkg/device"
+	"mender/pkg/downloader"
+	"mender/pkg/installer"
+	"mender/pkg/loadsaver"
+	"mender/pkg/rebooter"
+	"mender/pkg/signer"
 )
 
 type Builder struct {

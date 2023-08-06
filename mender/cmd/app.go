@@ -6,8 +6,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/a-clap/distillation-ota/pkg/mender"
-	"github.com/a-clap/distillation-ota/pkg/mender/signer"
+	"mender"
+	"mender/pkg/signer"
 )
 
 const (

@@ -10,14 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/a-clap/distillation-ota/pkg/mender"
-	"github.com/a-clap/distillation-ota/pkg/mender/device"
-	"github.com/a-clap/distillation-ota/pkg/mender/mocks"
-	"github.com/a-clap/distillation-ota/pkg/mender/signer"
 	"github.com/carlmjohnson/requests"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/maps"
+	"mender"
+	"mender/mocks"
+	"mender/pkg/device"
+	"mender/pkg/signer"
 )
 
 const (

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/device"
+	"mender/pkg/device"
 )
 
 func main() {

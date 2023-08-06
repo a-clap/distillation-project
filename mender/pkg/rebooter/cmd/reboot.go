@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/rebooter"
+	"mender/pkg/rebooter"
 )
 
 func main() {

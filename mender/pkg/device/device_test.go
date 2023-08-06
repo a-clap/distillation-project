@@ -5,8 +5,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/device"
 	"github.com/stretchr/testify/suite"
+	"mender/pkg/device"
 )
 
 type DeviceTestSuite struct {

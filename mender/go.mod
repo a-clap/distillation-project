@@ -1,4 +1,4 @@
-module github.com/a-clap/distillation-ota
+module mender
 
 go 1.20
 

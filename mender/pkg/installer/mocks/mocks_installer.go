@@ -8,7 +8,7 @@ import (
 	io "io"
 	reflect "reflect"
 
-	installer "github.com/a-clap/distillation-ota/pkg/mender/installer"
+	installer "mender/pkg/installer"
 	gomock "github.com/golang/mock/gomock"
 )
 

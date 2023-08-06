@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/a-clap/distillation-ota/pkg/mender/loadsaver"
+	"mender/pkg/loadsaver"
 )
 
 type Release struct {
