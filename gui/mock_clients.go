@@ -10,8 +10,8 @@ import (
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"
 	"embedded/pkg/max31865"
-	"github.com/a-clap/distillation-gui/backend"
-	"github.com/a-clap/distillation-gui/backendmock"
+	"gui/backend"
+	"gui/backendmock"
 )
 
 func mockClients() []backend.Option {

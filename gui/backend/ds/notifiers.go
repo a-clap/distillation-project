@@ -6,7 +6,7 @@
 package ds
 
 import (
-	"github.com/a-clap/distillation-gui/backend/parameters"
+	"gui/backend/parameters"
 )
 
 func notifyConfig(config parameters.DS) {

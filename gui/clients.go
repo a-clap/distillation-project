@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/a-clap/distillation-gui/backend"
+	"gui/backend"
 	"distillation/pkg/distillation"
 	"distillation/pkg/wifi"
 )

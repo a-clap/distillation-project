@@ -5,7 +5,7 @@
 
 package heater
 
-import "github.com/a-clap/distillation-gui/backend/parameters"
+import "gui/backend/parameters"
 
 func notify(config parameters.Heater) {
 	for _, listener := range handler.listeners {

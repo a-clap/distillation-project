@@ -6,7 +6,7 @@
 package heater
 
 import (
-	"github.com/a-clap/distillation-gui/backend/parameters"
+	"gui/backend/parameters"
 	"distillation/pkg/distillation"
 )
 

@@ -1,4 +1,4 @@
-module github.com/a-clap/distillation-gui
+module gui
 
 go 1.19
 

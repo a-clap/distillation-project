@@ -6,13 +6,13 @@ import (
 
 	"embedded/pkg/ds18b20"
 	embeddedgpio "embedded/pkg/gpio"
-	"github.com/a-clap/distillation-gui/backend/ds"
-	"github.com/a-clap/distillation-gui/backend/gpio"
-	"github.com/a-clap/distillation-gui/backend/heater"
-	"github.com/a-clap/distillation-gui/backend/loadSaver"
-	"github.com/a-clap/distillation-gui/backend/parameters"
-	"github.com/a-clap/distillation-gui/backend/phases"
-	"github.com/a-clap/distillation-gui/backend/pt"
+	"gui/backend/ds"
+	"gui/backend/gpio"
+	"gui/backend/heater"
+	"gui/backend/loadSaver"
+	"gui/backend/parameters"
+	"gui/backend/phases"
+	"gui/backend/pt"
 	"github.com/a-clap/logging"
 )
 

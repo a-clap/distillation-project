@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/a-clap/distillation-gui/backend/pt"
+	"gui/backend/pt"
 	"distillation/pkg/distillation"
 	"golang.org/x/exp/slices"
 )

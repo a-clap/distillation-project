@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/a-clap/distillation-gui/backend/phases"
+	"gui/backend/phases"
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
 )

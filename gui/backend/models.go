@@ -2,7 +2,7 @@ package backend
 
 import (
 	"embedded/pkg/gpio"
-	"github.com/a-clap/distillation-gui/backend/parameters"
+	"gui/backend/parameters"
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
 )

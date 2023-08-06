@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"embedded/pkg/ds18b20"
-	"github.com/a-clap/distillation-gui/backend/parameters"
+	"gui/backend/parameters"
 	"distillation/pkg/distillation"
 	"golang.org/x/exp/slices"
 )
