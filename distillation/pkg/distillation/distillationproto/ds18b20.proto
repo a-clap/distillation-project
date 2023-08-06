@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/a-clap/distillation/pkg/distillation/distillationproto";
+option go_package = "distillation/pkg/distillation/distillationproto";
 option java_multiple_files = true;
 
 package distillationproto;
