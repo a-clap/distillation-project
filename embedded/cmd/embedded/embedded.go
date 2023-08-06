@@ -10,7 +10,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/a-clap/embedded/pkg/embedded"
+	"embedded/pkg/embedded"
 )
 
 var (

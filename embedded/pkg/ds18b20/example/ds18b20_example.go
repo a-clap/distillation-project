@@ -10,7 +10,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/a-clap/embedded/pkg/ds18b20"
+	"embedded/pkg/ds18b20"
 )
 
 func main() {

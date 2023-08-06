@@ -9,7 +9,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/a-clap/embedded/pkg/max31865"
+	"embedded/pkg/max31865"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

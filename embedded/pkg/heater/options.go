@@ -6,7 +6,7 @@
 package heater
 
 import (
-	"github.com/a-clap/embedded/pkg/gpio"
+	"embedded/pkg/gpio"
 )
 
 type Option func(*Heater)

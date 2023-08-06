@@ -6,10 +6,10 @@
 package embedded
 
 import (
-	"github.com/a-clap/embedded/pkg/ds18b20"
-	"github.com/a-clap/embedded/pkg/gpio"
-	"github.com/a-clap/embedded/pkg/heater"
-	"github.com/a-clap/embedded/pkg/max31865"
+	"embedded/pkg/ds18b20"
+	"embedded/pkg/gpio"
+	"embedded/pkg/heater"
+	"embedded/pkg/max31865"
 	"github.com/a-clap/logging"
 )
 

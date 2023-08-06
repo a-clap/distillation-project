@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/a-clap/embedded/pkg/embedded"
-	"github.com/a-clap/embedded/pkg/embeddedmock"
-	"github.com/a-clap/embedded/pkg/gpio"
+	"embedded/pkg/embedded"
+	"embedded/pkg/embeddedmock"
+	"embedded/pkg/gpio"
 )
 
 func setupLogging() {

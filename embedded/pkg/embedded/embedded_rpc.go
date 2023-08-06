@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/a-clap/embedded/pkg/embedded/embeddedproto"
+	"embedded/pkg/embedded/embeddedproto"
 	"github.com/a-clap/logging"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"

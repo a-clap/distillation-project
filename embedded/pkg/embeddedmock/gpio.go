@@ -6,7 +6,7 @@
 package embeddedmock
 
 import (
-	"github.com/a-clap/embedded/pkg/gpio"
+	"embedded/pkg/gpio"
 )
 
 type GPIO struct {

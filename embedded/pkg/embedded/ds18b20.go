@@ -6,7 +6,7 @@
 package embedded
 
 import (
-	"github.com/a-clap/embedded/pkg/ds18b20"
+	"embedded/pkg/ds18b20"
 )
 
 type DSError struct {
@@ -58,14 +58,14 @@ type DSHandler struct {
 
 func (d *DSHandler) GetTemperatures() []DSTemperature {
 	sensors := make([]DSTemperature, 0, len(d.sensors))
-	
+
 	for _, s := range d.sensors {
 		tmp := DSTemperature{
 			Readings: s.GetReadings(),
 		}
 		sensors = append(sensors, tmp)
 	}
-	
+
 	return sensors
 }
 func (d *DSHandler) Temperature(cfg ds18b20.SensorConfig) (float64, float64, error) {
@@ -86,12 +86,12 @@ func (d *DSHandler) SetConfig(cfg DSSensorConfig) (newConfig DSSensorConfig, err
 		err = &DSError{ID: cfg.ID, Op: "SetConfig.sensoryBy", Err: err.Error()}
 		return
 	}
-	
+
 	if err = ds.Configure(cfg.SensorConfig); err != nil {
 		err = &DSError{ID: cfg.ID, Op: "SetConfig.Configure", Err: err.Error()}
 		return
 	}
-	
+
 	if cfg.Enabled != ds.cfg.Enabled {
 		if cfg.Enabled {
 			ds.Poll()
@@ -100,7 +100,7 @@ func (d *DSHandler) SetConfig(cfg DSSensorConfig) (newConfig DSSensorConfig, err
 		}
 	}
 	ds.cfg.Enabled = cfg.Enabled
-	
+
 	return d.GetConfig(cfg.ID)
 }
 
