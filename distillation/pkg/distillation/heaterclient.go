@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
+	"distillation/pkg/distillation/distillationproto"
 	"embedded/pkg/restclient"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"

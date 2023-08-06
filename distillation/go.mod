@@ -1,4 +1,4 @@
-module github.com/a-clap/distillation
+module distillation
 
 go 1.20
 

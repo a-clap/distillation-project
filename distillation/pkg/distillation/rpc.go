@@ -8,8 +8,8 @@ package distillation
 import (
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/distillation/distillationproto"
+	"distillation/pkg/process"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"

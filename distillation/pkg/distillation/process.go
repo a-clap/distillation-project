@@ -8,7 +8,7 @@ package distillation
 import (
 	"errors"
 
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/process"
 	"embedded/pkg/embedded"
 )
 

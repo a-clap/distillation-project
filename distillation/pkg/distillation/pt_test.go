@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation"
+	"distillation/pkg/distillation"
 	"embedded/pkg/embedded"
 	"embedded/pkg/max31865"
 	"github.com/gin-gonic/gin"

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/distillation/distillationproto"
-	"github.com/a-clap/distillation/pkg/process"
+	"distillation/pkg/distillation/distillationproto"
+	"distillation/pkg/process"
 	"embedded/pkg/restclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

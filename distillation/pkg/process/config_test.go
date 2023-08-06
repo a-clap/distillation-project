@@ -3,8 +3,8 @@ package process_test
 import (
 	"testing"
 
-	"github.com/a-clap/distillation/pkg/process"
-	"github.com/a-clap/distillation/pkg/process/mocks"
+	"distillation/pkg/process"
+	"distillation/pkg/process/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/slices"

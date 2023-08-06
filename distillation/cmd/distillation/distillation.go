@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"embedded/pkg/embedded"
-	"github.com/a-clap/distillation/pkg/distillation"
+	"distillation/pkg/distillation"
 )
 
 var (
