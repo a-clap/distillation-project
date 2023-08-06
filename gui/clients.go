@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/a-clap/distillation-gui/backend"
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/wifi"
+	"distillation/pkg/distillation"
+	"distillation/pkg/wifi"
 )
 
 func getopts(addr string) []backend.Option {

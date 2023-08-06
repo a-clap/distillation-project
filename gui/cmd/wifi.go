@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/a-clap/distillation/pkg/wifi"
+	"distillation/pkg/wifi"
 )
 
 func main() {

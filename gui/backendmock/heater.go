@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/a-clap/distillation-gui/backend/heater"
-	"github.com/a-clap/distillation/pkg/distillation"
+	"distillation/pkg/distillation"
 	"github.com/a-clap/logging"
 	"golang.org/x/exp/slices"
 )

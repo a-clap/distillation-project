@@ -11,7 +11,7 @@ import (
 
 	"embedded/pkg/ds18b20"
 	"github.com/a-clap/distillation-gui/backend/parameters"
-	"github.com/a-clap/distillation/pkg/distillation"
+	"distillation/pkg/distillation"
 	"golang.org/x/exp/slices"
 )
 

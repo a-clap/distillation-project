@@ -7,7 +7,7 @@ package heater
 
 import (
 	"github.com/a-clap/distillation-gui/backend/parameters"
-	"github.com/a-clap/distillation/pkg/distillation"
+	"distillation/pkg/distillation"
 )
 
 type Client interface {

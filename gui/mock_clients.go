@@ -4,14 +4,14 @@ import (
 	"log"
 	"time"
 
+	"distillation/pkg/distillation"
+	"distillation/pkg/wifi"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"
 	"embedded/pkg/max31865"
 	"github.com/a-clap/distillation-gui/backend"
 	"github.com/a-clap/distillation-gui/backendmock"
-	"github.com/a-clap/distillation/pkg/distillation"
-	"github.com/a-clap/distillation/pkg/wifi"
 )
 
 func mockClients() []backend.Option {
