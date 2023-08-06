@@ -1,0 +1,16 @@
+= Distillation project
+
+:toc: preamble
+:distro-link: https://github.com/a-clap/distillation-distro
+
+Do something nice.
+
+== What is this?
+
+Monorepo for personal distillation project.
+You can find each module in appropriate subdirectory.
+
+== Linux distro
+
+Project is running on baked yocto distribution.
+This one has another repo {distro-link}[here],

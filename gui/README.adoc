@@ -2,8 +2,8 @@
 :toc: preamble
 :toclevels: 7
 :distro-link: https://github.com/a-clap/distillation-distro
-:embedded-link: https://github.com/a-clap/embedded
-:distillation: https://github.com/a-clap/distillation
+:embedded-link: https://github.com/a-clap/distillation-project/tree/development/embedded
+:distillation: https://github.com/a-clap/distillation-project/tree/development/distillation
 :element-plus-link: https://element-plus.org
 :vue-link: https://vuejs.org
 :wails-link: https://github.com/wailsapp/wails
