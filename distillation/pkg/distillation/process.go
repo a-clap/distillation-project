@@ -94,7 +94,7 @@ func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
 
 func (d *Distillation) configurePhase(number uint, config ProcessPhaseConfig) error {
 	// Update ios, if process is not running
-	if d.Process.Running() == false {
+	if !d.Process.Running() {
 		d.updateProcess()
 	}
 	return d.Process.SetPhaseConfig(number, config.PhaseConfig)
@@ -108,17 +108,17 @@ func (d *Distillation) updateProcess() {
 }
 
 func (d *Distillation) safeUpdateSensors() {
-	if d.Process.Running() == false {
+	if !d.Process.Running() {
 		d.updateSensors()
 	}
 }
 func (d *Distillation) safeUpdateHeaters() {
-	if d.Process.Running() == false {
+	if !d.Process.Running() {
 		d.updateHeaters()
 	}
 }
 func (d *Distillation) safeUpdateOutputs() {
-	if d.Process.Running() == false {
+	if !d.Process.Running() {
 		d.updateOutputs()
 	}
 }

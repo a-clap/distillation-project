@@ -66,13 +66,6 @@ func newEndConditionTemperature(duration int64, time getTime, threshold float64,
 
 }
 
-func (e *endConditionTemperature) left() int64 {
-	if e.waiting {
-		return e.endTime.left()
-	}
-	return e.endTime.duration
-}
-
 func (e *endConditionTemperature) end() (bool, int64) {
 	overThreshold := e.getTemperature() > e.threshold
 	// Did anything change since last call?

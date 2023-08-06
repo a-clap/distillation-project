@@ -37,7 +37,7 @@ func TestSensor_TemperatureFailure(t *testing.T) {
 	}
 	// Now we should receive error
 	s.EXPECT().Temperature().Return(correct, retErr)
-	tmp, err = ps.Temperature()
+	_, err = ps.Temperature()
 	// Without error
 	r.NotNil(err)
 	r.ErrorIs(err, ErrTooManyErrorOnTemperature)

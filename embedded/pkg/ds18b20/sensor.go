@@ -230,7 +230,6 @@ func (s *Sensor) Close() {
 	for range s.fin {
 	}
 
-	return
 }
 
 func (s *Sensor) resolution() (r Resolution, err error) {

@@ -292,9 +292,9 @@ func rpcToProcessStatus(status *distillationproto.ProcessStatus) ProcessStatus {
 			State: io.State,
 		}
 	}
-	for i, err := range status.Errors {
-		s.Errors[i] = err
-	}
+
+	copy(s.Errors, status.Errors)
+
 	return s
 }
 
@@ -338,9 +338,8 @@ func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
 		}
 	}
 
-	for i, err := range status.Errors {
-		s.Errors[i] = err
-	}
+	copy(s.Errors, status.Errors)
+
 	return s
 
 }

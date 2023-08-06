@@ -57,7 +57,7 @@ func New(devFile string, freq physic.Frequency, mode spi.Mode, bits int) (*Spide
 		spiHandle.count[devFile]++
 	}
 
-	p, _ := spiHandle.handler[devFile]
+	p := spiHandle.handler[devFile]
 	conn, err := p.Connect(freq, mode, bits)
 	if err != nil {
 		return nil, err

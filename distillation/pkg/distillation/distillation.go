@@ -77,7 +77,6 @@ func (d *Distillation) updateTemperatures() {
 			for d.running.Load() {
 				select {
 				case <-d.finish:
-					break
 				case <-time.After(d.runInterval):
 					errs := d.PTHandler.Update()
 					if errs != nil {
@@ -94,7 +93,6 @@ func (d *Distillation) updateTemperatures() {
 			for d.running.Load() {
 				select {
 				case <-d.finish:
-					break
 				case <-time.After(d.runInterval):
 					errs := d.DSHandler.Update()
 					if errs != nil {
@@ -112,14 +110,12 @@ func (d *Distillation) updateTemperatures() {
 func (d *Distillation) handleProcess() {
 	go func() {
 		for d.Process.Running() {
-			select {
-			case <-time.After(d.runInterval):
-				s, err := d.Process.Process()
-				if err != nil {
-					logger.Error("HandleProcess", logging.String("error", err.Error()))
-				} else {
-					d.updateStatus(s)
-				}
+			<-time.After(d.runInterval)
+			s, err := d.Process.Process()
+			if err != nil {
+				logger.Error("HandleProcess", logging.String("error", err.Error()))
+			} else {
+				d.updateStatus(s)
 			}
 		}
 	}()

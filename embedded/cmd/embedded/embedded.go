@@ -32,7 +32,7 @@ func main() {
 	if errs != nil {
 		log.Println(errs)
 	}
-	if opts == nil || len(opts) == 0 {
+	if len(opts) == 0 {
 		log.Fatalln("Can't run without any option")
 	}
 	addr := ":" + strconv.FormatInt(int64(*port), 10)

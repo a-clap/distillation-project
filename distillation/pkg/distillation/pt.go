@@ -7,7 +7,6 @@ package distillation
 
 import (
 	"errors"
-	"time"
 
 	"embedded/pkg/embedded"
 	"embedded/pkg/max31865"
@@ -51,10 +50,9 @@ type PTConfig struct {
 
 // PTHandler main struct used to handle number of PT sensors
 type PTHandler struct {
-	PT           PT
-	sensors      map[string]*PTConfig
-	pollInterval time.Duration
-	clients      []ptCallback
+	PT      PT
+	sensors map[string]*PTConfig
+	clients []ptCallback
 }
 
 // Temperature - json returned from rest API

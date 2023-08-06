@@ -93,7 +93,7 @@ func (p *ProcessClientSuite) Test_Config() {
 	t.Equal(cfg, newCfg)
 
 	// Ask for not existing phase
-	newCfg, err = ps.ConfigurePhase(3, cfg)
+	_, err = ps.ConfigurePhase(3, cfg)
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.RoutesProcessConfigPhase)
 	t.ErrorContains(err, process.ErrNoSuchPhase.Error())

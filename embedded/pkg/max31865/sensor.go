@@ -162,7 +162,7 @@ func (s *Sensor) Temperature() (actual float64, average float64, err error) {
 	r, err := s.read(regConf, regFault+1)
 	if err != nil {
 		//	can't do much about it
-		err = fmt.Errorf("Temperature.read {ID: %v}: %w", s.ID(), err)
+		err = fmt.Errorf("temperature.read {ID: %v}: %w", s.ID(), err)
 		return
 	}
 	err = s.r.update(r[regRtdMsb], r[regRtdLsb])
@@ -170,7 +170,7 @@ func (s *Sensor) Temperature() (actual float64, average float64, err error) {
 		// Not handling error here, should have happened on previous call
 		_ = s.clearFaults()
 		// make error more specific
-		err = fmt.Errorf("Temperature.rtd {ID: %v, Reg: %v, Cause: %v}: %w", s.ID(), r[regFault], errorCauses(r[regFault], s.configReg.wiring), err)
+		err = fmt.Errorf("temperature.rtd {ID: %v, Reg: %v, Cause: %v}: %w", s.ID(), r[regFault], errorCauses(r[regFault], s.configReg.wiring), err)
 		return
 	}
 	tmp := s.r.toTemperature(s.configReg.refRes, s.configReg.nominalRes)
