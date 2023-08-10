@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"distillation/pkg/wifi"
+	"osservice/pkg/wifi"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"

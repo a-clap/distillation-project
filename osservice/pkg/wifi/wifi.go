@@ -154,7 +154,7 @@ func (w *Wifi) Disconnect() error {
 	if w.extEvents == nil {
 		return nil
 	}
-	fmt.Println("waiting for disconnect")
+
 	ev, err := w.eventOrTimeout()
 	if err != nil {
 		return err

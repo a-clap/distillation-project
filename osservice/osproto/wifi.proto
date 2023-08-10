@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "os/osproto";
+
+service Wifi {
+  rpc APs(google.protobuf.Empty) returns (APReplies) {}
+  rpc Disconnect(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Connected(google.protobuf.Empty) returns (ConnectedReply) {}
+  rpc Connect(Network) returns (google.protobuf.Empty) {}
+}
+
+message AP {
+  int32 id = 1;
+  google.protobuf.StringValue ssid = 2;
+}
+
+message APReplies {
+  repeated AP ap = 1;
+}
+
+message Network {
+  AP ap = 1;
+  google.protobuf.StringValue password = 2;
+}
+
+message ConnectedReply {
+  google.protobuf.BoolValue connected = 1;
+  google.protobuf.StringValue ssid = 2;
+}
+
+

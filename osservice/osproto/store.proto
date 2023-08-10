@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "os/osproto";
+
+service Store {
+  rpc Load(google.protobuf.StringValue) returns (google.protobuf.BytesValue) {}
+  rpc Save(SaveRequest) returns (google.protobuf.Empty) {}
+}
+
+message SaveRequest {
+  google.protobuf.StringValue key = 1;
+  google.protobuf.BytesValue bytes = 2;
+}
+

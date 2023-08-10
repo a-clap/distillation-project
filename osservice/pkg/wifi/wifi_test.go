@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"distillation/pkg/wifi"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"osservice/pkg/wifi"
 )
 
 type WifiSuite struct {

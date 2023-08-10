@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	"gui/backend"
 	"distillation/pkg/distillation"
-	"distillation/pkg/wifi"
+	"gui/backend"
+	"osservice/pkg/wifi"
 )
 
 func getopts(addr string) []backend.Option {

@@ -1,4 +1,4 @@
-package loadsaver
+package osservice
 
 import (
 	"errors"
@@ -9,11 +9,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-type LoadSaver struct {
+var (
+	_ Store = (*configStoreOs)(nil)
+)
+
+type configStoreOs struct {
 	v *viper.Viper
 }
 
-func New(configFile string) (*LoadSaver, error) {
+func newLoadSaver(configFile string) (*configStoreOs, error) {
 	dir, file := filepath.Split(configFile)
 	ext := filepath.Ext(file)
 
@@ -30,20 +34,19 @@ func New(configFile string) (*LoadSaver, error) {
 		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			return nil, fmt.Errorf("failed to read config: %w", err)
 		}
-
-		if err := v.SafeWriteConfig(); err != nil {
+		if err = v.SafeWriteConfig(); err != nil {
 			return nil, fmt.Errorf("failed to create config: %w", err)
 		}
 	}
 
-	return &LoadSaver{v: v}, nil
+	return &configStoreOs{v: v}, nil
 }
 
-func (l *LoadSaver) Save(key string, data interface{}) error {
+func (l *configStoreOs) Save(key string, data []byte) error {
 	l.v.Set(key, data)
 	return l.v.WriteConfig()
 }
 
-func (l *LoadSaver) Load(key string) interface{} {
-	return l.v.Get(key)
+func (l *configStoreOs) Load(key string) []byte {
+	return l.v.Get(key).([]byte)
 }
