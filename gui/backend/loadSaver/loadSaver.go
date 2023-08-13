@@ -6,18 +6,19 @@ import (
 
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
-	"gopkg.in/yaml.v3"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
+
+	"gopkg.in/yaml.v3"
 )
 
 type LoadSaver interface {
 	Save(key string, data []byte) error
-	Load(key string) (data []byte, err error)
+	Load(key string) (data []byte)
 }
 
 type params struct {
@@ -71,15 +72,16 @@ func Run() error {
 }
 
 func Load() []error {
-	data, err := handler.LoadSaver.Load(paramsKey)
-	if err != nil {
-		return []error{err}
+	data := handler.LoadSaver.Load(paramsKey)
+	if data == nil {
+		return nil
 	}
 	params := parameters.GUI{}
 
 	if err := yaml.Unmarshal(data, &params); err != nil {
 		return []error{err}
 	}
+
 	var errs []error
 	if err := ds.Apply(params.DS); err != nil {
 		errs = append(errs, err...)

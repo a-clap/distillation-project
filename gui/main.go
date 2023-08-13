@@ -4,7 +4,6 @@ import (
 	"embed"
 	"flag"
 	"log"
-	"os"
 
 	"gui/backend"
 
@@ -17,9 +16,8 @@ import (
 var assets embed.FS
 
 var (
-	mock = flag.Bool("mock", false, "use mocks")
-	addr = flag.String("addr", "bananapi-zero.local", "host address")
-	// addr = flag.String("addr", "bananapi-zero.local:50002", "the distillation port")
+	mock   = flag.Bool("mock", false, "use mocks")
+	addr   = flag.String("addr", "bananapi-zero.local", "host address")
 	dist   = flag.Int("dist", 50002, "the distillation service port")
 	osPort = flag.Int("os", 50003, "the os service port")
 )
@@ -33,13 +31,6 @@ func main() {
 	} else {
 		opts = getopts(*addr, *dist, *osPort)
 	}
-
-	p, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	opts = append(opts, backend.WithLoadSaver(&saver{path: p}))
 
 	// Create backend
 	back, err := backend.New(

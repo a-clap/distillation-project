@@ -56,6 +56,11 @@ func getopts(host string, distPort int, osPort int) []backend.Option {
 		log.Fatalln(err)
 	}
 
+	saverClient, err := osservice.NewStoreClient(host, osPort, defaultTimeout)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	return []backend.Option{
 		backend.WithHeaterClient(heaterClient),
 		backend.WithDSClient(dsClient),
@@ -65,5 +70,6 @@ func getopts(host string, distPort int, osPort int) []backend.Option {
 		backend.WithWifi(wifiClient),
 		backend.WithTime(timeClient),
 		backend.WithNet(netClient),
+		backend.WithLoadSaver(saverClient),
 	}
 }

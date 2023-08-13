@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"osservice/pkg/wifi"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"
 	"embedded/pkg/max31865"
 	"gui/backend"
 	"gui/backendmock"
+	"osservice/pkg/wifi"
 )
 
 func mockClients() []backend.Option {
@@ -124,6 +124,8 @@ func mockClients() []backend.Option {
 		log.Fatalln(err)
 	}
 
+	saver := backendmock.NewSaver()
+
 	return []backend.Option{
 		backend.WithHeaterClient(&heaterClient),
 		backend.WithDSClient(&dsClient),
@@ -131,5 +133,6 @@ func mockClients() []backend.Option {
 		backend.WithGPIOClient(&gpioClient),
 		backend.WithPhaseClient(&phaseClient),
 		backend.WithWifi(w),
+		backend.WithLoadSaver(saver),
 	}
 }

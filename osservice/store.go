@@ -43,10 +43,14 @@ func newLoadSaver(configFile string) (*configStoreOs, error) {
 }
 
 func (l *configStoreOs) Save(key string, data []byte) error {
-	l.v.Set(key, data)
+	l.v.Set(key, string(data))
 	return l.v.WriteConfig()
 }
 
 func (l *configStoreOs) Load(key string) []byte {
-	return l.v.Get(key).([]byte)
+	v := l.v.Get(key)
+	if v == nil {
+		return []byte{}
+	}
+	return v.([]byte)
 }
