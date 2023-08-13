@@ -8,6 +8,7 @@ import (
 	"gui/backend/phases"
 	"gui/backend/pt"
 	"gui/backend/wifi"
+	"osservice"
 )
 
 type Option func(b *Backend) error
@@ -65,6 +66,13 @@ func WithPhaseClient(c phases.Client) Option {
 func WithLoadSaver(c loadSaver.LoadSaver) Option {
 	return func(b *Backend) error {
 		loadSaver.Init(c)
+		return nil
+	}
+}
+
+func WithTime(ts osservice.Time) Option {
+	return func(b *Backend) error {
+		b.time = ts
 		return nil
 	}
 }

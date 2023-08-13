@@ -6,7 +6,6 @@ import (
 
 	"embedded/pkg/ds18b20"
 	embeddedgpio "embedded/pkg/gpio"
-	"github.com/a-clap/logging"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -14,6 +13,9 @@ import (
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
+	"osservice"
+
+	"github.com/a-clap/logging"
 )
 
 var (
@@ -27,6 +29,8 @@ type Backend struct {
 	ptChan       chan error
 	phaseChan    chan error
 	interval     time.Duration
+
+	time osservice.Time
 }
 
 func New(opts ...Option) (*Backend, error) {

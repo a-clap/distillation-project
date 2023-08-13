@@ -66,6 +66,10 @@ export function NTPSet(arg1) {
   return window['go']['backend']['Backend']['NTPSet'](arg1);
 }
 
+export function Now() {
+  return window['go']['backend']['Backend']['Now']();
+}
+
 export function PTEnable(arg1, arg2) {
   return window['go']['backend']['Backend']['PTEnable'](arg1, arg2);
 }

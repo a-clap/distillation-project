@@ -67,12 +67,12 @@ import {useDSStore} from "../stores/ds";
 import {usePTStore} from "../stores/pt";
 import {computed, onMounted, ref} from "vue";
 import Keyboard from "../components/Keyboard.vue";
-import dayjs from 'dayjs'
-import {ListInterfaces, NTPGet, NTPSet, TimeSet} from "../../wailsjs/go/backend/Backend";
+import {ListInterfaces, Now, NTPGet, NTPSet, TimeSet} from "../../wailsjs/go/backend/Backend";
 import {backend} from "../../wailsjs/go/models";
 import {Loader} from "../types/Loader";
 import {AppErrorCodes} from "../stores/error_codes";
 import {i18n} from "../i18n";
+import {FormatDate} from "../stores/log";
 import NetInterface = backend.NetInterface;
 
 const currentDate = ref(new Date())
@@ -111,14 +111,14 @@ onMounted(() => {
     ntp.value = value
   })
 
-  timeNow.value = dayjs().format('HH:mm:ss DD/MM/YYYY')
   setInterval(() => {
-    timeNow.value = dayjs().format('HH:mm:ss DD/MM/YYYY')
+    Now().then((ts: number) => {
+      timeNow.value = FormatDate(new Date(ts))
+    })
   }, 1000)
 
   ListInterfaces().then((interfaces: NetInterface[]) => {
     netInterfaces.value = interfaces
-    console.log(interfaces)
   })
 
 })

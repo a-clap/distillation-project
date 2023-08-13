@@ -5,7 +5,7 @@ function padTo2Digits(num: number) {
     return num.toString().padStart(2, '0');
 }
 
-function formatDate(date: Date) {
+export function FormatDate(date: Date) {
     return (
         [
             padTo2Digits(date.getHours()),
@@ -45,7 +45,7 @@ export const useLogStore = defineStore('logs', {
         add(errCode: number, msg: string) {
             let elem: string[] = [
                 errCode.toString(),
-                formatDate(new Date()),
+                FormatDate(new Date()),
                 msg
             ]
             this.logData.unshift(elem)

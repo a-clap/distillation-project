@@ -37,6 +37,8 @@ export function NTPGet():Promise<boolean>;
 
 export function NTPSet(arg1:boolean):Promise<void>;
 
+export function Now():Promise<number>;
+
 export function PTEnable(arg1:string,arg2:boolean):Promise<void>;
 
 export function PTGet():Promise<Array<parameters.PT>>;
