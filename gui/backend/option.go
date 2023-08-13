@@ -76,3 +76,10 @@ func WithTime(ts osservice.Time) Option {
 		return nil
 	}
 }
+
+func WithNet(net osservice.Net) Option {
+	return func(b *Backend) error {
+		b.net = net
+		return nil
+	}
+}

@@ -43,8 +43,15 @@ func getopts(host string, distPort int, osPort int) []backend.Option {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	// Time operations, especially NTP takes a lot of time
 	timeClient, err := osservice.NewTimeClient(host, osPort, 10*time.Second)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Time operations, especially NTP takes a lot of time
+	netClient, err := osservice.NewNetClient(host, osPort, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -57,5 +64,6 @@ func getopts(host string, distPort int, osPort int) []backend.Option {
 		backend.WithPhaseClient(phaseClient),
 		backend.WithWifi(wifiClient),
 		backend.WithTime(timeClient),
+		backend.WithNet(netClient),
 	}
 }

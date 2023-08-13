@@ -31,6 +31,7 @@ type Backend struct {
 	interval     time.Duration
 
 	time osservice.Time
+	net  osservice.Net
 }
 
 func New(opts ...Option) (*Backend, error) {
