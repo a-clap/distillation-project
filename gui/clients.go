@@ -1,38 +1,41 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
 	"distillation/pkg/distillation"
 	"gui/backend"
-	"osservice/pkg/wifi"
+	"osservice"
 )
 
-func getopts(addr string) []backend.Option {
-	heaterClient, err := distillation.NewHeaterRPCCLient(addr, time.Second)
+func getopts(host string, distPort int, osPort int) []backend.Option {
+	distAddr := fmt.Sprintf("%v:%v", host, distPort)
+
+	heaterClient, err := distillation.NewHeaterRPCCLient(distAddr, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	dsClient, err := distillation.NewDSRPCClient(addr, time.Second)
+	dsClient, err := distillation.NewDSRPCClient(distAddr, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	ptClient, err := distillation.NewPTRPCClient(addr, time.Second)
+	ptClient, err := distillation.NewPTRPCClient(distAddr, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	gpioClient, err := distillation.NewGPIORPCClient(addr, time.Second)
+	gpioClient, err := distillation.NewGPIORPCClient(distAddr, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	phaseClient, err := distillation.NewProcessRPCClient(addr, time.Second)
+	phaseClient, err := distillation.NewProcessRPCClient(distAddr, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	w, err := wifi.New()
+	wifiClient, err := osservice.NewWifiClient(host, osPort, time.Second)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -43,6 +46,6 @@ func getopts(addr string) []backend.Option {
 		backend.WithPTClient(ptClient),
 		backend.WithGPIOClient(gpioClient),
 		backend.WithPhaseClient(phaseClient),
-		backend.WithWifi(w),
+		backend.WithWifi(wifiClient),
 	}
 }
