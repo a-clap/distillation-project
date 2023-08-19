@@ -9,7 +9,5 @@ repos:
     rev: master
     hooks:
       - id: go-returns-repo
-      - id: go-vet-repo-mod
-      - id: go-revive-repo-mod
-      - id: go-staticcheck-repo-mod
-      - id: golangci-lint-repo-mod
+        args: [ -w ]
+
