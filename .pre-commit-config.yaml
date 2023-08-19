@@ -11,3 +11,4 @@ repos:
       - id: go-returns-repo
         args: [ -w ]
       - id: go-staticcheck-repo-mod
+      - id: golangci-lint-repo-mod

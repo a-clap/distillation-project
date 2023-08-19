@@ -107,7 +107,10 @@ func (b *Backend) Events() Events {
 }
 
 func (b *Backend) HeaterEnable(id string, enable bool) {
-	heater.Enable(id, enable)
+	if err := heater.Enable(id, enable); err != nil {
+		logger.Error("heaterEnable", logging.String("error", err.Error()))
+	}
+
 }
 
 func (b *Backend) HeatersGet() []parameters.Heater {

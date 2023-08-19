@@ -85,7 +85,7 @@ func Stop() {
 
 // Run provides temperature updates
 func Run() {
-	if handler.running.Load() == false {
+	if !handler.running.Load() {
 		handler.finish = make(chan struct{})
 		handler.running.Store(true)
 		update()
@@ -268,7 +268,6 @@ func update() {
 			select {
 			case <-handler.finish:
 				handler.running.Store(false)
-				break
 			case <-time.After(handler.interval):
 				temps, err := handler.client.Temperatures()
 				if err != nil {

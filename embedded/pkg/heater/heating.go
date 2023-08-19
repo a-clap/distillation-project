@@ -22,8 +22,7 @@ func newGpioHeating(pin gpio.Pin, id string, level gpio.ActiveLevel) *gpioHeatin
 		if cfg, err := out.GetConfig(); err == nil {
 			cfg.ActiveLevel = level
 			// TODO: handle this error somehow
-			err = out.Configure(cfg)
-
+			_ = out.Configure(cfg)
 		}
 	}
 	return &gpioHeating{Out: out, err: err}
