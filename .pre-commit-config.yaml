@@ -12,3 +12,5 @@ repos:
         args: [ -w ]
       - id: go-staticcheck-repo-mod
       - id: golangci-lint-repo-mod
+      - id: go-structslop-mod
+        exclude: \.pb\.go

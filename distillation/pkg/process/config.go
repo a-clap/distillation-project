@@ -49,8 +49,8 @@ type HeaterPhaseConfig struct {
 
 type GPIOConfig struct {
 	Enabled    bool    `json:"enabled"`
-	ID         string  `json:"id"`
 	SensorID   string  `json:"sensor_id"`
+	ID         string  `json:"id"`
 	TLow       float64 `json:"t_low"`
 	THigh      float64 `json:"t_high"`
 	Hysteresis float64 `json:"hysteresis"`
