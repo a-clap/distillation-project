@@ -14,3 +14,4 @@ repos:
       - id: golangci-lint-repo-mod
       - id: go-structslop-mod
         exclude: \.pb\.go
+      - id: go-test-repo-mod
