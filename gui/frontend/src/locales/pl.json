@@ -119,7 +119,9 @@
     "net": "Sieć",
     "net_interface": "Interfejs",
     "net_ip": "Adres IP",
-    "ntp_loading": "Przestawiam źródło czasu..."
+    "pick_date": "Wybierz datę",
+    "ntp_loading": "Przestawiam źródło czasu...",
+    "update": "System"
   },
   "loader": {
     "loading": "Ładuję..."

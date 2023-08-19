@@ -6,6 +6,7 @@
 package main
 
 import (
+	"embedded/pkg/embedded"
 	"flag"
 	"log"
 	"net"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/embedded"
 )
 
 var (
@@ -153,5 +153,4 @@ func WaitForEmbedded(addr string, timeout time.Duration) error {
 	}
 
 	return err
-
 }

@@ -16,7 +16,7 @@ import (
 var assets embed.FS
 
 var (
-	mock   = flag.Bool("mock", false, "use mocks")
+	mock   = flag.Bool("mock", true, "use mocks")
 	addr   = flag.String("addr", "bananapi-zero.local", "host address")
 	dist   = flag.Int("dist", 50002, "the distillation service port")
 	osPort = flag.Int("os", 50003, "the os service port")

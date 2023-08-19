@@ -8,6 +8,7 @@ package gpio
 import (
 	"distillation/pkg/distillation"
 	"embedded/pkg/gpio"
+
 	"gui/backend/parameters"
 
 	"golang.org/x/exp/slices"
@@ -27,13 +28,11 @@ type gpioHandler struct {
 	gpio      map[string]*parameters.GPIO
 }
 
-var (
-	handler = &gpioHandler{
-		client:    nil,
-		listeners: make([]Listener, 0),
-		gpio:      make(map[string]*parameters.GPIO),
-	}
-)
+var handler = &gpioHandler{
+	client:    nil,
+	listeners: make([]Listener, 0),
+	gpio:      make(map[string]*parameters.GPIO),
+}
 
 // Init prepare package to handle various requests
 func Init(c Client) error {
@@ -81,7 +80,6 @@ func Get() []parameters.GPIO {
 	sensors := make([]parameters.GPIO, 0, len(handler.gpio))
 	for _, s := range handler.gpio {
 		sensors = append(sensors, *s)
-
 	}
 	slices.SortFunc(sensors, func(i, j parameters.GPIO) bool {
 		return i.ID < j.ID

@@ -48,6 +48,7 @@ func (t *GPIOTestSuite) SetupTest() {
 	gin.DefaultWriter = io.Discard
 	t.resp = httptest.NewRecorder()
 }
+
 func (t *GPIOTestSuite) TestGPIO_RestAPI_ConfigGPIO() {
 	cfg := embedded.GPIOConfig{
 		Config: gpio.Config{
@@ -83,8 +84,8 @@ func (t *GPIOTestSuite) TestGPIO_RestAPI_ConfigGPIO() {
 
 	t.Equal(http.StatusOK, t.resp.Code)
 	t.JSONEq(toJSON(newCfg), string(b))
-
 }
+
 func (t *GPIOTestSuite) TestGPIO_RestAPI_GetGPIOs() {
 	r := t.Require()
 	args := []embedded.GPIOConfig{

@@ -51,6 +51,7 @@ func (r *RPC) Run() error {
 func (r *RPC) Close() {
 	r.Embedded.close()
 }
+
 func (r *RPC) GPIOGet(ctx context.Context, empty *empty.Empty) (*embeddedproto.GPIOConfigs, error) {
 	g, err := r.Embedded.GPIO.GetConfigAll()
 	if err != nil {

@@ -98,7 +98,6 @@ func (p *ProcessClientSuite) Test_Config() {
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.RoutesProcessConfigPhase)
 	t.ErrorContains(err, process.ErrNoSuchPhase.Error())
-
 }
 
 func (p *ProcessClientSuite) Test_PhaseCount() {

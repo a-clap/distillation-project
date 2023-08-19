@@ -75,5 +75,4 @@ func main() {
 			<-time.After(30 * time.Millisecond)
 		}
 	}
-
 }

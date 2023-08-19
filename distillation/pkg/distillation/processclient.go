@@ -7,13 +7,13 @@ package distillation
 
 import (
 	"context"
+	"embedded/pkg/restclient"
 	"strconv"
 	"strings"
 	"time"
 
 	"distillation/pkg/distillation/distillationproto"
 	"distillation/pkg/process"
-	"embedded/pkg/restclient"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -93,7 +93,6 @@ func (p *ProcessRPCClient) GetPhaseConfig(phaseNumber int) (ProcessPhaseConfig, 
 		return ProcessPhaseConfig{}, err
 	}
 	return rpcToProcessPhaseConfig(cfg), nil
-
 }
 
 func (p *ProcessRPCClient) ConfigurePhaseCount(count ProcessPhaseCount) (ProcessPhaseCount, error) {

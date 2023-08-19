@@ -65,5 +65,4 @@ func (d *DeviceTestSuite) TestInventory() {
 		req.ElementsMatch(arg.attrs, attrs, arg.name)
 
 	}
-
 }

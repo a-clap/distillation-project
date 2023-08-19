@@ -28,5 +28,4 @@ func (o *Os) ListInterfaces(context.Context, *empty.Empty) (*osproto.Interfaces,
 		})
 	}
 	return &osproto.Interfaces{Interfaces: osNets}, nil
-
 }

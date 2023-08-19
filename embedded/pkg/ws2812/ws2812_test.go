@@ -70,7 +70,6 @@ func TestWS2812_SetColor(t *testing.T) {
 }
 
 func TestWS2812_Refresh(t *testing.T) {
-
 	t.Run("interface error", func(t *testing.T) {
 		w := ws2812.New(1, &WS2821Writer{err: fmt.Errorf("interface error")})
 		_ = w.SetColor(0, 0, 0, 0)

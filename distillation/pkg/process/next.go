@@ -9,8 +9,10 @@ var (
 	_ endCondition = (*endConditionTemperature)(nil)
 )
 
-type getTemperature func() float64
-type getTime func() int64
+type (
+	getTemperature func() float64
+	getTime        func() int64
+)
 
 type endConditionTime struct {
 	getTime  getTime
@@ -63,7 +65,6 @@ func newEndConditionTemperature(duration int64, time getTime, threshold float64,
 		threshold:      threshold,
 		getTemperature: temperature,
 	}
-
 }
 
 func (e *endConditionTemperature) end() (bool, int64) {

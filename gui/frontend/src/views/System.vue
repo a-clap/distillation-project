@@ -2,7 +2,7 @@
   <main>
     <h1>{{ $t('system.title') }}</h1>
     <el-tabs v-model="activated" type="card" tabPosition="left" class="demo-tabs">
-      <el-tab-pane :label="$t('system.names')" name="names">
+      <el-tab-pane :label="$t('system.names')" name="names" class="main-tab">
         <div class="name-container">{{ $t('system.ds') }}</div>
         <template v-for="(ds, index) in dsStore.ds" :key="index">
           <section class="name-container">
@@ -57,6 +57,18 @@
           </section>
         </section>
       </el-tab-pane>
+      <el-tab-pane :label="$t('system.update')" name="update">
+        <section class="update-interface">
+          <el-button type="primary" :icon="Refresh" size="large"
+                     @click=checkUpdate>
+            Sprawdz aktualizacje
+          </el-button>
+          <h3 v-if="updaterStore.updating">Pobieranie</h3>
+          <el-progress :stroke-width=20 :percentage=progress :color="colors" :format="(p: number) => {return p +`%`}"/>
+          <h3>Instalowanie</h3>
+          <el-progress :stroke-width=20 :percentage=progress :color="colors" :format="(p: number) => {return p +`%`}"/>
+        </section>
+      </el-tab-pane>
     </el-tabs>
   </main>
 </template>
@@ -73,13 +85,16 @@ import {Loader} from "../types/Loader";
 import {AppErrorCodes} from "../stores/error_codes";
 import {i18n} from "../i18n";
 import {FormatDate} from "../stores/log";
+import {Refresh} from "@element-plus/icons-vue";
+import {useUpdaterStore} from "../stores/updater";
 import NetInterface = backend.NetInterface;
 
 const currentDate = ref(new Date())
 const currentTime = ref(new Date())
-const activated = ref('names')
+const activated = ref('update')
 const dsStore = useDSStore()
 const ptStore = usePTStore()
+const updaterStore = useUpdaterStore()
 
 const ntpEnabled = ref(false)
 const ntp = computed({
@@ -103,7 +118,7 @@ const ntp = computed({
 
 const netInterfaces = ref<NetInterface[]>([])
 const timeNow = ref('')
-
+const progress = ref(0)
 
 onMounted(() => {
 
@@ -121,7 +136,18 @@ onMounted(() => {
     netInterfaces.value = interfaces
   })
 
+  setInterval(() => {
+    progress.value = progress.value >= 100 ? 0 : progress.value + 1;
+  }, 100)
+
 })
+
+function checkUpdate() {
+  Loader.show(AppErrorCodes.NTPFailed, 5000, "sprawdam update")
+
+  updaterStore.checkUpdate()
+  Loader.close()
+}
 
 function setTime() {
   let fullDate = currentTime.value
@@ -134,11 +160,25 @@ function setTime() {
   })
 }
 
+const percentage = ref(0)
+
+const colors = [
+  {color: '#FF0000', percentage: 25},
+  {color: '#FF7F00', percentage: 50},
+  {color: '#FFFF00', percentage: 75},
+  {color: '#00FF00', percentage: 100},
+]
+
+
 </script>
 
 <style lang="scss" scoped>
 h1 {
   margin-bottom: 1rem;
+}
+
+.demo-tabs > .el-tabs__content {
+  padding: 32px;
 }
 
 .name-input {
@@ -190,5 +230,23 @@ h1 {
 
 }
 
+.update-interface {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  * {
+    margin-bottom: 2rem;
+  }
+}
+
+.el-progress--line {
+  width: 400px;
+}
+
+.el-progress {
+
+}
 
 </style>

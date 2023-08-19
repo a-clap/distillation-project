@@ -28,8 +28,7 @@ var (
 	}
 )
 
-type wirelessWireless struct {
-}
+type wirelessWireless struct{}
 
 type wirelessClient struct {
 	quitCh chan struct{}

@@ -1,9 +1,9 @@
 <template>
   <html class="dark">
   <div class="app">
-    <Sidebar />
+    <Sidebar/>
     <el-dialog v-model="err.show" :title="err.title" width="70%" :modal=false :center=true :close-on-click-modal=false
-      :show-close=false align-center>
+               :show-close=false align-center>
       <span class="dialog-message">{{ err.msg }}</span>
       <template #footer>
         <span class="dialog-footer">
@@ -16,7 +16,7 @@
         </span>
       </template>
     </el-dialog>
-    <router-view />
+    <router-view/>
   </div>
 
   </html>
@@ -25,16 +25,17 @@
 <script setup lang="ts">
 
 import Sidebar from "./components/Sidebar.vue";
-import { useGpioStore } from "./stores/gpios";
-import { useDSStore } from "./stores/ds";
-import { useHeatersStore } from "./stores/heaters";
-import { usePTStore } from "./stores/pt";
-import { useWIFIStore } from "./stores/wifi";
-import { usePhasesStore } from "./stores/phases";
-import { useErrorStore } from "./stores/errors";
-import { useLogStore } from "./stores/log";
-import { useProcessStore } from "./stores/process";
-import { useNameStore } from "./stores/names";
+import {useGpioStore} from "./stores/gpios";
+import {useDSStore} from "./stores/ds";
+import {useHeatersStore} from "./stores/heaters";
+import {usePTStore} from "./stores/pt";
+import {useWIFIStore} from "./stores/wifi";
+import {usePhasesStore} from "./stores/phases";
+import {useErrorStore} from "./stores/errors";
+import {useLogStore} from "./stores/log";
+import {useProcessStore} from "./stores/process";
+import {useNameStore} from "./stores/names";
+import {useUpdaterStore} from "./stores/updater";
 
 const err = useErrorStore()
 
@@ -53,10 +54,13 @@ let initFuncs: StoreInitializer[] = [
   usePhasesStore(),
   useLogStore(),
   useNameStore(),
+  useUpdaterStore(),
 ]
 
 initFuncs.forEach((store) => {
-  setTimeout(() => { store.init() }, 10);
+  setTimeout(() => {
+    store.init()
+  }, 10);
 })
 
 </script>

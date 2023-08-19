@@ -4,9 +4,7 @@ import (
 	"osservice/pkg/wifi"
 )
 
-var (
-	_ Wifi = (*wifiOs)(nil)
-)
+var _ Wifi = (*wifiOs)(nil)
 
 type wifiOs struct {
 	conn *wifi.Wifi

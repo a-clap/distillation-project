@@ -519,7 +519,6 @@ func (c *Client) handleInstall(artifactName, src string) error {
 	// Install finished - notify user
 	c.Callbacks.Update(PauseBeforeRebooting, 100)
 	return nil
-
 }
 
 func (c *Client) loadArtifacts() {
@@ -534,7 +533,6 @@ func (c *Client) loadArtifacts() {
 	}
 
 	_ = json.Unmarshal(rawBytes, &c.artifacts)
-
 }
 
 func (c *Client) saveArtifacts() error {

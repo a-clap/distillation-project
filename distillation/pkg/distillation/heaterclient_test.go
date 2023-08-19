@@ -6,6 +6,7 @@
 package distillation_test
 
 import (
+	"embedded/pkg/embedded"
 	"errors"
 	"io"
 	"net/http/httptest"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/embedded"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
@@ -71,6 +71,7 @@ func (p *HeaterClientSuite) Test_Configure() {
 	t.Nil(err)
 	t.EqualValues(onGet[0], cfg.HeaterConfig)
 }
+
 func (p *HeaterClientSuite) Test_Enable() {
 	t := p.Require()
 
@@ -105,7 +106,6 @@ func (p *HeaterClientSuite) Test_Enable() {
 	cfg, err := hc.Enable(distillation.HeaterConfigGlobal{ID: onGet[0].ID, Enabled: true})
 	t.Nil(err)
 	t.Equal(distillation.HeaterConfigGlobal{ID: onGet[0].ID, Enabled: true}, cfg)
-
 }
 
 func (p *HeaterClientSuite) Test_NotImplemented() {

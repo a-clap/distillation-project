@@ -41,7 +41,6 @@ func New(devFile string, freq physic.Frequency, mode spi.Mode, bits int) (*Spide
 		if _, err := driverreg.Init(); err != nil {
 			panic(err)
 		}
-
 	})
 	_, ok := spiHandle.count[devFile]
 	if !ok {

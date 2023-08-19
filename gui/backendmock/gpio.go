@@ -1,18 +1,16 @@
 package backendmock
 
 import (
+	"distillation/pkg/distillation"
 	"errors"
 
-	"distillation/pkg/distillation"
 	"gui/backend/gpio"
 
 	"github.com/a-clap/logging"
 	"golang.org/x/exp/slices"
 )
 
-var (
-	_ gpio.Client = (*GPIOClient)(nil)
-)
+var _ gpio.Client = (*GPIOClient)(nil)
 
 type GPIOClient struct {
 	GPIO []distillation.GPIOConfig
@@ -32,7 +30,6 @@ func (g *GPIOClient) Configure(setConfig distillation.GPIOConfig) (distillation.
 
 	g.GPIO[idx] = setConfig
 	return setConfig, nil
-
 }
 
 // Get implements gpio.Client

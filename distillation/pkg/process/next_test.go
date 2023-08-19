@@ -105,5 +105,4 @@ func TestEndConditionTime(test *testing.T) {
 	end, left = time.end()
 	t.True(end)
 	t.EqualValues(0, left)
-
 }

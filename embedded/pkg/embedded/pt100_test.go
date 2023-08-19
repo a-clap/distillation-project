@@ -203,8 +203,8 @@ func (t *PTTestSuite) TestPTRestAPI_GetTemperatures() {
 	}
 
 	t.ElementsMatch(expected, bodyJson)
-
 }
+
 func (t *PTTestSuite) TestPTRestAPI_GetSensors() {
 	args := []embedded.PTSensorConfig{
 		{
@@ -293,8 +293,8 @@ func (t *PTTestSuite) TestPT_SetConfig_EnableDisable() {
 	cfg, err = pt.SetConfig(disabled)
 	t.Nil(err)
 	t.EqualValues(disabled, cfg)
-
 }
+
 func (t *PTTestSuite) TestPT_SetConfig() {
 	args := []struct {
 		old, new embedded.PTSensorConfig
@@ -362,8 +362,8 @@ func (t *PTTestSuite) TestPT_SetConfig() {
 		t.Nil(err, i)
 		t.EqualValues(arg.new, cfg, i)
 	}
-
 }
+
 func (t *PTTestSuite) TestPT_GetSensors() {
 	args := []embedded.PTSensorConfig{
 		{

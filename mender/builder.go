@@ -159,8 +159,7 @@ type builderSignerVerifier struct {
 	*signer.Signer
 }
 
-type builderRebooter struct {
-}
+type builderRebooter struct{}
 
 type builderLoadSaver struct {
 	*loadsaver.LoadSaver
@@ -178,8 +177,7 @@ func (b *builderInstaller) Install(src string) (progress chan int, errCh chan er
 	return b.Installer.Install(src)
 }
 
-type builderDownloader struct {
-}
+type builderDownloader struct{}
 
 func (*builderDownloader) Download(dst string, srcURL string) (progress chan int, errCh chan error, err error) {
 	return downloader.Download(dst, srcURL)

@@ -26,3 +26,5 @@ export function NotifyPhasesPhaseCount():Promise<string>;
 export function NotifyPhasesStatus():Promise<string>;
 
 export function NotifyPhasesValidate():Promise<string>;
+
+export function NotifyUpdate():Promise<string>;

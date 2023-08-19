@@ -307,7 +307,6 @@ func (t *SensorSuite) TestSensor_InitConfig() {
 }
 
 func (t *SensorSuite) TestSensor_PollTwice() {
-
 	resolution := []byte("11")
 	temperature := []byte("100")
 	filer := new(FileMock)
@@ -418,5 +417,4 @@ func (t *SensorSuite) TestSensor_Poll() {
 		diff := data[i].Stamp.Sub(data[i-1].Stamp)
 		r.InDelta(cfg.PollInterval, diff, float64(3*time.Millisecond))
 	}
-
 }

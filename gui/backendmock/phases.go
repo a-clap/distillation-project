@@ -1,17 +1,15 @@
 package backendmock
 
 import (
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 	"errors"
 	"fmt"
 
-	"distillation/pkg/distillation"
-	"distillation/pkg/process"
 	"gui/backend/phases"
 )
 
-var (
-	_ phases.Client = (*PhasesClient)(nil)
-)
+var _ phases.Client = (*PhasesClient)(nil)
 
 type PhasesClient struct {
 	Config  process.Config
@@ -57,7 +55,6 @@ func (p *PhasesClient) Init(count uint) {
 		}
 	}
 	p.Config.GlobalGPIO = p.Config.Phases[0].GPIO
-
 }
 
 // ConfigurePhase implements phases.Client
@@ -88,7 +85,6 @@ func (p *PhasesClient) GetPhaseConfig(phaseNumber int) (distillation.ProcessPhas
 	}
 	c := distillation.ProcessPhaseConfig{PhaseConfig: p.Config.Phases[phaseNumber]}
 	return c, nil
-
 }
 
 // GetPhaseCount implements phases.Client

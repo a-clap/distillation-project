@@ -386,8 +386,8 @@ func (pcs *ProcessConfigSuite) TestHappyPath_ConfigureOnFly() {
 		Errors: nil,
 	}
 	t.EqualValues(expectedStatus, s)
-
 }
+
 func (pcs *ProcessConfigSuite) TestHappyPath_VerifyGPIOHandlingSinglePhase() {
 	t := pcs.Require()
 	ctrl := gomock.NewController(pcs.T())

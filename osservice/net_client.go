@@ -12,9 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var (
-	_ Net = (*NetClient)(nil)
-)
+var _ Net = (*NetClient)(nil)
 
 type NetClient struct {
 	timeout time.Duration
@@ -53,5 +51,4 @@ func (n *NetClient) ListInterfaces() []NetInterface {
 	}
 
 	return osNets
-
 }

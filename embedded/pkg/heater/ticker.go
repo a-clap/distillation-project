@@ -31,5 +31,4 @@ func (t *timeTicker) Stop() {
 
 func (t *timeTicker) Tick() <-chan time.Time {
 	return t.Ticker.C
-
 }

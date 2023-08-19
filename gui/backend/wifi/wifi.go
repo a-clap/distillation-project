@@ -7,7 +7,6 @@ package wifi
 
 import (
 	"errors"
-
 	"osservice/pkg/wifi"
 )
 

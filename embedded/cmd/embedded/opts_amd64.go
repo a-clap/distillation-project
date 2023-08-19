@@ -7,11 +7,9 @@ import (
 )
 
 func setupLogging() {
-
 }
 
 func getOpts(configPath string) ([]embedded.Option, []error) {
-
 	ptIds := []string{"PT_1", "PT_2", "PT_3"}
 	pts := make([]embedded.PTSensor, len(ptIds))
 	for i, id := range ptIds {

@@ -68,6 +68,7 @@ func (d *DSHandler) GetTemperatures() []DSTemperature {
 
 	return sensors
 }
+
 func (d *DSHandler) Temperature(cfg ds18b20.SensorConfig) (float64, float64, error) {
 	ds, err := d.sensorBy(cfg.ID)
 	if err != nil {

@@ -31,7 +31,6 @@ func (a *Avg) Add(value float64) {
 		p = newBufSize - a.size
 	}
 	a.buffer = append(a.buffer[p:], value)
-
 }
 
 // Average returns current average value based on internal buffer
@@ -63,5 +62,4 @@ func (a *Avg) Resize(newSize uint) {
 	if bufSize >= newSize {
 		a.buffer = a.buffer[bufSize-newSize:]
 	}
-
 }

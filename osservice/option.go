@@ -47,3 +47,9 @@ func WithHost(host string) Option {
 		o.host = host
 	}
 }
+
+func WithUpdate(u Update) Option {
+	return func(o *Os) {
+		o.update = u
+	}
+}

@@ -7,12 +7,9 @@ import (
 
 var ErrNoIPV4Address = errors.New("interface doesn't have IPv4 address")
 
-var (
-	_ Net = netOs{}
-)
+var _ Net = netOs{}
 
-type netOs struct {
-}
+type netOs struct{}
 
 func getInterfaceIPv4Addr(interfaceName string) (string, error) {
 	var (

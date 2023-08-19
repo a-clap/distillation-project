@@ -3,6 +3,7 @@ package backend
 import (
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+
 	"gui/backend/phases"
 
 	"github.com/a-clap/logging"
@@ -18,8 +19,8 @@ func (b *Backend) PhasesGetPhaseCount() *distillation.ProcessPhaseCount {
 		return nil
 	}
 	return &count
-
 }
+
 func (b *Backend) PhasesGetPhaseConfigs() []distillation.ProcessPhaseConfig {
 	logger.Debug("PhasesGetPhaseConfigs")
 
@@ -31,6 +32,7 @@ func (b *Backend) PhasesGetPhaseConfigs() []distillation.ProcessPhaseConfig {
 	}
 	return confs
 }
+
 func (b *Backend) PhasesGetGlobalConfig() *process.Config {
 	logger.Debug("PhasesGetGlobalConfig")
 
@@ -51,6 +53,7 @@ func (b *Backend) PhasesSetPhaseCount(count int) {
 		b.eventEmitter.OnError(ErrPhasesSetPhaseCount)
 	}
 }
+
 func (b *Backend) PhasesSetConfig(number int, cfg distillation.ProcessPhaseConfig) {
 	logger.Debug("PhasesSetConfig")
 	if err := phases.SetConfig(number, cfg); err != nil {
@@ -58,6 +61,7 @@ func (b *Backend) PhasesSetConfig(number int, cfg distillation.ProcessPhaseConfi
 		b.eventEmitter.OnError(ErrPhasesSetConfig)
 	}
 }
+
 func (b *Backend) PhasesValidateConfig() {
 	logger.Debug("PhasesValidateConfig")
 	if err := phases.ValidateConfig(); err != nil {
@@ -65,6 +69,7 @@ func (b *Backend) PhasesValidateConfig() {
 		b.eventEmitter.OnError(ErrPhasesValidateConfig)
 	}
 }
+
 func (b *Backend) PhasesEnable() {
 	logger.Debug("PhasesEnable")
 	if err := phases.Enable(); err != nil {
@@ -72,6 +77,7 @@ func (b *Backend) PhasesEnable() {
 		b.eventEmitter.OnError(ErrPhasesEnable)
 	}
 }
+
 func (b *Backend) PhasesDisable() {
 	logger.Debug("PhasesDisable")
 	if err := phases.Disable(); err != nil {
@@ -79,6 +85,7 @@ func (b *Backend) PhasesDisable() {
 		b.eventEmitter.OnError(ErrPhasesDisable)
 	}
 }
+
 func (b *Backend) PhasesMoveToNext() {
 	logger.Debug("PhasesMoveToNext")
 	if err := phases.MoveToNext(); err != nil {

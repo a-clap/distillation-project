@@ -67,5 +67,4 @@ func (ks *SignerTestSuite) TestSign() {
 	sig[13] = 5
 	err = store.Verify(data, sig)
 	t.ErrorIs(err, rsa.ErrVerification)
-
 }

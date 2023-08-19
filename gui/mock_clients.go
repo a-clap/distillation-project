@@ -1,17 +1,17 @@
 package main
 
 import (
-	"log"
-	"time"
-
 	"distillation/pkg/distillation"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"
 	"embedded/pkg/max31865"
+	"log"
+	"osservice/pkg/wifi"
+	"time"
+
 	"gui/backend"
 	"gui/backendmock"
-	"osservice/pkg/wifi"
 )
 
 func mockClients() []backend.Option {
@@ -71,7 +71,8 @@ func mockClients() []backend.Option {
 				ASyncPoll:    false,
 				PollInterval: 1 * time.Second,
 				Samples:      3,
-			}}},
+			},
+		}},
 		distillation.PTConfig{PTSensorConfig: embedded.PTSensorConfig{
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
@@ -81,7 +82,8 @@ func mockClients() []backend.Option {
 				ASyncPoll:    true,
 				PollInterval: 1 * time.Second,
 				Samples:      7,
-			}}},
+			},
+		}},
 		distillation.PTConfig{PTSensorConfig: embedded.PTSensorConfig{
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
@@ -91,7 +93,8 @@ func mockClients() []backend.Option {
 				ASyncPoll:    true,
 				PollInterval: 1 * time.Second,
 				Samples:      13,
-			}}},
+			},
+		}},
 	)
 
 	gpioClient := backendmock.GPIOClient{}
@@ -134,5 +137,7 @@ func mockClients() []backend.Option {
 		backend.WithPhaseClient(&phaseClient),
 		backend.WithWifi(w),
 		backend.WithLoadSaver(saver),
+		backend.WithNet(backendmock.NetMock{}),
+		backend.WithTime(backendmock.TimeMock{}),
 	}
 }

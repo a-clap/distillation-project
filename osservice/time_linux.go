@@ -15,8 +15,7 @@ var (
 )
 
 // Linux timeOs implementation
-type timeOs struct {
-}
+type timeOs struct{}
 
 func (timeOs) Now() (time.Time, error) {
 	return time.Now(), nil
@@ -44,7 +43,7 @@ func (timeOs) NTP() (bool, error) {
 }
 
 func (timeOs) SetNTP(enable bool) error {
-	args := []string{"set-ntp", "false"}
+	args := []string{"newRelease-ntp", "false"}
 	if enable {
 		args[1] = "true"
 	}
@@ -58,7 +57,7 @@ func (timeOs) SetNTP(enable bool) error {
 
 func (timeOs) SetNow(now time.Time) error {
 	dateString := now.Format("2006-01-02 15:04:05")
-	args := []string{"set-time", dateString}
+	args := []string{"newRelease-time", dateString}
 
 	if err := exec.Command(dateExecutable, args...).Run(); err != nil {
 		return fmt.Errorf("setting time: %w", err)

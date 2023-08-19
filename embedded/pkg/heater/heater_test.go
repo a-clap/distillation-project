@@ -61,7 +61,6 @@ func (t *HeaterSuite) TestHeater_Status() {
 	h.Disable()
 	t.Equal(false, h.Enabled())
 	t.EqualValues(36, h.Power())
-
 }
 
 func (t *HeaterSuite) TestHeater_Power() {
@@ -105,7 +104,6 @@ func (t *HeaterSuite) TestHeater_ReceiveErrors() {
 	case <-time.After(5 * time.Millisecond):
 		t.Fail("shouldn't be here")
 	}
-
 }
 
 func (t *HeaterSuite) TestHeater_Running() {

@@ -1,13 +1,13 @@
 package main
 
 import (
+	"distillation/pkg/distillation"
 	"fmt"
 	"log"
+	"osservice"
 	"time"
 
-	"distillation/pkg/distillation"
 	"gui/backend"
-	"osservice"
 )
 
 const (

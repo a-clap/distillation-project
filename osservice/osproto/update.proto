@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "os/osproto";
+
+service Update {
+  rpc PullReleases(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc AvailableReleases(google.protobuf.Empty) returns (Releases) {}
+  rpc Update(stream UpdateRequest) returns (stream UpdateResponse) {}
+}
+
+enum UpdateState {
+  Invalid = 0;
+  Downloading = 1;
+  PauseBeforeInstalling = 2;
+  Installing = 3;
+  PauseBeforeRebooting = 4;
+  Rebooting = 5;
+  PauseBeforeCommitting = 6;
+  Success = 7;
+  Failure = 8;
+  AlreadyInstalled = 9;
+}
+
+message Releases {
+  repeated google.protobuf.StringValue releases = 1;
+}
+
+message UpdateRequest {
+  optional google.protobuf.StringValue artifactName = 1;
+  optional google.protobuf.BoolValue Stop = 2;
+  optional google.protobuf.BoolValue Continue = 3;
+}
+
+
+message UpdateResponse {
+  UpdateState state = 1;
+  int32 Progress = 2;
+  optional UpdateState nextState = 3;
+  optional google.protobuf.StringValue error = 4;
+}

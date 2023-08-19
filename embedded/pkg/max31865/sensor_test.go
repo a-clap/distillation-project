@@ -139,7 +139,7 @@ func (s *SensorSuite) TestTemperatureError() {
 	sensorMock.On("ReadWrite", maxInitCall).Return(maxPORState, nil).Once()
 	// Configuration call
 	sensorMock.On("ReadWrite", []byte{0x80, 0xd1}).Return([]byte{0x00, 0x00}, nil)
-	var max, _ = max31865.NewSensor(max31865.WithReadWriteCloser(sensorMock), max31865.WithRefRes(400.0))
+	max, _ := max31865.NewSensor(max31865.WithReadWriteCloser(sensorMock), max31865.WithRefRes(400.0))
 	s.NotNil(max)
 
 	// Return error (lsb of rtd set to 1)
@@ -278,7 +278,6 @@ func (s *SensorSuite) TestPollTime() {
 		diff := readings[i].Stamp.Sub(readings[i-1].Stamp)
 		r.InDelta(cfg.PollInterval, diff, float64(1*time.Millisecond))
 	}
-
 }
 
 func (s *SensorSuite) TestPollTwice() {
@@ -376,8 +375,8 @@ func (s *SensorSuite) TestNew_Errors() {
 		t.Nil(max)
 		t.ErrorIs(e, err)
 	}
-
 }
+
 func (s *SensorTriggerMock) Open(callback func()) error {
 	called := s.Called()
 	s.cb = callback

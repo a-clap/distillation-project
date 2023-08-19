@@ -44,6 +44,7 @@ func toJSON(obj any) string {
 	}
 	return string(b)
 }
+
 func fromJSON(b []byte, obj any) {
 	if err := json.Unmarshal(b, obj); err != nil {
 		panic(err)
@@ -64,6 +65,7 @@ func (t *HeaterTestSuite) SetupTest() {
 	t.mock = make(map[string]*HeaterMock)
 	t.resp = httptest.NewRecorder()
 }
+
 func (t *HeaterTestSuite) TestHeater_PutHeaterAllGood_ReturnValuesFromInterface() {
 	setHeater := embedded.HeaterConfig{
 		ID:      "firstHeater",
@@ -127,7 +129,6 @@ func (t *HeaterTestSuite) TestHeater_PutHeaterAllGoodTwice() {
 		var body bytes.Buffer
 		if err := json.NewEncoder(&body).Encode(expectedHeater); err != nil {
 			panic(err)
-
 		}
 		t.req, _ = http.NewRequest(http.MethodPut, embedded.RoutesConfigHeater, &body)
 		t.req.Header.Add("Content-Type", "application/json")
@@ -168,7 +169,6 @@ func (t *HeaterTestSuite) TestHeater_PutHeaterAllGoodTwice() {
 		t.Equal(http.StatusOK, t.resp.Code)
 		t.JSONEq(toJSON(newExpected), string(b))
 	}
-
 }
 
 func (t *HeaterTestSuite) TestHeater_PutHeaterInterfaceError() {
@@ -236,7 +236,6 @@ func (t *HeaterTestSuite) TestHeater_GetHeater() {
 }
 
 func (t *HeaterTestSuite) TestHeater_GetZeroHeaters() {
-
 	t.req, _ = http.NewRequest(http.MethodGet, embedded.RoutesGetHeaters, nil)
 	h, _ := embedded.NewRest("")
 	h.Router.ServeHTTP(t.resp, t.req)
@@ -310,7 +309,6 @@ func (t *HeaterTestSuite) TestHeater_MultipleHeaters() {
 		}
 		t.True(correct, "expected elem not found")
 	}
-
 }
 
 func (t *HeaterTestSuite) TestHeater_SingleHeater() {

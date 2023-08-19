@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"osservice"
+
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -8,7 +10,6 @@ import (
 	"gui/backend/phases"
 	"gui/backend/pt"
 	"gui/backend/wifi"
-	"osservice"
 )
 
 type Option func(b *Backend) error

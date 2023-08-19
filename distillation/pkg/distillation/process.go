@@ -6,10 +6,10 @@
 package distillation
 
 import (
+	"embedded/pkg/embedded"
 	"errors"
 
 	"distillation/pkg/process"
-	"embedded/pkg/embedded"
 )
 
 // ProcessPhaseCount is JSON wrapper for process.PhaseNumber
@@ -44,8 +44,8 @@ func (d *Distillation) Status() ProcessStatus {
 	d.lastStatusMtx.Lock()
 	defer d.lastStatusMtx.Unlock()
 	return d.lastStatus
-
 }
+
 func (d *Distillation) ValidateConfig() ProcessConfigValidation {
 	v := ProcessConfigValidation{Valid: true}
 	err := d.Process.Validate()
@@ -55,12 +55,12 @@ func (d *Distillation) ValidateConfig() ProcessConfigValidation {
 	}
 	return v
 }
+
 func (d *Distillation) ConfigureProcess(cfg ProcessConfig) error {
 	if !d.Process.Running() {
 		// Not possible if process is not running
 		if cfg.MoveToNext || cfg.Disable {
 			return errors.New("process is not running")
-
 		}
 		// If user wants to enable process
 		if cfg.Enable {
@@ -98,7 +98,6 @@ func (d *Distillation) configurePhase(number uint, config ProcessPhaseConfig) er
 		d.updateProcess()
 	}
 	return d.Process.SetPhaseConfig(number, config.PhaseConfig)
-
 }
 
 func (d *Distillation) updateProcess() {
@@ -112,11 +111,13 @@ func (d *Distillation) safeUpdateSensors() {
 		d.updateSensors()
 	}
 }
+
 func (d *Distillation) safeUpdateHeaters() {
 	if !d.Process.Running() {
 		d.updateHeaters()
 	}
 }
+
 func (d *Distillation) safeUpdateOutputs() {
 	if !d.Process.Running() {
 		d.updateOutputs()
@@ -171,8 +172,8 @@ func (d *Distillation) updateSensors() {
 		}
 	}
 	d.Process.UpdateSensors(sensors)
-
 }
+
 func (d *Distillation) updateOutputs() {
 	if d.GPIOHandler == nil {
 		return
@@ -199,7 +200,6 @@ func (d *Distillation) updateOutputs() {
 		outputs = append(outputs, o)
 	}
 	d.Process.UpdateOutputs(outputs)
-
 }
 
 func (d *Distillation) updateHeaters() {
@@ -226,7 +226,8 @@ func (d *Distillation) updateHeaters() {
 		if heater.Enabled {
 			h := &processHeater{
 				id:     heater.ID,
-				setPwr: setPwr(heater.ID)}
+				setPwr: setPwr(heater.ID),
+			}
 			heaters = append(heaters, h)
 		}
 	}

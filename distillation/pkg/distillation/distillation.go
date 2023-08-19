@@ -15,9 +15,7 @@ import (
 	"github.com/a-clap/logging"
 )
 
-var (
-	logger = logging.GetLogger()
-)
+var logger = logging.GetLogger()
 
 type Distillation struct {
 	HeatersHandler *HeatersHandler
@@ -120,7 +118,6 @@ func (d *Distillation) handleProcess() {
 			}
 		}
 	}()
-
 }
 
 func (d *Distillation) updateStatus(s process.Status) {

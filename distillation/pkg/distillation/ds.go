@@ -6,10 +6,9 @@
 package distillation
 
 import (
-	"errors"
-
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
+	"errors"
 
 	"github.com/a-clap/logging"
 )

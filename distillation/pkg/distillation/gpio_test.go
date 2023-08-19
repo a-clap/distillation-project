@@ -6,9 +6,8 @@
 package distillation_test
 
 import (
-	"testing"
-
 	"embedded/pkg/embedded"
+	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

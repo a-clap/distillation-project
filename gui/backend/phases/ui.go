@@ -6,11 +6,10 @@
 package phases
 
 import (
-	"sync/atomic"
-	"time"
-
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+	"sync/atomic"
+	"time"
 )
 
 // Client is an interface to read/set listed configs
@@ -49,18 +48,16 @@ type processHandler struct {
 	finish    chan struct{}
 }
 
-var (
-	handler = &processHandler{
-		client:    nil,
-		count:     distillation.ProcessPhaseCount{},
-		phases:    process.Config{},
-		listeners: make([]Listener, 0),
-		status:    distillation.ProcessStatus{},
-		running:   atomic.Bool{},
-		interval:  1 * time.Second,
-		err:       nil,
-	}
-)
+var handler = &processHandler{
+	client:    nil,
+	count:     distillation.ProcessPhaseCount{},
+	phases:    process.Config{},
+	listeners: make([]Listener, 0),
+	status:    distillation.ProcessStatus{},
+	running:   atomic.Bool{},
+	interval:  1 * time.Second,
+	err:       nil,
+}
 
 // Init prepare package to handle various requests
 func Init(c Client, err chan<- error, interval time.Duration) {
@@ -284,5 +281,4 @@ func update() {
 			}
 		}
 	}()
-
 }

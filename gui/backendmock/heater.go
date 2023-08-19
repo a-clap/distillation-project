@@ -1,18 +1,16 @@
 package backendmock
 
 import (
+	"distillation/pkg/distillation"
 	"errors"
 
-	"distillation/pkg/distillation"
 	"gui/backend/heater"
 
 	"github.com/a-clap/logging"
 	"golang.org/x/exp/slices"
 )
 
-var (
-	_ heater.Client = (*HeaterClient)(nil)
-)
+var _ heater.Client = (*HeaterClient)(nil)
 
 type HeaterClient struct {
 	Globals []distillation.HeaterConfigGlobal

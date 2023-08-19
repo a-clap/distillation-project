@@ -6,17 +6,14 @@
 package distillation
 
 import (
-	"errors"
-
 	"embedded/pkg/embedded"
 	"embedded/pkg/max31865"
+	"errors"
 
 	"github.com/a-clap/logging"
 )
 
-var (
-	ErrNoPTInterface = errors.New("no pt interface")
-)
+var ErrNoPTInterface = errors.New("no pt interface")
 
 type PTError struct {
 	ID  string `json:"ID"`
@@ -195,7 +192,6 @@ func (p *PTHandler) GetSensors() []PTConfig {
 }
 
 func (p *PTHandler) init() error {
-
 	if p.PT == nil {
 		return &PTError{Op: "init", Err: ErrNoPTInterface.Error()}
 	}
@@ -218,6 +214,7 @@ func (p *PTHandler) init() error {
 func (p *PTHandler) subscribe(cb ptCallback) {
 	p.clients = append(p.clients, cb)
 }
+
 func (p *PTHandler) notify() {
 	for _, client := range p.clients {
 		client()

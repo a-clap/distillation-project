@@ -6,14 +6,11 @@
 package distillation
 
 import (
-	"errors"
-
 	"embedded/pkg/embedded"
+	"errors"
 )
 
-var (
-	ErrNoGPIOInterface = errors.New("no GPIO interface")
-)
+var ErrNoGPIOInterface = errors.New("no GPIO interface")
 
 type GPIO interface {
 	Get() ([]embedded.GPIOConfig, error)
@@ -83,8 +80,8 @@ func (g *GPIOHandler) Configure(cfg GPIOConfig) (GPIOConfig, error) {
 	io.GPIOConfig = newcfg
 	g.notify()
 	return *io, nil
-
 }
+
 func (g *GPIOHandler) init() error {
 	if g.GPIO == nil {
 		return &GPIOError{Op: "init", Err: ErrNoGPIOInterface.Error()}
@@ -104,6 +101,7 @@ func (g *GPIOHandler) init() error {
 func (g *GPIOHandler) subscribe(cb gpioCallback) {
 	g.clients = append(g.clients, cb)
 }
+
 func (g *GPIOHandler) notify() {
 	for _, client := range g.clients {
 		client()

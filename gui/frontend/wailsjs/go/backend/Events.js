@@ -53,3 +53,7 @@ export function NotifyPhasesStatus() {
 export function NotifyPhasesValidate() {
   return window['go']['backend']['Events']['NotifyPhasesValidate']();
 }
+
+export function NotifyUpdate() {
+  return window['go']['backend']['Events']['NotifyUpdate']();
+}

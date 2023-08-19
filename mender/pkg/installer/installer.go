@@ -59,7 +59,6 @@ func (i *Installer) Install(artifactName string) (progress chan int, errs chan e
 
 func (i *Installer) Wait() {
 	for range i.finish {
-
 	}
 }
 
@@ -74,8 +73,8 @@ func (i *Installer) Kill() error {
 	i.runner = nil
 
 	return err
-
 }
+
 func (i *Installer) handle(outPipe, errPipe io.ReadCloser) (chan int, chan error, error) {
 	progress := make(chan int, 100)
 	errs := make(chan error, 1)
@@ -148,6 +147,7 @@ func findErr(line string) (string, error) {
 	}
 	return "", ErrNotFound
 }
+
 func findSize(line string) (int, error) {
 	match := findSizeRE.FindStringSubmatch(line)
 	if match == nil || len(match) != 2 {

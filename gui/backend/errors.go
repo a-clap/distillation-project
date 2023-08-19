@@ -11,12 +11,14 @@ const (
 	ErrDSSetResolution
 	ErrDSSetName
 )
+
 const (
 	ErrPTSetCorrection = iota + 20
 	ErrPTEnable
 	ErrPTSetSamples
 	ErrPTSetName
 )
+
 const (
 	ErrGPIOSetActiveLevel = iota + 30
 	ErrGPIOSetState
@@ -57,6 +59,4 @@ const (
 	ErrConnPhase
 )
 
-var (
-	ErrNotImplemented = errors.New("function not implemented")
-)
+var ErrNotImplemented = errors.New("function not implemented")

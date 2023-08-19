@@ -6,12 +6,10 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/tekwizely/pre-commit-golang
-    rev: master
+    rev: 645165368711be670d1945c15060e746f5ed15c6
     hooks:
-      - id: go-returns-repo
+      - id: go-fumpt-repo
         args: [ -w ]
       - id: go-staticcheck-repo-mod
       - id: golangci-lint-repo-mod
-      - id: go-structslop-mod
-        exclude: \.pb\.go
       - id: go-test-repo-mod

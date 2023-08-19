@@ -151,6 +151,7 @@ func (r *restRouter) configOnewireSensor(e *Embedded) gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *restRouter) getOnewireTemperatures(e *Embedded) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if e.DS.sensors == nil {
@@ -229,6 +230,7 @@ func (r *restRouter) configPTSensor(e *Embedded) gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *restRouter) getPTTemperatures(e *Embedded) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if e.PT.sensors == nil {
@@ -317,6 +319,7 @@ func (r *restRouter) configGPIO(e *Embedded) gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *restRouter) getGPIOS(e *Embedded) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if len(e.GPIO.io) == 0 {

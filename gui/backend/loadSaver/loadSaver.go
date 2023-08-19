@@ -1,11 +1,11 @@
 package loadSaver
 
 import (
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 	"errors"
 	"log"
 
-	"distillation/pkg/distillation"
-	"distillation/pkg/process"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -38,20 +38,19 @@ const (
 	paramsKey = "params"
 )
 
-var (
-	handler = &handlerType{
-		LoadSaver: nil,
-		params: params{
-			heaterSettings: make(map[string]*parameters.Heater, 0),
-			dsSettings:     make(map[string]*parameters.DS, 0),
-			ptSettings:     make(map[string]*parameters.PT, 0),
-			gpioSettings:   make(map[string]*parameters.GPIO, 0),
-			processSettings: process.Config{
-				PhaseNumber: 0,
-				Phases:      make([]process.PhaseConfig, 0),
-			},
-		}}
-)
+var handler = &handlerType{
+	LoadSaver: nil,
+	params: params{
+		heaterSettings: make(map[string]*parameters.Heater, 0),
+		dsSettings:     make(map[string]*parameters.DS, 0),
+		ptSettings:     make(map[string]*parameters.PT, 0),
+		gpioSettings:   make(map[string]*parameters.GPIO, 0),
+		processSettings: process.Config{
+			PhaseNumber: 0,
+			Phases:      make([]process.PhaseConfig, 0),
+		},
+	},
+}
 
 func Init(saver LoadSaver) {
 	handler.LoadSaver = saver
@@ -163,7 +162,6 @@ func (h *handlerType) OnPTConfigChange(config parameters.PT) {
 		h.params.ptSettings[config.ID] = &parameters.PT{}
 	}
 	h.params.ptSettings[config.ID] = &config
-
 }
 
 func (h *handlerType) OnPTTemperatureChange(parameters.Temperature) {

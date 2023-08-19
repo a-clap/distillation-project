@@ -226,8 +226,8 @@ func (t *DS18B20TestSuite) TestRestAPI_GetTemperatures() {
 	fromJSON(b, &bodyJson)
 	r.Equal(http.StatusOK, t.resp.Code)
 	r.ElementsMatch(temps, bodyJson)
-
 }
+
 func (t *DS18B20TestSuite) TestRestAPI_GetSensors() {
 	cfgs := []embedded.DSSensorConfig{
 		{
@@ -308,8 +308,8 @@ func (t *DS18B20TestSuite) TestDSConfig_EnableDisable() {
 	r.Nil(err)
 	_, err = ds.SetConfig(startCfg)
 	r.Nil(err)
-
 }
+
 func (t *DS18B20TestSuite) TestDSConfig() {
 	args := []struct {
 		name     string
@@ -391,8 +391,8 @@ func (t *DS18B20TestSuite) TestDSConfig() {
 	for _, m := range t.mock {
 		m.AssertExpectations(t.T())
 	}
-
 }
+
 func (t *DS18B20TestSuite) TestDS_GetSensors() {
 	cfgs := []embedded.DSSensorConfig{
 		{

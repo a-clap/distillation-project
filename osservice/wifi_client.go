@@ -14,9 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var (
-	_ Wifi = (*WifiClient)(nil)
-)
+var _ Wifi = (*WifiClient)(nil)
 
 type WifiClient struct {
 	timeout time.Duration
@@ -40,6 +38,7 @@ func NewWifiClient(addr string, port int, timeout time.Duration) (*WifiClient, e
 func (w *WifiClient) ctx() (context.Context, context.CancelFunc) {
 	return context.WithDeadline(context.Background(), time.Now().Add(w.timeout))
 }
+
 func (w *WifiClient) APs() ([]wifi.AP, error) {
 	ctx, cancel := w.ctx()
 	defer cancel()

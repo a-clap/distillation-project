@@ -20,9 +20,7 @@ import (
 	"github.com/a-clap/logging"
 )
 
-var (
-	logger = logging.GetLogger()
-)
+var logger = logging.GetLogger()
 
 type Resolution int
 
@@ -34,9 +32,7 @@ const (
 	Resolution12Bit Resolution = 12
 )
 
-var (
-	ErrUnexpectedResolution = errors.New("unexpected resolution")
-)
+var ErrUnexpectedResolution = errors.New("unexpected resolution")
 
 // Readings are returned, when Sensor is used in Poll mode
 type Readings struct {
@@ -230,7 +226,6 @@ func (s *Sensor) Close() {
 	// Wait until finish
 	for range s.fin {
 	}
-
 }
 
 func (s *Sensor) resolution() (r Resolution, err error) {

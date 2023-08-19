@@ -37,3 +37,5 @@ export function TemperatureErrorCodeInternal():Promise<number>;
 export function TemperatureErrorCodeWrongID():Promise<number>;
 
 export function TemperaturePhaseStatus():Promise<process.TemperaturePhaseStatus>;
+
+export function Update():Promise<backend.Update>;

@@ -54,5 +54,4 @@ func main() {
 	osSrv.Stop()
 	// Wait until closed
 	<-wait
-
 }

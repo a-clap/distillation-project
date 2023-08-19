@@ -14,9 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var (
-	_ Time = (*TimeClient)(nil)
-)
+var _ Time = (*TimeClient)(nil)
 
 type TimeClient struct {
 	timeout time.Duration

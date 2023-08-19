@@ -9,9 +9,7 @@ import (
 	"fmt"
 )
 
-var (
-	ErrNotExist = fmt.Errorf("not exist")
-)
+var ErrNotExist = fmt.Errorf("not exist")
 
 type BananaPiPIN int
 

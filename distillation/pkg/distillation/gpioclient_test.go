@@ -6,6 +6,8 @@
 package distillation_test
 
 import (
+	"embedded/pkg/embedded"
+	"embedded/pkg/gpio"
 	"errors"
 	"io"
 	"net/http/httptest"
@@ -13,8 +15,6 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/embedded"
-	"embedded/pkg/gpio"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"

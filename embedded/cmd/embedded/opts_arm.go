@@ -32,7 +32,6 @@ func setupLogging() {
 
 	heaterLogger := logging.GetLogger("heater")
 	heaterLogger.AddRotateFileHandler(cfg, logging.DebugLevel, "/var/log/embedded/heater.log", rot)
-
 }
 
 func getOpts(configPath string) ([]embedded.Option, []error) {

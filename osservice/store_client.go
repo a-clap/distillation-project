@@ -12,9 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var (
-	_ Store = (*StoreClient)(nil)
-)
+var _ Store = (*StoreClient)(nil)
 
 type StoreClient struct {
 	timeout time.Duration

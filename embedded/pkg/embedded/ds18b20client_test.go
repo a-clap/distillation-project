@@ -102,8 +102,8 @@ func (p *DS18B20ClientSuite) Test_Temperatures() {
 	t.Nil(err)
 	t.NotNil(s)
 	t.ElementsMatch(readings, s)
-
 }
+
 func (p *DS18B20ClientSuite) Test_Configure() {
 	t := p.Require()
 
@@ -178,7 +178,6 @@ func (p *DS18B20ClientSuite) Test_Configure() {
 	cfg, err := pt.Configure(cfgs[0])
 	t.Nil(err)
 	t.Equal(cfgs[0], cfg)
-
 }
 
 func (p *DS18B20ClientSuite) Test_NotImplemented() {

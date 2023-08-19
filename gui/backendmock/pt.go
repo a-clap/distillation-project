@@ -1,18 +1,16 @@
 package backendmock
 
 import (
+	"distillation/pkg/distillation"
 	"errors"
 	"time"
 
-	"distillation/pkg/distillation"
 	"gui/backend/pt"
 
 	"golang.org/x/exp/slices"
 )
 
-var (
-	_ pt.Client = (*PTClient)(nil)
-)
+var _ pt.Client = (*PTClient)(nil)
 
 type PTClient struct {
 	PT []distillation.PTConfig

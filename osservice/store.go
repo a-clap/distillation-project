@@ -9,9 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	_ Store = (*configStoreOs)(nil)
-)
+var _ Store = (*configStoreOs)(nil)
 
 type configStoreOs struct {
 	v *viper.Viper

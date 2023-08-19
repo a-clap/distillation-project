@@ -2,9 +2,9 @@ package backend
 
 import (
 	"context"
-
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -74,25 +74,21 @@ func (e *eventEmitter) OnError(errID int) {
 
 // OnConfigChange implements phases.Listener
 func (e *eventEmitter) OnConfigChange(c distillation.ProcessConfig) {
-	logger.Debug("OnConfigChange")
 	runtime.EventsEmit(e.ctx, NotifyPhasesConfig, c)
 }
 
 // OnConfigValidate implements phases.Listener
 func (e *eventEmitter) OnConfigValidate(validation distillation.ProcessConfigValidation) {
-	logger.Debug("OnConfigValidate")
 	runtime.EventsEmit(e.ctx, NotifyPhasesValidate, validation)
 }
 
 // OnPhaseConfigChange implements phases.Listener
 func (e *eventEmitter) OnPhaseConfigChange(phaseNumber int, cfg distillation.ProcessPhaseConfig) {
-	logger.Debug("OnPhaseConfigChange")
 	runtime.EventsEmit(e.ctx, NotifyPhasesPhaseConfig, phaseNumber, cfg)
 }
 
 // OnPhasesCountChange implements phases.Listener
 func (e *eventEmitter) OnPhasesCountChange(count distillation.ProcessPhaseCount) {
-	logger.Debug("OnPhasesCountChange")
 	runtime.EventsEmit(e.ctx, NotifyPhasesPhaseCount, count)
 }
 
@@ -109,6 +105,9 @@ func (e *eventEmitter) OnStatusChange(status distillation.ProcessStatus) {
 
 // OnGlobalConfig implements phases.Listener
 func (e *eventEmitter) OnGlobalConfig(c process.Config) {
-	logger.Debug("OnGlobalConfig")
 	runtime.EventsEmit(e.ctx, NotifyGlobalConfig, c)
+}
+
+func (e *eventEmitter) OnUpdate(u Update) {
+	runtime.EventsEmit(e.ctx, NotifyUpdate, u)
 }

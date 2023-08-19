@@ -125,11 +125,9 @@ func (t *AvgTestSuite) TestNewAndResize() {
 		}
 		t.EqualValues(arg.nextExpected, a.Average(), arg.name)
 	}
-
 }
 
 func (t *AvgTestSuite) TestAverage_Float() {
-
 	args := []struct {
 		name     string
 		size     uint

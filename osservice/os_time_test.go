@@ -1,3 +1,25 @@
+// MIT License
+//
+// Copyright (c) 2023 a-clap
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 package osservice_test
 
 import (
@@ -16,7 +38,6 @@ func (o *OsServiceSuite) timeClient(msg string) *osservice.TimeClient {
 	o.Require().Nil(err, msg)
 	o.Require().NotNil(client, msg)
 	return client
-
 }
 
 func (o *OsServiceSuite) TestTime_SetNTP() {
@@ -46,19 +67,24 @@ func (o *OsServiceSuite) TestTime_SetNTP() {
 		ctrl := gomock.NewController(o.T())
 
 		mockTime := mocks.NewMockTime(ctrl)
-		mockTime.EXPECT().SetNTP(arg.set).Return(arg.err)
+		waitSet := make(chan struct{})
+		mockTime.EXPECT().SetNTP(arg.set).DoAndReturn(func(any) error {
+			close(waitSet)
+			return arg.err
+		})
 		opts := []osservice.Option{osservice.WithTime(mockTime)}
 
 		new(TestServer).With(opts, func() {
 			timeClient := o.timeClient(arg.name)
 
 			err := timeClient.SetNTP(arg.set)
+			o.waitFor(waitSet, "waitSet")
+
 			if arg.err != nil {
 				req.ErrorContains(err, arg.err.Error(), arg.name)
 			} else {
 				req.Nil(err, arg.name)
 			}
-
 			ctrl.Finish()
 		})
 	}
@@ -86,7 +112,11 @@ func (o *OsServiceSuite) TestTime_SetNow() {
 		ctrl := gomock.NewController(o.T())
 
 		mockTime := mocks.NewMockTime(ctrl)
-		mockTime.EXPECT().SetNow(arg.set.UTC()).Return(arg.err)
+		waitSetNow := make(chan struct{})
+		mockTime.EXPECT().SetNow(arg.set.UTC()).DoAndReturn(func(any) error {
+			close(waitSetNow)
+			return arg.err
+		})
 
 		opts := []osservice.Option{osservice.WithTime(mockTime)}
 
@@ -94,6 +124,8 @@ func (o *OsServiceSuite) TestTime_SetNow() {
 			timeClient := o.timeClient(arg.name)
 
 			err := timeClient.SetNow(arg.set.UTC())
+			o.waitFor(waitSetNow, "waitSetNow")
+
 			if arg.err != nil {
 				req.ErrorContains(err, arg.err.Error(), arg.name)
 			} else {
@@ -103,7 +135,6 @@ func (o *OsServiceSuite) TestTime_SetNow() {
 			ctrl.Finish()
 		})
 	}
-
 }
 
 func (o *OsServiceSuite) TestTime_NTP() {
@@ -161,7 +192,11 @@ func (o *OsServiceSuite) TestTime_NTP() {
 		ctrl := gomock.NewController(o.T())
 
 		mockTime := mocks.NewMockTime(ctrl)
-		mockTime.EXPECT().NTP().Return(arg.in.ntp, arg.in.err)
+		waitNTP := make(chan struct{})
+		mockTime.EXPECT().NTP().DoAndReturn(func() (bool, error) {
+			close(waitNTP)
+			return arg.in.ntp, arg.in.err
+		})
 
 		opts := []osservice.Option{osservice.WithTime(mockTime)}
 
@@ -169,6 +204,7 @@ func (o *OsServiceSuite) TestTime_NTP() {
 			timeClient := o.timeClient(arg.name)
 
 			ntp, err := timeClient.NTP()
+			o.waitFor(waitNTP, "waitNTP")
 
 			if arg.expected.err != nil {
 				req.Equal(arg.expected.ntp, ntp, arg.name)
@@ -176,14 +212,13 @@ func (o *OsServiceSuite) TestTime_NTP() {
 			} else {
 				req.Equal(arg.expected.ntp, ntp, arg.name)
 			}
+
 			ctrl.Finish()
 		})
 	}
-
 }
 
 func (o *OsServiceSuite) TestTime_Now() {
-
 	args := []struct {
 		name    string
 		timeout time.Duration
