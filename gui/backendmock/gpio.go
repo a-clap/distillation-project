@@ -4,9 +4,10 @@ import (
 	"errors"
 
 	"distillation/pkg/distillation"
+	"gui/backend/gpio"
+
 	"github.com/a-clap/logging"
 	"golang.org/x/exp/slices"
-	"gui/backend/gpio"
 )
 
 var (

@@ -6,6 +6,7 @@ import (
 
 	"distillation/pkg/process"
 	"distillation/pkg/process/mocks"
+
 	"github.com/golang/mock/gomock"
 )
 

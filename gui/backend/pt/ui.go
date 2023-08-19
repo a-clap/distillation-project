@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"golang.org/x/exp/slices"
 	"gui/backend/parameters"
+
+	"golang.org/x/exp/slices"
 )
 
 type Client interface {

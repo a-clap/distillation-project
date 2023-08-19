@@ -3,9 +3,10 @@ package osservice
 import (
 	"context"
 
+	"osservice/osproto"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"osservice/osproto"
 )
 
 type NetInterface struct {

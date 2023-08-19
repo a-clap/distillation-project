@@ -15,6 +15,7 @@ import (
 	"distillation/pkg/distillation"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

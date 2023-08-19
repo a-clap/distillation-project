@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"golang.org/x/exp/slices"
 	"gui/backend/pt"
+
+	"golang.org/x/exp/slices"
 )
 
 var (

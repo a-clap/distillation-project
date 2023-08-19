@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"embedded/pkg/ws2812"
+
 	"github.com/stretchr/testify/require"
 )
 

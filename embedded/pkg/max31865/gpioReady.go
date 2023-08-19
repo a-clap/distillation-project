@@ -7,6 +7,7 @@ package max31865
 
 import (
 	"embedded/pkg/gpio"
+
 	"github.com/warthog618/gpiod"
 )
 

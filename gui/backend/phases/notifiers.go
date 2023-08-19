@@ -8,6 +8,7 @@ package phases
 import (
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+
 	"golang.org/x/exp/slices"
 )
 

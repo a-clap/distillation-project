@@ -8,6 +8,7 @@ package osproto
 
 import (
 	context "context"
+
 	empty "github.com/golang/protobuf/ptypes/empty"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	grpc "google.golang.org/grpc"

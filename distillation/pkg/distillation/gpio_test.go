@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"embedded/pkg/embedded"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

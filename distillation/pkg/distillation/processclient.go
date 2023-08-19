@@ -14,6 +14,7 @@ import (
 	"distillation/pkg/distillation/distillationproto"
 	"distillation/pkg/process"
 	"embedded/pkg/restclient"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"

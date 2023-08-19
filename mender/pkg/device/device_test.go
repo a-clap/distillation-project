@@ -5,8 +5,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
 	"mender/pkg/device"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type DeviceTestSuite struct {

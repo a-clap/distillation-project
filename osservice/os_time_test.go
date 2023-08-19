@@ -206,8 +206,7 @@ func (o *OsServiceSuite) TestTime_Now() {
 			expected: struct {
 				now time.Time
 				err error
-			}{now: time.UnixMilli(1), err: nil,
-			},
+			}{now: time.UnixMilli(1), err: nil},
 		},
 		{
 			name:    "all good #2",
@@ -219,8 +218,7 @@ func (o *OsServiceSuite) TestTime_Now() {
 			expected: struct {
 				now time.Time
 				err error
-			}{now: time.UnixMilli(11212), err: nil,
-			},
+			}{now: time.UnixMilli(11212), err: nil},
 		},
 		{
 			name:    "all good #3",

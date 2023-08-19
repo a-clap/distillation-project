@@ -15,7 +15,6 @@ type Store interface {
 	Save(key string, data []byte) error
 }
 
-
 func (o *Os) Load(_ context.Context, value *wrappers.StringValue) (*wrapperspb.BytesValue, error) {
 	v := o.store.Load(value.GetValue())
 	if v == nil {

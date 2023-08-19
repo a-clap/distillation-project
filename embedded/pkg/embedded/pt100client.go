@@ -11,6 +11,7 @@ import (
 
 	"embedded/pkg/embedded/embeddedproto"
 	"embedded/pkg/restclient"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

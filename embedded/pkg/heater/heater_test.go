@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"embedded/pkg/heater"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

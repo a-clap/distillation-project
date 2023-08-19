@@ -8,8 +8,9 @@ package gpio
 import (
 	"distillation/pkg/distillation"
 	"embedded/pkg/gpio"
-	"golang.org/x/exp/slices"
 	"gui/backend/parameters"
+
+	"golang.org/x/exp/slices"
 )
 
 type Client interface {

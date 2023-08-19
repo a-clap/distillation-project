@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carlmjohnson/requests"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/suite"
-	"golang.org/x/exp/maps"
 	"mender"
 	"mender/mocks"
 	"mender/pkg/device"
 	"mender/pkg/signer"
+
+	"github.com/carlmjohnson/requests"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
+	"golang.org/x/exp/maps"
 )
 
 const (

@@ -3,8 +3,9 @@ package backend
 import (
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
-	"github.com/a-clap/logging"
 	"gui/backend/phases"
+
+	"github.com/a-clap/logging"
 )
 
 func (b *Backend) PhasesGetPhaseCount() *distillation.ProcessPhaseCount {

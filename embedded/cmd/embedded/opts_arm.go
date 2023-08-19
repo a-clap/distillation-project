@@ -2,6 +2,7 @@ package main
 
 import (
 	"embedded/pkg/embedded"
+
 	"github.com/a-clap/logging"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

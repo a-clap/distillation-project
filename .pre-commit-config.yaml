@@ -10,4 +10,3 @@ repos:
     hooks:
       - id: go-returns-repo
         args: [ -w ]
-

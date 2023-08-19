@@ -5,13 +5,14 @@ import (
 
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type ProcessStatus struct {

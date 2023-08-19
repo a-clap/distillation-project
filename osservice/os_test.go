@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"osservice"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type OsServiceSuite struct {

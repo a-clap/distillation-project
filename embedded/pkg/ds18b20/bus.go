@@ -40,12 +40,12 @@ func NewBus(options ...BusOption) (*Bus, error) {
 	for _, opt := range options {
 		opt(b)
 	}
-	
+
 	// Can't do anything without interface
 	if b.o == nil {
 		return nil, fmt.Errorf("NewBus: %w", ErrNoInterface)
 	}
-	
+
 	return b, nil
 }
 

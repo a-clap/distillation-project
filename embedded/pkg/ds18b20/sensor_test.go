@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"embedded/pkg/ds18b20"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

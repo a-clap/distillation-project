@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"embedded/pkg/avg"
+
 	"github.com/stretchr/testify/suite"
 )
 

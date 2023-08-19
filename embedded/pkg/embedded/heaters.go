@@ -46,7 +46,7 @@ func (h *HeaterHandler) SetConfig(cfg HeaterConfig) error {
 	if err != nil {
 		return &HeaterError{ID: cfg.ID, Op: "SetConfig", Err: err.Error()}
 	}
-	
+
 	if err := heater.SetPower(cfg.Power); err != nil {
 		return err
 	}

@@ -12,9 +12,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"mender/pkg/device"
+
 	"github.com/carlmjohnson/requests"
 	"golang.org/x/exp/slices"
-	"mender/pkg/device"
 )
 
 //go:generate mockgen -package mocks -destination mocks/mocks_mender.go . Signer,Device,Downloader,Installer,Rebooter,LoadSaver,Callbacks

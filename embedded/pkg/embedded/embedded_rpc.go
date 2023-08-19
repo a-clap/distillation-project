@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"embedded/pkg/embedded/embeddedproto"
+
 	"github.com/a-clap/logging"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"

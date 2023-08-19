@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	installer "mender/pkg/installer"
+
 	gomock "github.com/golang/mock/gomock"
 )
 

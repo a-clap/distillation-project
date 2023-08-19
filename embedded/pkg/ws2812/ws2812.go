@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"embedded/pkg/spidev"
+
 	"periph.io/x/conn/v3/physic"
 	"periph.io/x/conn/v3/spi"
 )

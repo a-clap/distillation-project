@@ -10,6 +10,7 @@ import (
 
 	"embedded/pkg/embedded"
 	"embedded/pkg/max31865"
+
 	"github.com/a-clap/logging"
 )
 

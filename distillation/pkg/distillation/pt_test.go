@@ -19,6 +19,7 @@ import (
 	"distillation/pkg/distillation"
 	"embedded/pkg/embedded"
 	"embedded/pkg/max31865"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
