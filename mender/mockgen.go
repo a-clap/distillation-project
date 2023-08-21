@@ -22,20 +22,4 @@
 
 package mender
 
-import (
-	"errors"
-)
-
-var (
-	ErrNeedAuthentication    = errors.New("device is not authenticated, go to GUI and accept device")
-	ErrNeedSignerVerifier    = errors.New("SignerVerifier is mandatory")
-	ErrNeedServerURLAndToken = errors.New("server URL and teenantToken are mandatory")
-	ErrNeedDevice            = errors.New("device is mandatory")
-	ErrNeedDownloader        = errors.New("downloader is mandatory")
-	ErrNeedInstaller         = errors.New("installer is mandatory")
-	ErrNeedRebooter          = errors.New("rebooter is mandatory")
-	ErrNeedLoadSaver         = errors.New("LoadSaver is mandatory")
-	ErrNeedCallbacks         = errors.New("callbacks are mandatory")
-	ErrNeedCommiter          = errors.New("committer is mandatory")
-	ErrDuringUpdate          = errors.New("currently during update")
-)
+//go:generate mockgen -package mocks -destination mocks/mocks_mender.go . Signer,Device,Downloader,Installer,Rebooter,LoadSaver,Callbacks,Committer
