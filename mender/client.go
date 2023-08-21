@@ -128,7 +128,7 @@ func (c *Client) verify() error {
 	}
 
 	if c.Committer == nil {
-		errs = append(errs, ErrNeedCommiter)
+		errs = append(errs, ErrNeedCommitter)
 	}
 
 	return errors.Join(errs...)
@@ -368,7 +368,7 @@ func (c *Client) handleUpdate() {
 	shouldContinue := func(status DeploymentStatus) bool {
 		if next := c.Callbacks.NextState(status); !next {
 			// Cleanup
-			c.doCleanup(Failure, srcURL)
+			c.doFailure(srcURL)
 			return false
 		}
 		return true
@@ -403,7 +403,7 @@ func (c *Client) handleUpdate() {
 			c.artifacts.Current.State = PauseBeforeCommitting
 			if err := c.saveArtifacts(); err != nil {
 				c.Callbacks.Error(err)
-				c.doCleanup(Failure, artifactName)
+				c.doFailure(artifactName)
 				return
 			}
 			// Execute reboot
@@ -433,7 +433,7 @@ func (c *Client) handleUpdate() {
 func (c *Client) notifyServerDuringUpdate(status DeploymentStatus, artifactName string) error {
 	if err := c.NotifyServer(status, artifactName); err != nil {
 		c.Callbacks.Error(fmt.Errorf("failed to notify server with status %v: %w", toServerStatus(status), err))
-		c.doCleanup(Failure, artifactName)
+		c.doFailure(artifactName)
 		return err
 	}
 	return nil
@@ -442,6 +442,12 @@ func (c *Client) notifyServerDuringUpdate(status DeploymentStatus, artifactName 
 func (c *Client) handleSuccess(artifactName string) {
 	// Finished
 	c.updating.Store(false)
+
+	if err := c.Committer.Commit(); err != nil {
+		c.Callbacks.Error(fmt.Errorf("commit: %w", err))
+		c.doFailure(artifactName)
+		return
+	}
 
 	// Notify server that we are done
 	if err := c.NotifyServer(Success, artifactName); err != nil {
@@ -470,7 +476,7 @@ func (c *Client) handleDownload(artifactName, srcURL string) (string, error) {
 	downloading, errs, err := c.Downloader.Download(dst, srcURL)
 	if err != nil {
 		c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcURL, err))
-		c.doCleanup(Failure, artifactName)
+		c.doFailure(artifactName)
 		return "", err
 	}
 
@@ -481,7 +487,7 @@ func (c *Client) handleDownload(artifactName, srcURL string) (string, error) {
 			c.Callbacks.Update(Downloading, progress)
 		case err := <-errs:
 			c.Callbacks.Error(fmt.Errorf("download %v failed: %w", srcURL, err))
-			c.doCleanup(Failure, artifactName)
+			c.doFailure(artifactName)
 			return "", err
 		}
 	}
@@ -507,7 +513,7 @@ func (c *Client) handleReboot(artifactName string) error {
 
 	if err := c.Rebooter.Reboot(); err != nil {
 		c.Callbacks.Error(fmt.Errorf("failed to reboot: %w", err))
-		c.doCleanup(Failure, artifactName)
+		c.doFailure(artifactName)
 		return err
 	}
 	return nil
@@ -521,7 +527,7 @@ func (c *Client) handleInstall(artifactName, src string) error {
 	progressChan, errs, err := c.Installer.Install(src)
 	if err != nil {
 		c.Callbacks.Error(fmt.Errorf("install %v failed: %w", src, err))
-		c.doCleanup(Failure, artifactName)
+		c.doFailure(artifactName)
 		return err
 	}
 
@@ -532,7 +538,7 @@ func (c *Client) handleInstall(artifactName, src string) error {
 			c.Callbacks.Update(Installing, progress)
 		case err := <-errs:
 			c.Callbacks.Error(fmt.Errorf("install %v failed: %w", src, err))
-			c.doCleanup(Failure, artifactName)
+			c.doFailure(artifactName)
 			return err
 		}
 	}
@@ -568,8 +574,8 @@ func (c *Client) saveArtifacts() error {
 	return nil
 }
 
-func (c *Client) doCleanup(status DeploymentStatus, artifactName string) {
-	_ = c.NotifyServer(status, artifactName)
+func (c *Client) doFailure(artifactName string) {
+	_ = c.NotifyServer(Failure, artifactName)
 	c.updating.Store(false)
 }
 

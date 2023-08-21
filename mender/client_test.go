@@ -92,7 +92,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedSignerVerifier, mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: nil,
 		},
@@ -104,7 +104,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedSignerVerifier, mender.ErrNeedDevice, mender.ErrNeedDownloader, mender.ErrNeedInstaller, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedServerURLAndToken},
 		},
@@ -116,7 +116,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedDownloader, mender.ErrNeedInstaller, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedSignerVerifier},
 		},
@@ -128,7 +128,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedInstaller, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedDownloader},
 		},
@@ -140,7 +140,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedRebooter,
-				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedInstaller},
 		},
@@ -152,7 +152,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedRebooter},
 		},
@@ -164,7 +164,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedRebooter, mender.ErrNeedCallbacks, mender.ErrNeedCommiter,
+				mender.ErrNeedRebooter, mender.ErrNeedCallbacks, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedLoadSaver},
 		},
@@ -176,7 +176,7 @@ func (ms *MenderTestSuite) TestNew() {
 			expectedErr: true,
 			errorsIs: []error{
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
-				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver, mender.ErrNeedCommiter,
+				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver, mender.ErrNeedCommitter,
 			},
 			errorsNotIs: []error{mender.ErrNeedCallbacks},
 		},
@@ -190,7 +190,7 @@ func (ms *MenderTestSuite) TestNew() {
 				mender.ErrNeedServerURLAndToken, mender.ErrNeedDevice, mender.ErrNeedSignerVerifier, mender.ErrNeedDownloader, mender.ErrNeedInstaller,
 				mender.ErrNeedRebooter, mender.ErrNeedLoadSaver, mender.ErrNeedCallbacks,
 			},
-			errorsNotIs: []error{mender.ErrNeedCommiter},
+			errorsNotIs: []error{mender.ErrNeedCommitter},
 		},
 		{
 			name: "all good",
@@ -1182,6 +1182,9 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 		close(nextStateCalled)
 	})
 
+	mockCommitter := mocks.NewMockCommitter(ctrl)
+	mockCommitter.EXPECT().Commit().Return(nil)
+
 	client, err := mender.New(
 		mender.WithServer(srv.URL, "teenant token"),
 		mender.WithSigner(keys),
@@ -1191,7 +1194,7 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 		mender.WithRebooter(mockRebooter),
 		mender.WithLoadSaver(mockLoadSaver),
 		mender.WithCallbacks(mockCallbacks),
-		mender.WithCommitter(mocks.NewMockCommitter(ctrl)),
+		mender.WithCommitter(mockCommitter),
 	)
 
 	req.Nil(err)

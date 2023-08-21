@@ -20,22 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package mender
+package committer
 
-import (
-	"errors"
-)
+type Option func(i *Committer)
 
-var (
-	ErrNeedAuthentication    = errors.New("device is not authenticated, go to GUI and accept device")
-	ErrNeedSignerVerifier    = errors.New("SignerVerifier is mandatory")
-	ErrNeedServerURLAndToken = errors.New("server URL and teenantToken are mandatory")
-	ErrNeedDevice            = errors.New("device is mandatory")
-	ErrNeedDownloader        = errors.New("downloader is mandatory")
-	ErrNeedInstaller         = errors.New("installer is mandatory")
-	ErrNeedRebooter          = errors.New("rebooter is mandatory")
-	ErrNeedLoadSaver         = errors.New("LoadSaver is mandatory")
-	ErrNeedCallbacks         = errors.New("callbacks are mandatory")
-	ErrNeedCommitter         = errors.New("committer is mandatory")
-	ErrDuringUpdate          = errors.New("currently during update")
-)
+func WithCommandRunner(cmd CommandRunner) Option {
+	return func(c *Committer) {
+		c.cmd = cmd
+	}
+}

@@ -20,22 +20,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package mender
+package committer
 
 import (
-	"errors"
+	"io"
+	"os/exec"
 )
 
+type CommandRunner interface {
+	Command(name string, arg ...string) Runner
+}
+
+type Runner interface {
+	StderrPipe() (io.ReadCloser, error)
+	StdoutPipe() (io.ReadCloser, error)
+	Start() error
+	Wait() error
+	Kill() error
+}
+
 var (
-	ErrNeedAuthentication    = errors.New("device is not authenticated, go to GUI and accept device")
-	ErrNeedSignerVerifier    = errors.New("SignerVerifier is mandatory")
-	ErrNeedServerURLAndToken = errors.New("server URL and teenantToken are mandatory")
-	ErrNeedDevice            = errors.New("device is mandatory")
-	ErrNeedDownloader        = errors.New("downloader is mandatory")
-	ErrNeedInstaller         = errors.New("installer is mandatory")
-	ErrNeedRebooter          = errors.New("rebooter is mandatory")
-	ErrNeedLoadSaver         = errors.New("LoadSaver is mandatory")
-	ErrNeedCallbacks         = errors.New("callbacks are mandatory")
-	ErrNeedCommitter         = errors.New("committer is mandatory")
-	ErrDuringUpdate          = errors.New("currently during update")
+	_ CommandRunner = (*cmdRunner)(nil)
+	_ Runner        = (*execRunner)(nil)
 )
+
+type execRunner struct {
+	*exec.Cmd
+}
+
+func (e *execRunner) Kill() error {
+	return e.Process.Kill()
+}
+
+type cmdRunner struct{}
+
+func (*cmdRunner) Command(name string, arg ...string) Runner {
+	return &execRunner{exec.Command(name, arg...)}
+}
