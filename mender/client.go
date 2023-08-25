@@ -56,6 +56,7 @@ type Client struct {
 	paths        *serverPaths
 	artifacts    Artifacts
 	updating     atomic.Bool
+	stopUpdating chan struct{}
 }
 
 const (
@@ -80,16 +81,15 @@ func New(options ...Option) (*Client, error) {
 
 	c.loadArtifacts()
 
-	// Should we continue update?
-	if c.artifacts.Current != nil {
-		// We need token
-		if err := c.Connect(); err != nil {
-			return nil, err
-		}
-		c.updateFromState(c.artifacts.Current.State, c.artifacts.Current.DeploymentInstructions)
-	}
-
 	return c, nil
+}
+
+func (c *Client) ContinueUpdate() (bool, string) {
+	if c.artifacts.Current == nil {
+		return false, ""
+	}
+	c.updateFromState(c.artifacts.Current.State, c.artifacts.Current.DeploymentInstructions)
+	return true, c.artifacts.Current.DeploymentInstructions.Artifact.Name
 }
 
 // verify is responsible for checking if Client is provided with correct options
@@ -349,7 +349,9 @@ func (c *Client) StopUpdate() error {
 }
 
 func (c *Client) updateFromState(state DeploymentStatus, ins *DeploymentInstructions) {
+	c.stopUpdating = make(chan struct{})
 	c.updating.Store(true)
+
 	c.artifacts.Current = &CurrentDeployment{
 		State:                  state,
 		DeploymentInstructions: ins,

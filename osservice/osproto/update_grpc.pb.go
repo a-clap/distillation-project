@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UpdateClient interface {
+	ContinueUpdate(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*UpdateInformation, error)
 	PullReleases(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.BoolValue, error)
 	AvailableReleases(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Releases, error)
 	Update(ctx context.Context, opts ...grpc.CallOption) (Update_UpdateClient, error)
@@ -35,6 +36,15 @@ type updateClient struct {
 
 func NewUpdateClient(cc grpc.ClientConnInterface) UpdateClient {
 	return &updateClient{cc}
+}
+
+func (c *updateClient) ContinueUpdate(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*UpdateInformation, error) {
+	out := new(UpdateInformation)
+	err := c.cc.Invoke(ctx, "/Update/ContinueUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *updateClient) PullReleases(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.BoolValue, error) {
@@ -90,6 +100,7 @@ func (x *updateUpdateClient) Recv() (*UpdateResponse, error) {
 // All implementations must embed UnimplementedUpdateServer
 // for forward compatibility
 type UpdateServer interface {
+	ContinueUpdate(context.Context, *empty.Empty) (*UpdateInformation, error)
 	PullReleases(context.Context, *empty.Empty) (*wrappers.BoolValue, error)
 	AvailableReleases(context.Context, *empty.Empty) (*Releases, error)
 	Update(Update_UpdateServer) error
@@ -100,6 +111,9 @@ type UpdateServer interface {
 type UnimplementedUpdateServer struct {
 }
 
+func (UnimplementedUpdateServer) ContinueUpdate(context.Context, *empty.Empty) (*UpdateInformation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ContinueUpdate not implemented")
+}
 func (UnimplementedUpdateServer) PullReleases(context.Context, *empty.Empty) (*wrappers.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PullReleases not implemented")
 }
@@ -120,6 +134,24 @@ type UnsafeUpdateServer interface {
 
 func RegisterUpdateServer(s grpc.ServiceRegistrar, srv UpdateServer) {
 	s.RegisterService(&Update_ServiceDesc, srv)
+}
+
+func _Update_ContinueUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UpdateServer).ContinueUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Update/ContinueUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UpdateServer).ContinueUpdate(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Update_PullReleases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -191,6 +223,10 @@ var Update_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Update",
 	HandlerType: (*UpdateServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ContinueUpdate",
+			Handler:    _Update_ContinueUpdate_Handler,
+		},
 		{
 			MethodName: "PullReleases",
 			Handler:    _Update_PullReleases_Handler,

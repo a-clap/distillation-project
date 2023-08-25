@@ -1200,6 +1200,13 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	req.Nil(err)
 	req.NotNil(client)
 
+	req.Nil(client.Connect())
+
+	updating, name := client.ContinueUpdate()
+
+	req.True(updating)
+	req.EqualValues(artifactName, name)
+
 	// Wait for NextState
 	select {
 	case <-nextStateCalled:

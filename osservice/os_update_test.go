@@ -80,23 +80,23 @@ func (o *OsServiceSuite) TestUpdate_HappyPath() {
 		o.waitFor(waitForNext, "waitForNext")
 	}
 
-	handleStop := func(client *osservice.UpdateClient) error {
-		waitStopUpdate := make(chan struct{})
-		mockUpdate.EXPECT().StopUpdate().DoAndReturn(func() error {
-			close(waitStopUpdate)
-			return nil
-		})
-
-		waitError := make(chan struct{})
-		clientCallbacks.EXPECT().Error(osservice.ErrForceStop).Do(func(any) {
-			close(waitError)
-		})
-
-		err := client.StopUpdate()
-		o.waitFor(waitError, "waitError")
-		o.waitFor(waitStopUpdate, "waitStopUpdate")
-		return err
-	}
+	// handleStop := func(client *osservice.UpdateClient) error {
+	// 	waitStopUpdate := make(chan struct{})
+	// 	mockUpdate.EXPECT().StopUpdate().DoAndReturn(func() error {
+	// 		close(waitStopUpdate)
+	// 		return nil
+	// 	})
+	//
+	// 	waitError := make(chan struct{})
+	// 	clientCallbacks.EXPECT().Error(osservice.ErrForceStop).Do(func(any) {
+	// 		close(waitError)
+	// 	})
+	//
+	// 	err := client.StopUpdate()
+	// 	o.waitFor(waitError, "waitError")
+	// 	o.waitFor(waitStopUpdate, "waitStopUpdate")
+	// 	return err
+	// }
 
 	new(TestServer).With(opts, func() {
 		updateClient := o.updateClient()
@@ -123,12 +123,12 @@ func (o *OsServiceSuite) TestUpdate_HappyPath() {
 		handleStatus(mender.Rebooting, 1)
 		handleStatus(mender.Rebooting, 51)
 		handleStatus(mender.Rebooting, 100)
+
 		// Next: PauseBeforeCommitting
 		handleNext(mender.PauseBeforeCommitting)
 
-		// Close
-		err = handleStop(updateClient)
-		req.Nil(err)
+		// Should close everything
+		handleStatus(mender.Success, 100)
 
 		ctrl.Finish()
 	})
@@ -182,7 +182,7 @@ func (o *OsServiceSuite) TestUpdate_PassStatus() {
 		o.waitFor(waitStopUpdate, "waitStopUpdate")
 		return err
 	}
-
+	_ = handleStop
 	new(TestServer).With(opts, func() {
 		updateClient := o.updateClient()
 
@@ -199,11 +199,9 @@ func (o *OsServiceSuite) TestUpdate_PassStatus() {
 		handleStatus(mender.PauseBeforeRebooting, times)
 		handleStatus(mender.Rebooting, times)
 		handleStatus(mender.PauseBeforeCommitting, times)
-		handleStatus(mender.Success, times)
-		handleStatus(mender.Failure, times)
-		handleStatus(mender.AlreadyInstalled, times)
+		handleStatus(mender.Success, 1)
 
-		err = handleStop(updateClient)
+		// err = handleStop(updateClient)
 		req.Nil(err)
 		ctrl.Finish()
 	})

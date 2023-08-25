@@ -34,24 +34,25 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"go.uber.org/atomic"
+	"golang.org/x/exp/slices"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+var ErrForceStop = errors.New("client stopped update")
 
 type UpdateCallbacks interface {
 	mender.Callbacks
 }
 
 type Update interface {
+	ContinueUpdate() (bool, string)
 	PullReleases() (bool, error)
 	AvailableReleases() ([]string, error)
 	Update(artifactName string, callbacks UpdateCallbacks) error
 	StopUpdate() error
 }
 
-var (
-	ErrForceStop                 = errors.New("client stopped update")
-	_            UpdateCallbacks = (*osUpdateCallbacks)(nil)
-)
+var _ UpdateCallbacks = (*osUpdateCallbacks)(nil)
 
 func (o *Os) PullReleases(context.Context, *empty.Empty) (*wrappers.BoolValue, error) {
 	release, err := o.update.PullReleases()
@@ -74,6 +75,15 @@ func (o *Os) AvailableReleases(context.Context, *empty.Empty) (*osproto.Releases
 	}
 
 	return protoReleases, nil
+}
+
+func (o *Os) ContinueUpdate(context.Context, *empty.Empty) (*osproto.UpdateInformation, error) {
+	release, name := o.update.ContinueUpdate()
+
+	return &osproto.UpdateInformation{
+		DuringUpdate: wrapperspb.Bool(release),
+		UpdateName:   wrapperspb.String(name),
+	}, nil
 }
 
 func (o *Os) Update(server osproto.Update_UpdateServer) error {
@@ -128,6 +138,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 		for {
 			req, err := server.Recv()
 			if !running.Load() {
+				fmt.Println("closing client")
 				break
 			}
 
@@ -137,6 +148,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 			}
 
 			if req.Stop != nil {
+				fmt.Println("req stop")
 				_ = o.update.StopUpdate()
 				errs <- ErrForceStop
 				break
@@ -181,6 +193,11 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 			u := &osproto.UpdateResponse{
 				State:    toProtoUpdateState(status.status),
 				Progress: int32(status.progress),
+			}
+			finished := slices.Index([]mender.DeploymentStatus{mender.Success, mender.Failure, mender.AlreadyInstalled}, status.status) != -1
+			if finished {
+				u.Finished = wrapperspb.Bool(finished)
+				running.Store(false)
 			}
 
 			if err = server.Send(u); err != nil {

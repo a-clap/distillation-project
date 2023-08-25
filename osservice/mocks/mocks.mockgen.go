@@ -302,6 +302,21 @@ func (mr *MockUpdateMockRecorder) AvailableReleases() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AvailableReleases", reflect.TypeOf((*MockUpdate)(nil).AvailableReleases))
 }
 
+// ContinueUpdate mocks base method.
+func (m *MockUpdate) ContinueUpdate() (bool, string) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContinueUpdate")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(string)
+	return ret0, ret1
+}
+
+// ContinueUpdate indicates an expected call of ContinueUpdate.
+func (mr *MockUpdateMockRecorder) ContinueUpdate() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContinueUpdate", reflect.TypeOf((*MockUpdate)(nil).ContinueUpdate))
+}
+
 // PullReleases mocks base method.
 func (m *MockUpdate) PullReleases() (bool, error) {
 	m.ctrl.T.Helper()

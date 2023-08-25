@@ -70,6 +70,17 @@ func (u *UpdateClient) ctx() (context.Context, context.CancelFunc) {
 	return context.WithDeadline(context.Background(), time.Now().Add(u.timeout))
 }
 
+func (u *UpdateClient) ContinueUpdate() (bool, string) {
+	ctx, cancel := u.ctx()
+	defer cancel()
+
+	updating, err := u.client.ContinueUpdate(ctx, &emptypb.Empty{})
+	if err != nil {
+		return false, ""
+	}
+	return updating.GetDuringUpdate().GetValue(), updating.GetUpdateName().GetValue()
+}
+
 func (u *UpdateClient) PullReleases() (bool, error) {
 	ctx, cancel := u.ctx()
 	defer cancel()
@@ -121,7 +132,7 @@ func (u *UpdateClient) handleUpdate(artifactName string, callbacks UpdateCallbac
 		Continue:     nil,
 	}
 
-	if err := u.stream.Send(req); err != nil {
+	if err := u.send(req); err != nil {
 		cancel()
 		return err
 	}
@@ -130,7 +141,6 @@ func (u *UpdateClient) handleUpdate(artifactName string, callbacks UpdateCallbac
 	// So far so good, run in background
 	go func() {
 		defer cancel()
-		defer close(u.finished)
 
 		var response *osproto.UpdateResponse
 		for {
@@ -158,21 +168,22 @@ func (u *UpdateClient) handleUpdate(artifactName string, callbacks UpdateCallbac
 				}
 				// Will we continue update?
 				if !confirmed {
-					return
+					break
 				}
 				continue
 			}
 			st := fromProtoUpdateState(response.State)
 			callbacks.Update(st, int(response.Progress))
+
+			if response.Finished != nil && response.Finished.GetValue() {
+				break
+			}
 		}
+		close(u.finished)
+		_ = u.StopUpdate()
 
 		// Nothing to do
-		if err == nil {
-			return
-		}
-
-		// Proper close
-		if errors.Is(err, io.EOF) {
+		if err == nil || errors.Is(err, io.EOF) {
 			return
 		}
 
@@ -197,12 +208,12 @@ func (u *UpdateClient) StopUpdate() error {
 			Continue:     nil,
 		}
 
-		if err := u.stream.Send(closeReq); err != nil {
+		if err := u.send(closeReq); err != nil {
 			return err
 		}
 
 		<-u.finished
-		return nil
+		return u.stream.CloseSend()
 	}
 	return nil
 }

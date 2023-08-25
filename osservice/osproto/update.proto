@@ -6,6 +6,7 @@ import "google/protobuf/wrappers.proto";
 option go_package = "os/osproto";
 
 service Update {
+  rpc ContinueUpdate(google.protobuf.Empty) returns (UpdateInformation) {}
   rpc PullReleases(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
   rpc AvailableReleases(google.protobuf.Empty) returns (Releases) {}
   rpc Update(stream UpdateRequest) returns (stream UpdateResponse) {}
@@ -24,6 +25,11 @@ enum UpdateState {
   AlreadyInstalled = 9;
 }
 
+message UpdateInformation {
+  google.protobuf.BoolValue during_update = 1;
+  google.protobuf.StringValue update_name = 2;
+}
+
 message Releases {
   repeated google.protobuf.StringValue releases = 1;
 }
@@ -39,5 +45,6 @@ message UpdateResponse {
   UpdateState state = 1;
   int32 Progress = 2;
   optional UpdateState nextState = 3;
-  optional google.protobuf.StringValue error = 4;
+  optional google.protobuf.BoolValue finished = 4;
+  optional google.protobuf.StringValue error = 5;
 }
