@@ -22,42 +22,39 @@
 
 package osservice
 
-// var _ Update = (*updateOs)(nil)
-//
-// type updateOs struct {
-// 	client *mender.Client
-// }
-//
-// func (u *updateOs) ContinueUpdate() (bool, string) {
-// 	// TODO implement me
-// 	panic("implement me")
-// }
-//
-// func newUpdateOs(client *mender.Client) *updateOs {
-// 	return &updateOs{client: client}
-// }
-//
-// func (u *updateOs) PullReleases() (bool, error) {
-// 	// TODO implement me
-// 	panic("implement me")
-// 	return u.client.PullReleases()
-// }
-//
-// func (u *updateOs) AvailableReleases() ([]string, error) {
-// 	// TODO implement me
-// 	panic("implement me")
-// 	return u.AvailableReleases()
-// }
-//
-// func (u *updateOs) Update(artifactName string, callbacks UpdateCallbacks) error {
-// 	// TODO implement me
-// 	panic("implement me")
-// 	u.client.Callbacks = callbacks
-// 	return u.client.Update(artifactName)
-// }
-//
-// func (u *updateOs) StopUpdate() error {
-// 	// TODO implement me
-// 	panic("implement me")
-// 	return u.StopUpdate()
-// }
+import (
+	"mender"
+)
+
+var _ Update = (*updateOs)(nil)
+
+type updateOs struct {
+	client *mender.Client
+}
+
+func newUpdateOs(c *mender.Client) *updateOs {
+	return &updateOs{
+		client: c,
+	}
+}
+
+func (u *updateOs) ContinueUpdate() (bool, string) {
+	return u.client.ContinueUpdate()
+}
+
+func (u *updateOs) PullReleases() (bool, error) {
+	return u.client.PullReleases()
+}
+
+func (u *updateOs) AvailableReleases() ([]string, error) {
+	return u.client.AvailableReleases(), nil
+}
+
+func (u *updateOs) Update(artifactName string, callbacks UpdateCallbacks) error {
+	u.client.Callbacks = callbacks
+	return u.client.Update(artifactName)
+}
+
+func (u *updateOs) StopUpdate() error {
+	return u.client.StopUpdate()
+}
