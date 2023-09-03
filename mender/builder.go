@@ -107,6 +107,7 @@ func (b *Builder) Build() (*Client, error) {
 	opts = append(opts, WithRebooter(b.rebooter))
 	opts = append(opts, WithCallbacks(b.callbacks))
 	opts = append(opts, WithDevice(b.device))
+	opts = append(opts, WithCommitter(b.committer))
 
 	return New(opts...)
 }

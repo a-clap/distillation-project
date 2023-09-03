@@ -69,7 +69,6 @@ func (ts *TestServer) With(opts []osservice.Option, f func()) {
 
 func (ts *TestServer) runWithOpts(opts []osservice.Option) {
 	defaultOpts := []osservice.Option{
-		osservice.WithHost(SrvTestHost),
 		osservice.WithPort(SrvTestPort),
 	}
 	if ts.srv != nil {

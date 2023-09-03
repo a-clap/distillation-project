@@ -1,5 +1,21 @@
 export namespace backend {
 
+	export class CheckUpdateData {
+	    new_update: boolean;
+	    releases: string[];
+	    error_code: number;
+
+	    static createFrom(source: any = {}) {
+	        return new CheckUpdateData(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.new_update = source["new_update"];
+	        this.releases = source["releases"];
+	        this.error_code = source["error_code"];
+	    }
+	}
 
 	export class NetInterface {
 	    name: string;
@@ -75,6 +91,8 @@ export namespace backend {
 	    updating: boolean;
 	    downloading: number;
 	    installing: number;
+	    rebooting: number;
+	    commit: boolean;
 
 	    static createFrom(source: any = {}) {
 	        return new Update(source);
@@ -87,6 +105,8 @@ export namespace backend {
 	        this.updating = source["updating"];
 	        this.downloading = source["downloading"];
 	        this.installing = source["installing"];
+	        this.rebooting = source["rebooting"];
+	        this.commit = source["commit"];
 	    }
 	}
 	export class WifiConnected {
@@ -328,8 +348,8 @@ export namespace process {
 
 	export class GPIOConfig {
 	    enabled: boolean;
-	    id: string;
 	    sensor_id: string;
+	    id: string;
 	    t_low: number;
 	    t_high: number;
 	    hysteresis: number;
@@ -342,8 +362,8 @@ export namespace process {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.enabled = source["enabled"];
-	        this.id = source["id"];
 	        this.sensor_id = source["sensor_id"];
+	        this.id = source["id"];
 	        this.t_low = source["t_low"];
 	        this.t_high = source["t_high"];
 	        this.hysteresis = source["hysteresis"];

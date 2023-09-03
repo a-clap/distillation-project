@@ -57,3 +57,7 @@ export function NotifyPhasesValidate() {
 export function NotifyUpdate() {
   return window['go']['backend']['Events']['NotifyUpdate']();
 }
+
+export function NotifyUpdateFinish() {
+  return window['go']['backend']['Events']['NotifyUpdateFinish']();
+}

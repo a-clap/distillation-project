@@ -1,3 +1,25 @@
+// MIT License
+//
+// Copyright (c) 2023 a-clap
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 package backend
 
 import (
@@ -28,8 +50,11 @@ type Backend struct {
 	phaseChan    chan error
 	interval     time.Duration
 
-	time osservice.Time
-	net  osservice.Net
+	time       osservice.Time
+	net        osservice.Net
+	updater    osservice.Update
+	update     Update
+	waitCommit chan bool
 }
 
 func New(opts ...Option) (*Backend, error) {
@@ -65,22 +90,6 @@ func (b *Backend) Startup(ctx context.Context) {
 	if errs := loadSaver.Load(); errs != nil {
 		logger.Warn("Parameters Load errors", logging.Reflect("errors", errs))
 	}
-
-	go func() {
-		u := Update{
-			NewUpdate:   false,
-			Version:     "",
-			Updating:    false,
-			Downloading: 0,
-			Installing:  0,
-		}
-
-		for {
-			b.eventEmitter.OnUpdate(u)
-			<-time.After(1 * time.Second)
-
-		}
-	}()
 }
 
 func (b *Backend) handleErrors() {

@@ -1,3 +1,25 @@
+<!-- MIT License -->
+<!-- -->
+<!-- Copyright (c) 2023 a-clap -->
+<!-- -->
+<!-- Permission is hereby granted, free of charge, to any person obtaining a copy -->
+<!-- of this software and associated documentation files (the "Software"), to deal -->
+<!-- in the Software without restriction, including without limitation the rights -->
+<!-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell -->
+<!-- copies of the Software, and to permit persons to whom the Software is -->
+<!-- furnished to do so, subject to the following conditions: -->
+<!-- -->
+<!-- The above copyright notice and this permission notice shall be included in all -->
+<!-- copies or substantial portions of the Software. -->
+<!-- -->
+<!-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR -->
+<!-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, -->
+<!-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE -->
+<!-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER -->
+<!-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, -->
+<!-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE -->
+<!-- SOFTWARE. -->
+
 <template>
   <main>
     <h1>{{ $t('system.title') }}</h1>
@@ -59,14 +81,31 @@
       </el-tab-pane>
       <el-tab-pane :label="$t('system.update')" name="update">
         <section class="update-interface">
-          <el-button type="primary" :icon="Refresh" size="large"
-                     @click=checkUpdate>
-            Sprawdz aktualizacje
+          <el-button :disabled=updaterStore.updating type="primary" :icon="Refresh" size="large" @click=checkUpdate>
+            {{ $t(('system.check_update')) }}
           </el-button>
-          <h3 v-if="updaterStore.updating">Pobieranie</h3>
-          <el-progress :stroke-width=20 :percentage=progress :color="colors" :format="(p: number) => {return p +`%`}"/>
-          <h3>Instalowanie</h3>
-          <el-progress :stroke-width=20 :percentage=progress :color="colors" :format="(p: number) => {return p +`%`}"/>
+          <h3 v-if="updaterStore.new_update"> {{ $t(('system.release_name')) + updaterStore.release }}</h3>
+          <el-button v-if="updaterStore.new_update" :disabled=updaterStore.updating type="primary" :icon="Download"
+                     size="large" @click=updaterStore.startUpdate()>
+            {{ $t(('system.start_update')) }}
+          </el-button>
+          <section v-if="updaterStore.updating" class="bars">
+            <el-button :icon="CircleClose" size="large" @click=updaterStore.stopUpdate() type="danger">
+              {{ $t(('system.stop_update')) }}
+            </el-button>
+
+            <h3>{{ $t(('system.downloading')) }}</h3>
+            <el-progress :stroke-width=20 :percentage=updaterStore.downloading :color="colors"
+                         :format="(p: number) => {return p +`%`}"/>
+
+            <h3>{{ $t(('system.installing')) }}</h3>
+            <el-progress :stroke-width=20 :percentage=updaterStore.installing :color="colors"
+                         :format="(p: number) => {return p +`%`}"/>
+
+            <h3>{{ $t(('system.rebooting')) }}</h3>
+            <el-progress :stroke-width=20 :percentage=updaterStore.reboot_in :color="colors"
+                         :format="(p: number) => {return p +`%`}"/>
+          </section>
         </section>
       </el-tab-pane>
     </el-tabs>
@@ -77,7 +116,7 @@
 
 import {useDSStore} from "../stores/ds";
 import {usePTStore} from "../stores/pt";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
 import Keyboard from "../components/Keyboard.vue";
 import {ListInterfaces, Now, NTPGet, NTPSet, TimeSet} from "../../wailsjs/go/backend/Backend";
 import {backend} from "../../wailsjs/go/models";
@@ -85,7 +124,7 @@ import {Loader} from "../types/Loader";
 import {AppErrorCodes} from "../stores/error_codes";
 import {i18n} from "../i18n";
 import {FormatDate} from "../stores/log";
-import {Refresh} from "@element-plus/icons-vue";
+import {CircleClose, Download, Refresh} from "@element-plus/icons-vue";
 import {useUpdaterStore} from "../stores/updater";
 import NetInterface = backend.NetInterface;
 
@@ -119,44 +158,54 @@ const ntp = computed({
 const netInterfaces = ref<NetInterface[]>([])
 const timeNow = ref('')
 const progress = ref(0)
+const timer = ref(0)
 
 onMounted(() => {
-
-  NTPGet().then((value: boolean) => {
-    ntp.value = value
-  })
-
-  setInterval(() => {
+  timer.value = setInterval(() => {
     Now().then((ts: number) => {
       timeNow.value = FormatDate(new Date(ts))
     })
   }, 1000)
 
+  NTPGet().then((value: boolean) => {
+    ntp.value = value
+  })
+
+
   ListInterfaces().then((interfaces: NetInterface[]) => {
     netInterfaces.value = interfaces
   })
+})
 
-  setInterval(() => {
-    progress.value = progress.value >= 100 ? 0 : progress.value + 1;
-  }, 100)
-
+onUnmounted(() => {
+  clearInterval(timer.value)
 })
 
 function checkUpdate() {
-  Loader.show(AppErrorCodes.NTPFailed, 5000, "sprawdam update")
+  let msg = i18n.global.t('system.pulling_updates')
+  Loader.show(AppErrorCodes.CheckUpdates, 5000, msg)
 
-  updaterStore.checkUpdate()
-  Loader.close()
+  updaterStore.checkUpdate().then(() => {
+    Loader.close()
+  }).catch(function (error) {
+    if (error === parseInt(error, 10)) {
+      Loader.failNow(error)
+    }
+    console.error(error)
+  })
 }
 
+
 function setTime() {
+
   let fullDate = currentTime.value
+  // Construct proper time
   fullDate.setFullYear(currentDate.value.getFullYear())
   fullDate.setMonth(currentDate.value.getMonth())
   fullDate.setDate(currentDate.value.getDate())
 
-  TimeSet(fullDate.getTime()).then(() => {
-
+  TimeSet(fullDate.getTime()).catch(function (error) {
+    console.log("getTime" + error)
   })
 }
 
@@ -230,7 +279,7 @@ h1 {
 
 }
 
-.update-interface {
+.update-interface, .bars {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -240,6 +289,7 @@ h1 {
     margin-bottom: 2rem;
   }
 }
+
 
 .el-progress--line {
   width: 400px;

@@ -32,7 +32,6 @@ import (
 )
 
 type Os struct {
-	host string
 	port int
 
 	time   Time
@@ -56,7 +55,6 @@ const (
 func New(options ...Option) (*Os, error) {
 	// Start with sane defaults
 	o := &Os{
-		host: "localhost",
 		port: invalidPort,
 		time: timeOs{},
 		net:  netOs{},
@@ -83,7 +81,7 @@ func (o *Os) verify() error {
 }
 
 func (o *Os) Run() error {
-	listener, err := net.Listen("tcp", fmt.Sprintf("%v:%v", o.host, o.port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", o.port))
 	if err != nil {
 		return err
 	}

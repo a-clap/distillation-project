@@ -68,12 +68,6 @@ func WithPort(port int) Option {
 	}
 }
 
-func WithHost(host string) Option {
-	return func(o *Os) {
-		o.host = host
-	}
-}
-
 func WithUpdate(u Update) Option {
 	return func(o *Os) {
 		o.update = u
