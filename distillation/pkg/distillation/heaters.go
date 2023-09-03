@@ -6,9 +6,8 @@
 package distillation
 
 import (
-	"errors"
-
 	"embedded/pkg/embedded"
+	"errors"
 )
 
 type Heaters interface {
@@ -171,6 +170,7 @@ func (h *HeatersHandler) Configure(cfg HeaterConfig) (HeaterConfig, error) {
 func (h *HeatersHandler) subscribe(cb heaterCallback) {
 	h.clients = append(h.clients, cb)
 }
+
 func (h *HeatersHandler) notify() {
 	for _, client := range h.clients {
 		client()

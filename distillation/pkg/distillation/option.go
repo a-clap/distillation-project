@@ -21,6 +21,7 @@ func WithHeaters(heaters Heaters) Option {
 		return err
 	}
 }
+
 func WithGPIO(gpio GPIO) Option {
 	return func(h *Distillation) (err error) {
 		if h.GPIOHandler, err = NewGPIOHandler(gpio); err != nil {

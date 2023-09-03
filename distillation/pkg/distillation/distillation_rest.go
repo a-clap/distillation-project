@@ -36,9 +36,7 @@ const (
 	RoutesProcessComponents     = "/api/process/components"
 )
 
-var (
-	ErrNotImplemented = errors.New("not implemented")
-)
+var ErrNotImplemented = errors.New("not implemented")
 
 type Rest struct {
 	url string
@@ -96,7 +94,6 @@ func (r *Rest) routes() {
 	r.GET(RoutesProcessConfigValidate, r.getConfigValidation())
 	r.GET(RoutesProcessStatus, r.getProcessStatus())
 	r.PUT(RoutesProcess, r.configureProcess())
-
 }
 
 // common respond for whole rest API
@@ -142,6 +139,7 @@ func (r *Rest) configEnabledHeater() gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *Rest) enableHeater() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if r.HeatersHandler == nil {
@@ -395,6 +393,7 @@ func (r *Rest) getGPIO() gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, gpios)
 	}
 }
+
 func (r *Rest) configureGPIO() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if r.Distillation.GPIOHandler == nil {
@@ -502,7 +501,6 @@ func (r *Rest) configurePhaseCount() gin.HandlerFunc {
 		config := r.Distillation.Process.GetConfig()
 		s := ProcessPhaseCount{PhaseNumber: config.PhaseNumber}
 		r.respond(ctx, http.StatusOK, s)
-
 	}
 }
 

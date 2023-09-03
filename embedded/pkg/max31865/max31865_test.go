@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"embedded/pkg/max31865"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -32,9 +33,7 @@ func (m *MaxTransferMock) ReadWrite(write []byte) (read []byte, err error) {
 	return args.Get(0).([]byte), args.Error(1)
 }
 
-var (
-	mocker *MaxTransferMock
-)
+var mocker *MaxTransferMock
 
 func TestMax31865(t *testing.T) {
 	suite.Run(t, new(MaxSuite))

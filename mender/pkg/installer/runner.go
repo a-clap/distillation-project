@@ -30,8 +30,7 @@ func (e *execRunner) Kill() error {
 	return e.Process.Kill()
 }
 
-type cmdRunner struct {
-}
+type cmdRunner struct{}
 
 func (*cmdRunner) Command(name string, arg ...string) Runner {
 	return &execRunner{exec.Command(name, arg...)}

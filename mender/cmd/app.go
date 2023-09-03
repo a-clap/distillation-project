@@ -34,7 +34,6 @@ func main() {
 		WithStore(store).
 		WithStdIOInterface().
 		Build()
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,5 +71,4 @@ func main() {
 	for client.IsDuringUpdate() {
 		time.Sleep(1 * time.Second)
 	}
-
 }

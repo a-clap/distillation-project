@@ -1,0 +1,39 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  build:
+    deps:
+      - task: test
+    cmds:
+      - go build -ldflags="-s -w" -o build/ ./cmd/embedded
+    generates:
+      - build/embedded
+  clean:
+    cmds:
+      - rm -rf .task/
+      - rm -rf build/
+      - rm -rf pkg/embedded/embeddedproto/*.pb.go
+      - rm -rf pkg/process/mocks/*.go
+  run:
+    cmds:
+      - go run ./cmd/embedded
+    deps:
+      - task: generate
+  generate:
+    cmds:
+      - go generate ./...
+    sources:
+      - ./**/*.proto
+      - ./**/mockgen*
+    generates:
+      - ./**/*.pb.go
+      - ./**/*.mockgen.go
+  test:
+    deps:
+      - task: generate
+    cmds:
+      - go test ./...
+    sources:
+      - ./**/*.go

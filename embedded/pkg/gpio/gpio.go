@@ -11,13 +11,16 @@ import (
 	"github.com/warthog618/gpiod"
 )
 
-type ActiveLevel int
-type Direction int
+type (
+	ActiveLevel int
+	Direction   int
+)
 
 const (
 	Low ActiveLevel = iota
 	High
 )
+
 const (
 	DirInput Direction = iota
 	DirOutput
@@ -218,7 +221,6 @@ func (o *Out) Set(value bool) error {
 		return &Error{Pin: o.pin, Op: "Set.SetValue", Err: err.Error()}
 	}
 	return nil
-
 }
 
 func (o *Out) Get() (bool, error) {

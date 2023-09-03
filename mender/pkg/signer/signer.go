@@ -17,9 +17,7 @@ type Signer struct {
 
 type Option func(k *Signer) error
 
-var (
-	ErrNoKey = errors.New("no key provided")
-)
+var ErrNoKey = errors.New("no key provided")
 
 func New(options ...Option) (*Signer, error) {
 	k := &Signer{}

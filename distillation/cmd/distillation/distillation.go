@@ -6,13 +6,13 @@
 package main
 
 import (
+	"embedded/pkg/embedded"
 	"flag"
 	"log"
 	"net"
 	"strconv"
 	"time"
 
-	"embedded/pkg/embedded"
 	"distillation/pkg/distillation"
 )
 
@@ -153,5 +153,4 @@ func WaitForEmbedded(addr string, timeout time.Duration) error {
 	}
 
 	return err
-
 }

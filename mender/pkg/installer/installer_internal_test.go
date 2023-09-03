@@ -19,8 +19,8 @@ func (i *InstallerInternalSuite) TestFindSize() {
 	got, err := findSize(data)
 	i.Require().Nil(err)
 	i.Require().EqualValues(162508800, got)
-
 }
+
 func (i *InstallerInternalSuite) TestFindErr() {
 	args := []struct {
 		name    string
@@ -48,8 +48,8 @@ func (i *InstallerInternalSuite) TestFindErr() {
 		i.Require().Nil(err, args.name)
 		i.Require().Equal(args.line, got, args.name)
 	}
-
 }
+
 func (i *InstallerInternalSuite) TestFindPercent() {
 	r := i.Require()
 	arg := []struct {
@@ -88,7 +88,6 @@ func (i *InstallerInternalSuite) TestFindPercent() {
 		r.Nil(err, arg.name)
 		r.Equal(arg.percent, percent, arg.name)
 	}
-
 }
 
 func (i *InstallerInternalSuite) TestEveryPercent() {

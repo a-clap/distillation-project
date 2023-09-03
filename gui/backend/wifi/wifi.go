@@ -7,8 +7,7 @@ package wifi
 
 import (
 	"errors"
-
-	"distillation/pkg/wifi"
+	"osservice/pkg/wifi"
 )
 
 var (

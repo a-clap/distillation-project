@@ -5,6 +5,7 @@ import (
 
 	"distillation/pkg/process"
 	"distillation/pkg/process/mocks"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/slices"
@@ -86,8 +87,8 @@ func (pcs *ProcessConfigSuite) TestConfig_AlwaysReturnsCorrectConfig() {
 			t.Nil(p.SetPhaseConfig(uint(i), conf))
 		}
 	}
-
 }
+
 func (pcs *ProcessConfigSuite) TestConfigAvailableSensors() {
 	args := []struct {
 		name      string
@@ -128,7 +129,6 @@ func (pcs *ProcessConfigSuite) TestConfigAvailableSensors() {
 		t.ElementsMatch(cfg.Sensors, arg.sensorIDs)
 
 	}
-
 }
 
 func (pcs *ProcessConfigSuite) TestSetPhases() {
@@ -252,8 +252,8 @@ func (pcs *ProcessConfigSuite) TestGPIOGlobalConfig() {
 		t.ElementsMatch(arg.globalConfig, pr.GetConfig().GlobalGPIO, arg.name)
 
 	}
-
 }
+
 func (pcs *ProcessConfigSuite) TestConfigReflectsComponents() {
 	args := []struct {
 		name      string

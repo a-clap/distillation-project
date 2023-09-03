@@ -1,38 +1,62 @@
 package main
 
 import (
+	"distillation/pkg/distillation"
+	"fmt"
 	"log"
+	"osservice"
 	"time"
 
 	"gui/backend"
-	"distillation/pkg/distillation"
-	"distillation/pkg/wifi"
 )
 
-func getopts(addr string) []backend.Option {
-	heaterClient, err := distillation.NewHeaterRPCCLient(addr, time.Second)
+const (
+	defaultTimeout = time.Second
+)
+
+func getopts(host string, distPort int, osPort int) []backend.Option {
+	distAddr := fmt.Sprintf("%v:%v", host, distPort)
+
+	heaterClient, err := distillation.NewHeaterRPCCLient(distAddr, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	dsClient, err := distillation.NewDSRPCClient(addr, time.Second)
+	dsClient, err := distillation.NewDSRPCClient(distAddr, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	ptClient, err := distillation.NewPTRPCClient(addr, time.Second)
+	ptClient, err := distillation.NewPTRPCClient(distAddr, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	gpioClient, err := distillation.NewGPIORPCClient(addr, time.Second)
+	gpioClient, err := distillation.NewGPIORPCClient(distAddr, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	phaseClient, err := distillation.NewProcessRPCClient(addr, time.Second)
+	phaseClient, err := distillation.NewProcessRPCClient(distAddr, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	w, err := wifi.New()
+	wifiClient, err := osservice.NewWifiClient(host, osPort, defaultTimeout)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Time operations, especially NTP takes a lot of time
+	timeClient, err := osservice.NewTimeClient(host, osPort, 10*time.Second)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Time operations, especially NTP takes a lot of time
+	netClient, err := osservice.NewNetClient(host, osPort, defaultTimeout)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	saverClient, err := osservice.NewStoreClient(host, osPort, defaultTimeout)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -43,6 +67,9 @@ func getopts(addr string) []backend.Option {
 		backend.WithPTClient(ptClient),
 		backend.WithGPIOClient(gpioClient),
 		backend.WithPhaseClient(phaseClient),
-		backend.WithWifi(w),
+		backend.WithWifi(wifiClient),
+		backend.WithTime(timeClient),
+		backend.WithNet(netClient),
+		backend.WithLoadSaver(saverClient),
 	}
 }

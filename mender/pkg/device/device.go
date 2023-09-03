@@ -101,8 +101,8 @@ func (d *Device) Info() (i Info, err error) {
 
 func (d *Device) ID() ([]Attribute, error) {
 	return parseAttributes(d.identityDir)
-
 }
+
 func (d *Device) Attributes() ([]Attribute, error) {
 	return parseAttributes(d.inventoryDir)
 }

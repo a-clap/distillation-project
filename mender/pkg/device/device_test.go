@@ -5,8 +5,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
 	"mender/pkg/device"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type DeviceTestSuite struct {
@@ -64,5 +65,4 @@ func (d *DeviceTestSuite) TestInventory() {
 		req.ElementsMatch(arg.attrs, attrs, arg.name)
 
 	}
-
 }

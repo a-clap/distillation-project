@@ -7,6 +7,8 @@ package distillation_test
 
 import (
 	"bytes"
+	"embedded/pkg/embedded"
+	"embedded/pkg/max31865"
 	"encoding/json"
 	"errors"
 	"io"
@@ -17,8 +19,7 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/embedded"
-	"embedded/pkg/max31865"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -71,7 +72,8 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}},
+				},
+			}},
 			expected: []distillation.PTConfig{{
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
@@ -81,27 +83,32 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}},
+					},
+				},
+			}},
 		},
 		{
 			name: "two sensors on one bus",
-			onGet: []embedded.PTSensorConfig{{
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "1",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "2",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}},
+			onGet: []embedded.PTSensorConfig{
+				{
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "1",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "2",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				},
 			},
 			expected: []distillation.PTConfig{{
 				PTSensorConfig: embedded.PTSensorConfig{
@@ -112,7 +119,9 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -121,51 +130,59 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}},
+					},
+				},
+			}},
 		},
 		{
 			name: "multiple sensors on multiple bus",
-			onGet: []embedded.PTSensorConfig{{
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "1",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "2",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "4",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "5",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "12",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}},
+			onGet: []embedded.PTSensorConfig{
+				{
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "1",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "2",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "4",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "5",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "12",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				},
 			},
 			expected: []distillation.PTConfig{{
 				PTSensorConfig: embedded.PTSensorConfig{
@@ -176,7 +193,9 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -185,7 +204,9 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -194,7 +215,9 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -203,7 +226,9 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -212,7 +237,9 @@ func (t *PTTestSuite) TestGetSensors_Rest() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}},
+					},
+				},
+			}},
 		},
 	}
 	r := t.Require()
@@ -251,7 +278,8 @@ func (t *PTTestSuite) TestTemperature_REST() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}},
+				},
+			}},
 			onTemperatures: []embedded.PTTemperature{{
 				Readings: []max31865.Readings{{
 					ID:          "1",
@@ -259,11 +287,13 @@ func (t *PTTestSuite) TestTemperature_REST() {
 					Average:     123.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}},
+				}},
+			}},
 			expectedTemperatures: []distillation.Temperature{{
 				ID:          "1",
 				Temperature: 123.0,
-			}}}, {
+			}},
+		}, {
 			name: "return last average",
 			onGet: []embedded.PTSensorConfig{{
 				Enabled: false,
@@ -273,7 +303,8 @@ func (t *PTTestSuite) TestTemperature_REST() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}},
+				},
+			}},
 			onTemperatures: []embedded.PTTemperature{{
 				Readings: []max31865.Readings{{
 					ID:          "1",
@@ -281,25 +312,30 @@ func (t *PTTestSuite) TestTemperature_REST() {
 					Average:     123.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}, {
+				}},
+			}, {
 				Readings: []max31865.Readings{{
 					ID:          "1",
 					Temperature: 1,
 					Average:     128.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}, {
+				}},
+			}, {
 				Readings: []max31865.Readings{{
 					ID:          "1",
 					Temperature: 1,
 					Average:     -200.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}},
+				}},
+			}},
 			expectedTemperatures: []distillation.Temperature{{
 				ID:          "1",
 				Temperature: 123.0,
-			}}}}
+			}},
+		},
+	}
 
 	r := t.Require()
 	for _, arg := range args {
@@ -341,7 +377,8 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 				ASyncPoll:    false,
 				PollInterval: 3,
 				Samples:      4,
-			}}},
+			},
+		}},
 		onGet: []embedded.PTSensorConfig{{
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
@@ -350,7 +387,8 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 				ASyncPoll:    false,
 				PollInterval: 0,
 				Samples:      0,
-			}}},
+			},
+		}},
 		onSetErr:    nil,
 		errContains: "",
 	}, {
@@ -363,7 +401,8 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 				ASyncPoll:    false,
 				PollInterval: 3,
 				Samples:      4,
-			}}},
+			},
+		}},
 		onGet: []embedded.PTSensorConfig{{
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
@@ -372,7 +411,8 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 				ASyncPoll:    false,
 				PollInterval: 0,
 				Samples:      0,
-			}}},
+			},
+		}},
 		onSetErr:    errors.New("hello"),
 		errContains: "hello",
 	}, {
@@ -385,7 +425,8 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 				ASyncPoll:    false,
 				PollInterval: 3,
 				Samples:      4,
-			}}},
+			},
+		}},
 		onGet: []embedded.PTSensorConfig{{
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
@@ -394,7 +435,8 @@ func (t *PTTestSuite) TestConfigureSensor_REST() {
 				ASyncPoll:    false,
 				PollInterval: 0,
 				Samples:      0,
-			}}},
+			},
+		}},
 		onSetErr:    nil,
 		errContains: distillation.ErrNoSuchID.Error(),
 	}}
@@ -438,32 +480,10 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 		expectedHistory []embedded.PTTemperature
 		ids             []string
 		temps           []float32
-	}{{
-		name: "single element in history",
-		onGet: []embedded.PTSensorConfig{{
-			Enabled: false,
-			SensorConfig: max31865.SensorConfig{
-				ID:           "1",
-				Correction:   0,
-				ASyncPoll:    false,
-				PollInterval: 0,
-				Samples:      0,
-			}}},
-		onTemperatures: []embedded.PTTemperature{{
-			Readings: []max31865.Readings{{
-				ID:          "1",
-				Temperature: 1,
-				Average:     123.0,
-				Stamp:       time.Time{},
-				Error:       "",
-			}}}},
-		expectedHistory: []embedded.PTTemperature{},
-		ids:             []string{"1"},
-		temps:           []float32{123.0},
-	}, {
-		name: "return all  but last element in history",
-		onGet: []embedded.PTSensorConfig{
-			{
+	}{
+		{
+			name: "single element in history",
+			onGet: []embedded.PTSensorConfig{{
 				Enabled: false,
 				SensorConfig: max31865.SensorConfig{
 					ID:           "1",
@@ -471,46 +491,78 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}},
-		onTemperatures: []embedded.PTTemperature{{
-			Readings: []max31865.Readings{{
-				ID:          "1",
-				Temperature: 1,
-				Average:     -100.0,
-				Stamp:       time.Time{},
-				Error:       "",
-			}}}, {
-			Readings: []max31865.Readings{{
-				ID:          "1",
-				Temperature: 1,
-				Average:     -50.0,
-				Stamp:       time.Time{},
-				Error:       "",
-			}}}, {
-			Readings: []max31865.Readings{{
-				ID:          "1",
-				Temperature: 1,
-				Average:     -150.0,
-				Stamp:       time.Time{},
-				Error:       "",
-			}}}},
-		expectedHistory: []embedded.PTTemperature{{
-			Readings: []max31865.Readings{{
-				ID:          "1",
-				Temperature: 1,
-				Average:     -100.0,
-				Stamp:       time.Time{},
-				Error:       "",
+				},
+			}},
+			onTemperatures: []embedded.PTTemperature{{
+				Readings: []max31865.Readings{{
+					ID:          "1",
+					Temperature: 1,
+					Average:     123.0,
+					Stamp:       time.Time{},
+					Error:       "",
+				}},
+			}},
+			expectedHistory: []embedded.PTTemperature{},
+			ids:             []string{"1"},
+			temps:           []float32{123.0},
+		},
+		{
+			name: "return all  but last element in history",
+			onGet: []embedded.PTSensorConfig{
+				{
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "1",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				},
+			},
+			onTemperatures: []embedded.PTTemperature{{
+				Readings: []max31865.Readings{{
+					ID:          "1",
+					Temperature: 1,
+					Average:     -100.0,
+					Stamp:       time.Time{},
+					Error:       "",
+				}},
 			}, {
-				ID:          "1",
-				Temperature: 1,
-				Average:     -50.0,
-				Stamp:       time.Time{},
-				Error:       "",
-			}}}},
-		ids:   []string{"1"},
-		temps: []float32{-150.0},
-	},
+				Readings: []max31865.Readings{{
+					ID:          "1",
+					Temperature: 1,
+					Average:     -50.0,
+					Stamp:       time.Time{},
+					Error:       "",
+				}},
+			}, {
+				Readings: []max31865.Readings{{
+					ID:          "1",
+					Temperature: 1,
+					Average:     -150.0,
+					Stamp:       time.Time{},
+					Error:       "",
+				}},
+			}},
+			expectedHistory: []embedded.PTTemperature{{
+				Readings: []max31865.Readings{{
+					ID:          "1",
+					Temperature: 1,
+					Average:     -100.0,
+					Stamp:       time.Time{},
+					Error:       "",
+				}, {
+					ID:          "1",
+					Temperature: 1,
+					Average:     -50.0,
+					Stamp:       time.Time{},
+					Error:       "",
+				}},
+			}},
+			ids:   []string{"1"},
+			temps: []float32{-150.0},
+		},
 		{
 			name: "return all  but last element in history - more and mixed data",
 			onGet: []embedded.PTSensorConfig{{
@@ -521,7 +573,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}, {
+				},
+			}, {
 				Enabled: false,
 				SensorConfig: max31865.SensorConfig{
 					ID:           "2",
@@ -529,7 +582,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}, {
+				},
+			}, {
 				Enabled: false,
 				SensorConfig: max31865.SensorConfig{
 					ID:           "3",
@@ -537,7 +591,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}},
+				},
+			}},
 			onTemperatures: []embedded.PTTemperature{{
 				Readings: []max31865.Readings{{
 					ID:          "1",
@@ -563,7 +618,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					Average:     -12300.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}, {
+				}},
+			}, {
 				Readings: []max31865.Readings{{
 					ID:          "2",
 					Temperature: 1,
@@ -582,7 +638,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					Average:     -520.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}, {
+				}},
+			}, {
 				Readings: []max31865.Readings{
 					{
 						ID:          "3",
@@ -590,7 +647,9 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 						Average:     -150.0,
 						Stamp:       time.Time{},
 						Error:       "",
-					}}}},
+					},
+				},
+			}},
 			expectedHistory: []embedded.PTTemperature{{
 				Readings: []max31865.Readings{
 					{
@@ -599,7 +658,9 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 						Average:     -100.0,
 						Stamp:       time.Time{},
 						Error:       "",
-					}}}, {
+					},
+				},
+			}, {
 				Readings: []max31865.Readings{{
 					ID:          "3",
 					Temperature: 1,
@@ -612,7 +673,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					Average:     -12300.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}, {
+				}},
+			}, {
 				Readings: []max31865.Readings{{
 					ID:          "2",
 					Temperature: 1,
@@ -625,7 +687,8 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 					Average:     -510.0,
 					Stamp:       time.Time{},
 					Error:       "",
-				}}}},
+				}},
+			}},
 			ids:   []string{"1", "2", "3"},
 			temps: []float32{-125.0, -520.0, -150.0},
 		},
@@ -656,6 +719,7 @@ func (t *PTTestSuite) TestAfterHistory_StillCanReadData() {
 
 	}
 }
+
 func (t *PTTestSuite) TestHistory() {
 	args := []struct {
 		name            string
@@ -1203,7 +1267,8 @@ func (t *PTTestSuite) TestConfigureSensor() {
 						PollInterval: 0,
 						Samples:      0,
 					},
-				}},
+				},
+			},
 			onSetErr:    nil,
 			errContains: "",
 		},
@@ -1229,7 +1294,8 @@ func (t *PTTestSuite) TestConfigureSensor() {
 						PollInterval: 0,
 						Samples:      0,
 					},
-				}},
+				},
+			},
 			onSetErr:    errors.New("hello"),
 			errContains: "hello",
 		},
@@ -1255,7 +1321,8 @@ func (t *PTTestSuite) TestConfigureSensor() {
 						PollInterval: 0,
 						Samples:      0,
 					},
-				}},
+				},
+			},
 			onSetErr:    nil,
 			errContains: distillation.ErrNoSuchID.Error(),
 		},
@@ -1298,7 +1365,8 @@ func (t *PTTestSuite) TestGetSensors() {
 					ASyncPoll:    false,
 					PollInterval: 0,
 					Samples:      0,
-				}}},
+				},
+			}},
 			expected: []distillation.PTConfig{{
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
@@ -1308,27 +1376,32 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}},
+					},
+				},
+			}},
 		},
 		{
 			name: "two sensors",
-			onGet: []embedded.PTSensorConfig{{
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "1",
-					Correction:   0,
-					ASyncPoll:    true,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "2",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}},
+			onGet: []embedded.PTSensorConfig{
+				{
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "1",
+						Correction:   0,
+						ASyncPoll:    true,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "2",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				},
 			},
 			expected: []distillation.PTConfig{{
 				PTSensorConfig: embedded.PTSensorConfig{
@@ -1339,7 +1412,9 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    true,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -1348,51 +1423,59 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}},
+					},
+				},
+			}},
 		},
 		{
 			name: "multiple sensors",
-			onGet: []embedded.PTSensorConfig{{
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "1",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "2",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "4",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "5",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}}, {
-				Enabled: false,
-				SensorConfig: max31865.SensorConfig{
-					ID:           "12",
-					Correction:   0,
-					ASyncPoll:    false,
-					PollInterval: 0,
-					Samples:      0,
-				}},
+			onGet: []embedded.PTSensorConfig{
+				{
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "1",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "2",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "4",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "5",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				}, {
+					Enabled: false,
+					SensorConfig: max31865.SensorConfig{
+						ID:           "12",
+						Correction:   0,
+						ASyncPoll:    false,
+						PollInterval: 0,
+						Samples:      0,
+					},
+				},
 			},
 			expected: []distillation.PTConfig{{
 				PTSensorConfig: embedded.PTSensorConfig{
@@ -1403,7 +1486,9 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -1412,7 +1497,9 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -1421,7 +1508,9 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -1430,7 +1519,9 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}, {
+					},
+				},
+			}, {
 				PTSensorConfig: embedded.PTSensorConfig{
 					Enabled: false,
 					SensorConfig: max31865.SensorConfig{
@@ -1439,7 +1530,9 @@ func (t *PTTestSuite) TestGetSensors() {
 						ASyncPoll:    false,
 						PollInterval: 0,
 						Samples:      0,
-					}}}},
+					},
+				},
+			}},
 		},
 	}
 	r := t.Require()

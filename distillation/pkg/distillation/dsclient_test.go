@@ -6,6 +6,8 @@
 package distillation_test
 
 import (
+	"embedded/pkg/ds18b20"
+	"embedded/pkg/embedded"
 	"errors"
 	"io"
 	"net/http/httptest"
@@ -13,8 +15,7 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/ds18b20"
-	"embedded/pkg/embedded"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -44,7 +45,8 @@ func (d *DSClientSuite) Test_Temperatures() {
 			Resolution:   13,
 			PollInterval: 0,
 			Samples:      0,
-		}}}
+		},
+	}}
 	tmps := []embedded.DSTemperature{
 		{
 			Readings: []ds18b20.Readings{
@@ -76,7 +78,6 @@ func (d *DSClientSuite) Test_Temperatures() {
 	s, err := ds.Temperatures()
 	t.Nil(err)
 	t.NotNil(s)
-
 }
 
 func (d *DSClientSuite) Test_Configure() {
@@ -91,7 +92,8 @@ func (d *DSClientSuite) Test_Configure() {
 			Resolution:   2,
 			PollInterval: 3,
 			Samples:      4,
-		}}}
+		},
+	}}
 
 	m.On("Get").Return(onGet, nil)
 
@@ -124,7 +126,6 @@ func (d *DSClientSuite) Test_Configure() {
 	cfg, err := ds.Configure(distillation.DSConfig{DSSensorConfig: onGet[0]})
 	t.Nil(err)
 	t.Equal(cfg, distillation.DSConfig{DSSensorConfig: onGet[0]})
-
 }
 
 func (d *DSClientSuite) Test_NotImplemented() {

@@ -14,6 +14,7 @@ import (
 
 	"embedded/pkg/embedded"
 	"embedded/pkg/max31865"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -113,7 +114,6 @@ func (p *PTClientSuite) Test_Temperatures() {
 	t.Nil(err)
 	t.NotNil(s)
 	t.ElementsMatch(readings, s)
-
 }
 
 func (p *PTClientSuite) Test_Configure() {
@@ -190,7 +190,6 @@ func (p *PTClientSuite) Test_Configure() {
 	cfg, err := pt.Configure(cfgs[0])
 	t.Nil(err)
 	t.Equal(cfgs[0], cfg)
-
 }
 
 func (p *PTClientSuite) Test_NotImplemented() {

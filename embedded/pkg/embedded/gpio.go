@@ -70,8 +70,8 @@ func (g *GPIOHandler) GetConfigAll() ([]GPIOConfig, error) {
 		pos++
 	}
 	return configs, nil
-
 }
+
 func (g *GPIOHandler) GetConfig(id string) (GPIOConfig, error) {
 	gp, err := g.gpioBy(id)
 	if err != nil {

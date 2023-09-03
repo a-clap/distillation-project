@@ -71,7 +71,6 @@ func (p *PT) Temperature() (actual float64, average float64, err error) {
 }
 
 func (p *PT) GetReadings() []max31865.Readings {
-
 	const min = 75.0
 	const max = 76.0
 

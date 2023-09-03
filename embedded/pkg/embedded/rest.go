@@ -8,7 +8,7 @@ package embedded
 import (
 	"net/http"
 	"time"
-	
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,15 +32,15 @@ const (
 func (r *restRouter) routes(e *Embedded) {
 	r.GET(RoutesGetHeaters, r.getHeaters(e))
 	r.PUT(RoutesConfigHeater, r.configHeater(e))
-	
+
 	r.GET(RoutesGetOnewireSensors, r.getOnewireSensors(e))
 	r.GET(RoutesGetOnewireTemperatures, r.getOnewireTemperatures(e))
 	r.PUT(RoutesConfigOnewireSensor, r.configOnewireSensor(e))
-	
+
 	r.GET(RoutesGetPT100Sensors, r.getPTSensors(e))
 	r.GET(RoutesGetPT100Temperatures, r.getPTTemperatures(e))
 	r.PUT(RoutesConfigPT100Sensor, r.configPTSensor(e))
-	
+
 	r.GET(RoutesGetGPIOs, r.getGPIOS(e))
 	r.PUT(RoutesConfigGPIO, r.configGPIO(e))
 }
@@ -62,7 +62,7 @@ func (r *restRouter) configHeater(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		cfg := HeaterConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			err := &Error{
@@ -74,7 +74,7 @@ func (r *restRouter) configHeater(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, err)
 			return
 		}
-		
+
 		if err := e.Heaters.SetConfig(cfg); err != nil {
 			err := &Error{
 				Title:     "Failed to SetConfig",
@@ -85,7 +85,7 @@ func (r *restRouter) configHeater(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		s, _ := e.Heaters.ConfigBy(cfg.ID)
 		r.respond(ctx, http.StatusOK, s)
 	}
@@ -123,7 +123,7 @@ func (r *restRouter) configOnewireSensor(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		cfg := DSSensorConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			err := &Error{
@@ -135,7 +135,7 @@ func (r *restRouter) configOnewireSensor(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, err)
 			return
 		}
-		
+
 		cfg, err := e.DS.SetConfig(cfg)
 		if err != nil {
 			err := &Error{
@@ -147,10 +147,11 @@ func (r *restRouter) configOnewireSensor(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *restRouter) getOnewireTemperatures(e *Embedded) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if e.DS.sensors == nil {
@@ -201,7 +202,7 @@ func (r *restRouter) configPTSensor(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		cfg := PTSensorConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			err := &Error{
@@ -213,7 +214,7 @@ func (r *restRouter) configPTSensor(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, err)
 			return
 		}
-		
+
 		cfg, err := e.PT.SetConfig(cfg)
 		if err != nil {
 			err := &Error{
@@ -225,10 +226,11 @@ func (r *restRouter) configPTSensor(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *restRouter) getPTTemperatures(e *Embedded) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if e.PT.sensors == nil {
@@ -278,7 +280,7 @@ func (r *restRouter) configGPIO(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		cfg := GPIOConfig{}
 		if err := ctx.ShouldBind(&cfg); err != nil {
 			err := &Error{
@@ -290,7 +292,7 @@ func (r *restRouter) configGPIO(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusBadRequest, err)
 			return
 		}
-		
+
 		err := e.GPIO.SetConfig(cfg)
 		if err != nil {
 			err := &Error{
@@ -302,7 +304,7 @@ func (r *restRouter) configGPIO(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		cfg, err = e.GPIO.GetConfig(cfg.ID)
 		if err != nil {
 			err := &Error{
@@ -317,6 +319,7 @@ func (r *restRouter) configGPIO(e *Embedded) gin.HandlerFunc {
 		r.respond(ctx, http.StatusOK, cfg)
 	}
 }
+
 func (r *restRouter) getGPIOS(e *Embedded) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if len(e.GPIO.io) == 0 {
@@ -329,7 +332,7 @@ func (r *restRouter) getGPIOS(e *Embedded) gin.HandlerFunc {
 			r.respond(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		
+
 		gpios, err := e.GPIO.GetConfigAll()
 		if len(gpios) == 0 || err != nil {
 			notImpl := GPIOError{ID: "", Op: "GetConfigAll", Err: ErrNotImplemented.Error()}

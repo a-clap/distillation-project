@@ -52,7 +52,6 @@ func (d *downloader) download(file *os.File, dst string) {
 	if err := os.Rename(file.Name(), dst); err != nil {
 		d.errs <- err
 	}
-
 }
 
 func Download(dstFilePath, srcUrl string) (progress chan int, errCh chan error, err error) {

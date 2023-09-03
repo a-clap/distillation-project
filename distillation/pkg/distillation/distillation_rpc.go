@@ -7,6 +7,7 @@ import (
 
 	"distillation/pkg/distillation/distillationproto"
 	"distillation/pkg/process"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )
@@ -145,7 +146,6 @@ func (r *RPC) GetPhaseCount(ctx context.Context, e *empty.Empty) (*distillationp
 	cfg := r.Distillation.Process.GetConfig()
 	s := &distillationproto.ProcessPhaseCount{Count: int32(cfg.PhaseNumber)}
 	return s, nil
-
 }
 
 func (r *RPC) GetPhaseConfig(ctx context.Context, number *distillationproto.PhaseNumber) (*distillationproto.ProcessPhaseConfig, error) {
@@ -189,6 +189,7 @@ func (r *RPC) Status(ctx context.Context, e *empty.Empty) (*distillationproto.Pr
 	status := r.Distillation.Status()
 	return processStatusToRPC(status), nil
 }
+
 func (r *RPC) EnableProcess(_ context.Context, c *distillationproto.ProcessConfig) (*distillationproto.ProcessConfig, error) {
 	cfg := rpcToProcessConfig(c)
 	err := r.Distillation.ConfigureProcess(cfg)
@@ -196,8 +197,8 @@ func (r *RPC) EnableProcess(_ context.Context, c *distillationproto.ProcessConfi
 		return nil, err
 	}
 	return processConfigToRpc(cfg), nil
-
 }
+
 func (r *RPC) GetGlobalConfig(context.Context, *empty.Empty) (*distillationproto.ProcessGlobalConfig, error) {
 	cfg := r.Distillation.Process.GetConfig()
 	globalConfig := &distillationproto.ProcessGlobalConfig{

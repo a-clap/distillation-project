@@ -1,17 +1,16 @@
 package backendmock
 
 import (
+	"distillation/pkg/distillation"
 	"errors"
 	"time"
 
-	"distillation/pkg/distillation"
-	"golang.org/x/exp/slices"
 	"gui/backend/ds"
+
+	"golang.org/x/exp/slices"
 )
 
-var (
-	_ ds.Client = (*DSClient)(nil)
-)
+var _ ds.Client = (*DSClient)(nil)
 
 type DSClient struct {
 	DS []distillation.DSConfig

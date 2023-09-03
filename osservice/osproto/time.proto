@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "os/osproto";
+
+service Time {
+  rpc Now (google.protobuf.Empty) returns (google.protobuf.Timestamp) {}
+  rpc SetNow(google.protobuf.Timestamp) returns (google.protobuf.Empty) {}
+  rpc NTP(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc SetNTP(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+}
+
+

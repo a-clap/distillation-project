@@ -1,3 +1,25 @@
+// MIT License
+//
+// Copyright (c) 2023 a-clap
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 package mender
 
 import (
@@ -8,6 +30,7 @@ import (
 	"strings"
 	"time"
 
+	"mender/pkg/committer"
 	"mender/pkg/device"
 	"mender/pkg/downloader"
 	"mender/pkg/installer"
@@ -26,6 +49,7 @@ type Builder struct {
 	installer      Installer
 	rebooter       Rebooter
 	loadSaver      LoadSaver
+	committer      Committer
 }
 
 func NewBuilder() *Builder {
@@ -39,6 +63,7 @@ func NewBuilder() *Builder {
 		downloader:     &builderDownloader{},
 		installer:      &builderInstaller{installer.New()},
 		rebooter:       &builderRebooter{},
+		committer:      &builderCommiter{committer.New()},
 	}
 
 	return b
@@ -88,6 +113,11 @@ func (b *Builder) Build() (*Client, error) {
 
 func (b *Builder) WithSignerVerifier(s Signer) *Builder {
 	b.signerVerifier = s
+	return b
+}
+
+func (b *Builder) WithCommitter(c Committer) *Builder {
+	b.committer = c
 	return b
 }
 
@@ -153,14 +183,18 @@ var (
 	_ Signer     = (*builderSignerVerifier)(nil)
 	_ LoadSaver  = (*builderLoadSaver)(nil)
 	_ Callbacks  = (*builderStdIOCallbacks)(nil)
+	_ Committer  = (*builderCommiter)(nil)
 )
+
+type builderCommiter struct {
+	*committer.Committer
+}
 
 type builderSignerVerifier struct {
 	*signer.Signer
 }
 
-type builderRebooter struct {
-}
+type builderRebooter struct{}
 
 type builderLoadSaver struct {
 	*loadsaver.LoadSaver
@@ -178,8 +212,7 @@ func (b *builderInstaller) Install(src string) (progress chan int, errCh chan er
 	return b.Installer.Install(src)
 }
 
-type builderDownloader struct {
-}
+type builderDownloader struct{}
 
 func (*builderDownloader) Download(dst string, srcURL string) (progress chan int, errCh chan error, err error) {
 	return downloader.Download(dst, srcURL)

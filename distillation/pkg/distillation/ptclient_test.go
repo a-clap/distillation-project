@@ -6,6 +6,8 @@
 package distillation_test
 
 import (
+	"embedded/pkg/embedded"
+	"embedded/pkg/max31865"
 	"errors"
 	"io"
 	"net/http/httptest"
@@ -13,8 +15,7 @@ import (
 	"time"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/embedded"
-	"embedded/pkg/max31865"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -44,7 +45,8 @@ func (p *PTClientSuite) Test_Temperatures() {
 			ASyncPoll:    false,
 			PollInterval: 0,
 			Samples:      0,
-		}}}
+		},
+	}}
 
 	tmps := []embedded.PTTemperature{
 		{
@@ -77,7 +79,6 @@ func (p *PTClientSuite) Test_Temperatures() {
 	s, err := pt.Temperatures()
 	t.Nil(err)
 	t.NotNil(s)
-
 }
 
 func (p *PTClientSuite) Test_Configure() {
@@ -92,7 +93,8 @@ func (p *PTClientSuite) Test_Configure() {
 			ASyncPoll:    false,
 			PollInterval: 0,
 			Samples:      0,
-		}}}
+		},
+	}}
 
 	m.On("Get").Return(onGet, nil)
 
@@ -125,7 +127,6 @@ func (p *PTClientSuite) Test_Configure() {
 	cfg, err := pt.Configure(distillation.PTConfig{PTSensorConfig: onGet[0]})
 	t.Nil(err)
 	t.Equal(cfg, distillation.PTConfig{PTSensorConfig: onGet[0]})
-
 }
 
 func (p *PTClientSuite) Test_NotImplemented() {

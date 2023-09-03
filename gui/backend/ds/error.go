@@ -9,9 +9,7 @@ import (
 	"errors"
 )
 
-var (
-	ErrIDNotFound = errors.New("id not found")
-)
+var ErrIDNotFound = errors.New("id not found")
 
 // Error is common error returned by this package
 type Error struct {

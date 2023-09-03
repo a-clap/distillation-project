@@ -8,6 +8,7 @@ package phases
 import (
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+
 	"golang.org/x/exp/slices"
 )
 
@@ -17,21 +18,25 @@ func notifyProcessCount(count distillation.ProcessPhaseCount) {
 		listener.OnPhasesCountChange(count)
 	}
 }
+
 func notifyGlobalConfig(c process.Config) {
 	for _, listener := range handler.listeners {
 		listener.OnGlobalConfig(c)
 	}
 }
+
 func notifyConfigChange(phaseNumber int, cfg distillation.ProcessPhaseConfig) {
 	for _, listener := range handler.listeners {
 		listener.OnPhaseConfigChange(phaseNumber, cfg)
 	}
 }
+
 func notifyValidate(v distillation.ProcessConfigValidation) {
 	for _, listener := range handler.listeners {
 		listener.OnConfigValidate(v)
 	}
 }
+
 func notifyStatus(s distillation.ProcessStatus) {
 	// Sort sensors
 	slices.SortFunc(s.Temperature, func(i, j process.TemperaturePhaseStatus) bool {
@@ -49,6 +54,7 @@ func notifyStatus(s distillation.ProcessStatus) {
 		listener.OnStatusChange(s)
 	}
 }
+
 func notifyConfig(c distillation.ProcessConfig) {
 	for _, listener := range handler.listeners {
 		listener.OnConfigChange(c)

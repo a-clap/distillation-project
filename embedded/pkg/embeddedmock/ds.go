@@ -39,6 +39,7 @@ func NewDS(bus, id string) *DS {
 	d.average = avg.New(10)
 	return d
 }
+
 func (d *DS) ID() string {
 	return d.id
 }

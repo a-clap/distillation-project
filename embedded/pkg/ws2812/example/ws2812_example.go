@@ -12,39 +12,39 @@ import (
 	"embedded/pkg/ws2812"
 )
 
-const (
-	zero byte = 0b11000000
-	one  byte = 0b11111000
-)
-
-type Color struct {
-	r, g, b uint8
-}
-
-func (c Color) color() []byte {
-	red := c.generic(c.r)
-	green := c.generic(c.g)
-	blue := c.generic(c.b)
-
-	full := make([]byte, 0, 24)
-	full = append(full, green...)
-	full = append(full, red...)
-	full = append(full, blue...)
-	return full
-}
-
-func (c Color) generic(u uint8) []byte {
-	gen := make([]byte, 8)
-	for i, k := 0, 7; k >= 0; k-- {
-		if (u & (1 << k)) == 0 {
-			gen[i] = zero
-		} else {
-			gen[i] = one
-		}
-		i++
-	}
-	return gen
-}
+// const (
+// 	zero byte = 0b11000000
+// 	one  byte = 0b11111000
+// )
+//
+// type Color struct {
+// 	r, g, b uint8
+// }
+//
+// func (c Color) color() []byte {
+// 	red := c.generic(c.r)
+// 	green := c.generic(c.g)
+// 	blue := c.generic(c.b)
+//
+// 	full := make([]byte, 0, 24)
+// 	full = append(full, green...)
+// 	full = append(full, red...)
+// 	full = append(full, blue...)
+// 	return full
+// }
+//
+// func (c Color) generic(u uint8) []byte {
+// 	gen := make([]byte, 8)
+// 	for i, k := 0, 7; k >= 0; k-- {
+// 		if (u & (1 << k)) == 0 {
+// 			gen[i] = zero
+// 		} else {
+// 			gen[i] = one
+// 		}
+// 		i++
+// 	}
+// 	return gen
+// }
 
 const LEDS = 8
 
@@ -75,5 +75,4 @@ func main() {
 			<-time.After(30 * time.Millisecond)
 		}
 	}
-
 }

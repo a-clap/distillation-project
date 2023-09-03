@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "dayjs": "^1.11.8",
     "element-plus": "^2.3.3",
     "material-icons": "^1.13.6",
     "pinia": "^2.0.35",

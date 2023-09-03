@@ -10,6 +10,7 @@ import (
 	"embedded/pkg/gpio"
 	"embedded/pkg/heater"
 	"embedded/pkg/max31865"
+
 	"github.com/a-clap/logging"
 )
 
@@ -121,7 +122,6 @@ func parsePT100(config []ConfigPT100) (Option, []error) {
 			max31865.WithWiring(cfg.Wiring),
 			max31865.WithReadyPin(cfg.ReadyPin, cfg.Path),
 		)
-
 		if err != nil {
 			logger.Error("failed to create PT100", logging.Reflect("config", cfg), logging.String("error", err.Error()))
 			errs = append(errs, err)

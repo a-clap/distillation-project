@@ -4,8 +4,9 @@ import (
 	"crypto/rsa"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
 	"mender/pkg/signer"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type SignerTestSuite struct {
@@ -66,5 +67,4 @@ func (ks *SignerTestSuite) TestSign() {
 	sig[13] = 5
 	err = store.Verify(data, sig)
 	t.ErrorIs(err, rsa.ErrVerification)
-
 }

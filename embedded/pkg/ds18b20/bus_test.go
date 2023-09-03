@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"embedded/pkg/ds18b20"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -65,8 +66,10 @@ func (t *BusSuite) TestBus_IDs() {
 			name: "ignore other files",
 			path: "another temperaturePath",
 			err:  nil,
-			slaves: []byte{50, 56, 45, 48, 53, 49, 54, 57, 51, 56, 52, 56, 100, 102, 102, 10, 50, 56, 45, 48, 53, 49,
-				54, 57, 51, 57, 55, 97, 101, 102, 102, 10},
+			slaves: []byte{
+				50, 56, 45, 48, 53, 49, 54, 57, 51, 56, 52, 56, 100, 102, 102, 10, 50, 56, 45, 48, 53, 49,
+				54, 57, 51, 57, 55, 97, 101, 102, 102, 10,
+			},
 			ids: []string{"28-051693848dff", "28-05169397aeff"},
 		},
 	}
@@ -186,7 +189,6 @@ func (t *BusSuite) TestBus_DiscoverSingleError() {
 	r.Len(s, 2)
 	r.Len(errs, 1)
 	r.ErrorIs(errs[0], io.ErrNoProgress)
-
 }
 
 func (t *BusSuite) TestBus_DiscoverFine() {
@@ -212,7 +214,6 @@ func (t *BusSuite) TestBus_DiscoverFine() {
 	r.Nil(errs)
 	r.NotNil(s)
 	r.Len(s, len(s_ids))
-
 }
 
 func (t *BusSuite) TestBus_DiscoverError() {
@@ -259,6 +260,7 @@ func (d *OnewireMock) ReadFile(name string) ([]byte, error) {
 	args := d.Called(name)
 	return args.Get(0).([]byte), args.Error(1)
 }
+
 func (d *FileMock) WriteFile(name string, data []byte) error {
 	return d.Called(name, data).Error(0)
 }

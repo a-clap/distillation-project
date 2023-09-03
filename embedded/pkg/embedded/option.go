@@ -66,7 +66,8 @@ func WithGPIOs(gpios []GPIO) Option {
 		for _, gpio := range gpios {
 			logger.Debug("New GPIO", logging.String("ID", gpio.ID()))
 			e.GPIO.io[gpio.ID()] = &gpioHandler{
-				GPIO: gpio}
+				GPIO: gpio,
+			}
 		}
 		return nil
 	}

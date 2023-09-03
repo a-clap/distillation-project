@@ -2,11 +2,11 @@ package backend
 
 import (
 	"context"
+	"embedded/pkg/ds18b20"
+	"osservice"
 	"time"
 
-	"embedded/pkg/ds18b20"
 	embeddedgpio "embedded/pkg/gpio"
-	"github.com/a-clap/logging"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -14,11 +14,11 @@ import (
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
+
+	"github.com/a-clap/logging"
 )
 
-var (
-	logger = logging.GetLogger()
-)
+var logger = logging.GetLogger()
 
 type Backend struct {
 	ctx          context.Context
@@ -27,6 +27,9 @@ type Backend struct {
 	ptChan       chan error
 	phaseChan    chan error
 	interval     time.Duration
+
+	time osservice.Time
+	net  osservice.Net
 }
 
 func New(opts ...Option) (*Backend, error) {
@@ -42,7 +45,6 @@ func New(opts ...Option) (*Backend, error) {
 	}
 
 	return b, nil
-
 }
 
 // Startup is called by Wails on application startup
@@ -63,6 +65,22 @@ func (b *Backend) Startup(ctx context.Context) {
 	if errs := loadSaver.Load(); errs != nil {
 		logger.Warn("Parameters Load errors", logging.Reflect("errors", errs))
 	}
+
+	go func() {
+		u := Update{
+			NewUpdate:   false,
+			Version:     "",
+			Updating:    false,
+			Downloading: 0,
+			Installing:  0,
+		}
+
+		for {
+			b.eventEmitter.OnUpdate(u)
+			<-time.After(1 * time.Second)
+
+		}
+	}()
 }
 
 func (b *Backend) handleErrors() {
@@ -93,7 +111,6 @@ func (b *Backend) handleErrors() {
 			}
 		}()
 	}
-
 }
 
 // Events returns Event structure - wails need to generate binding for Events methods
@@ -102,7 +119,9 @@ func (b *Backend) Events() Events {
 }
 
 func (b *Backend) HeaterEnable(id string, enable bool) {
-	heater.Enable(id, enable)
+	if err := heater.Enable(id, enable); err != nil {
+		logger.Error("heaterEnable", logging.String("error", err.Error()))
+	}
 }
 
 func (b *Backend) HeatersGet() []parameters.Heater {
@@ -132,7 +151,6 @@ func (b *Backend) DSSetSamples(id string, samples uint) {
 		logger.Error("DSSetSamples error ", logging.String("ID", id), logging.Uint("samples", samples))
 		b.eventEmitter.OnError(ErrDSSetSamples)
 	}
-
 }
 
 func (b *Backend) DSSetResolution(id string, res uint) {
@@ -178,6 +196,7 @@ func (b *Backend) PTSetSamples(id string, samples uint) {
 		b.eventEmitter.OnError(ErrPTSetSamples)
 	}
 }
+
 func (b *Backend) PTSetName(id, name string) {
 	logger.Debug("PTSetName", logging.String("ID", id), logging.String("name", name))
 	if err := pt.SetName(id, name); err != nil {
@@ -207,12 +226,14 @@ func (b *Backend) GPIOSetState(id string, value bool) {
 		b.eventEmitter.OnError(ErrGPIOSetState)
 	}
 }
+
 func (b *Backend) SaveParameters() {
 	err := loadSaver.Save()
 	if err != nil {
 		b.eventEmitter.OnError(ErrSave)
 	}
 }
+
 func (b *Backend) LoadParameters() {
 	err := loadSaver.Load()
 	if err != nil {

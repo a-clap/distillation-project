@@ -1,23 +1,24 @@
 package loadSaver
 
 import (
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 	"errors"
 	"log"
 
-	"distillation/pkg/distillation"
-	"distillation/pkg/process"
-	"gopkg.in/yaml.v3"
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
 	"gui/backend/parameters"
 	"gui/backend/phases"
 	"gui/backend/pt"
+
+	"gopkg.in/yaml.v3"
 )
 
 type LoadSaver interface {
 	Save(key string, data []byte) error
-	Load(key string) (data []byte, err error)
+	Load(key string) (data []byte)
 }
 
 type params struct {
@@ -37,20 +38,19 @@ const (
 	paramsKey = "params"
 )
 
-var (
-	handler = &handlerType{
-		LoadSaver: nil,
-		params: params{
-			heaterSettings: make(map[string]*parameters.Heater, 0),
-			dsSettings:     make(map[string]*parameters.DS, 0),
-			ptSettings:     make(map[string]*parameters.PT, 0),
-			gpioSettings:   make(map[string]*parameters.GPIO, 0),
-			processSettings: process.Config{
-				PhaseNumber: 0,
-				Phases:      make([]process.PhaseConfig, 0),
-			},
-		}}
-)
+var handler = &handlerType{
+	LoadSaver: nil,
+	params: params{
+		heaterSettings: make(map[string]*parameters.Heater, 0),
+		dsSettings:     make(map[string]*parameters.DS, 0),
+		ptSettings:     make(map[string]*parameters.PT, 0),
+		gpioSettings:   make(map[string]*parameters.GPIO, 0),
+		processSettings: process.Config{
+			PhaseNumber: 0,
+			Phases:      make([]process.PhaseConfig, 0),
+		},
+	},
+}
 
 func Init(saver LoadSaver) {
 	handler.LoadSaver = saver
@@ -71,15 +71,16 @@ func Run() error {
 }
 
 func Load() []error {
-	data, err := handler.LoadSaver.Load(paramsKey)
-	if err != nil {
-		return []error{err}
+	data := handler.LoadSaver.Load(paramsKey)
+	if data == nil {
+		return nil
 	}
 	params := parameters.GUI{}
 
 	if err := yaml.Unmarshal(data, &params); err != nil {
 		return []error{err}
 	}
+
 	var errs []error
 	if err := ds.Apply(params.DS); err != nil {
 		errs = append(errs, err...)
@@ -161,7 +162,6 @@ func (h *handlerType) OnPTConfigChange(config parameters.PT) {
 		h.params.ptSettings[config.ID] = &parameters.PT{}
 	}
 	h.params.ptSettings[config.ID] = &config
-
 }
 
 func (h *handlerType) OnPTTemperatureChange(parameters.Temperature) {

@@ -1,0 +1,15 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/tekwizely/pre-commit-golang
+    rev: 645165368711be670d1945c15060e746f5ed15c6
+    hooks:
+      - id: go-fumpt-repo
+        args: [ -w ]
+      - id: go-staticcheck-repo-mod
+      - id: golangci-lint-repo-mod
+      - id: go-test-repo-mod

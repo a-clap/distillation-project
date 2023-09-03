@@ -48,7 +48,6 @@ func TestConfig_reg(t *testing.T) {
 
 			if got := c.reg(); got != tt.reg {
 				t.Errorf("reg() = %v, reg %v", got, tt.reg)
-
 			}
 			if got := c.clearFaults(); got != tt.clearFaults {
 				t.Errorf("clearFaults() = %v, clearFaults %v", got, tt.clearFaults)
@@ -62,7 +61,6 @@ func TestConfig_reg(t *testing.T) {
 }
 
 func TestConfig_faultDetectFinished(t *testing.T) {
-
 	wireModes := []Wiring{TwoWire, ThreeWire, FourWire}
 	regRunning := []uint8{0b11111111, 0b10101010, 0b00000100, 0b00001000, 0b10001000}
 	regFinished := []uint8{0b11110011, 0b10100010, 0b00000000, 0b10100011, 0b10000000}
@@ -84,5 +82,4 @@ func TestConfig_faultDetectFinished(t *testing.T) {
 
 		}
 	})
-
 }

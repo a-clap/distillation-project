@@ -1,6 +1,7 @@
 package loadsaver
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -26,9 +27,10 @@ func New(configFile string) (*LoadSaver, error) {
 	}
 
 	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			return nil, fmt.Errorf("failed to read config: %w", err)
 		}
+
 		if err := v.SafeWriteConfig(); err != nil {
 			return nil, fmt.Errorf("failed to create config: %w", err)
 		}

@@ -49,8 +49,8 @@ type HeaterPhaseConfig struct {
 
 type GPIOConfig struct {
 	Enabled    bool    `json:"enabled"`
-	ID         string  `json:"id"`
 	SensorID   string  `json:"sensor_id"`
+	ID         string  `json:"id"`
 	TLow       float64 `json:"t_low"`
 	THigh      float64 `json:"t_high"`
 	Hysteresis float64 `json:"hysteresis"`
@@ -177,6 +177,7 @@ func (c *config) SetPhaseConfig(nb uint, conf PhaseConfig) error {
 	c.Phases[nb] = conf
 	return nil
 }
+
 func (c *config) SetGPIOGlobalConfig(conf []GPIOConfig) error {
 	if err := c.validateGPIOConfig(conf); err != nil {
 		return err
@@ -452,7 +453,6 @@ func (c *config) repairConfig() {
 			}
 		}
 	}
-
 }
 
 func resizeSlice[S constraints.Integer, T any](newSize S, s []T) []T {

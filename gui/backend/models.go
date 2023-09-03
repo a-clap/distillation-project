@@ -4,12 +4,12 @@ import (
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
 	"embedded/pkg/gpio"
+
 	"gui/backend/parameters"
 )
 
 // Models allows us to create models.ts in frontend with needed structures
-type Models struct {
-}
+type Models struct{}
 
 func (*Models) Temperature() parameters.Temperature {
 	return parameters.Temperature{}
@@ -73,4 +73,8 @@ func (*Models) TemperatureErrorCodeInternal() int {
 
 func (*Models) ProcessStatus() ProcessStatus {
 	return ProcessStatus{}
+}
+
+func (*Models) Update() Update {
+	return Update{}
 }

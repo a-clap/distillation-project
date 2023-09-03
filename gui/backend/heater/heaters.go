@@ -7,6 +7,7 @@ package heater
 
 import (
 	"distillation/pkg/distillation"
+
 	"gui/backend/parameters"
 )
 
@@ -25,13 +26,11 @@ type heaterHandler struct {
 	heaters   map[string]*parameters.Heater
 }
 
-var (
-	handler = &heaterHandler{
-		client:    nil,
-		listeners: make([]Listener, 0),
-		heaters:   make(map[string]*parameters.Heater),
-	}
-)
+var handler = &heaterHandler{
+	client:    nil,
+	listeners: make([]Listener, 0),
+	heaters:   make(map[string]*parameters.Heater),
+}
 
 // Init prepare package to handle various requests
 func Init(c Client) error {
@@ -55,6 +54,7 @@ func initHandler() error {
 
 	return nil
 }
+
 func Apply(config []parameters.Heater) []error {
 	var errs []error
 	for _, c := range config {
@@ -65,6 +65,7 @@ func Apply(config []parameters.Heater) []error {
 	}
 	return errs
 }
+
 func AddListener(listener Listener) {
 	handler.listeners = append(handler.listeners, listener)
 }

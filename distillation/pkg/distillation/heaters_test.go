@@ -7,6 +7,7 @@ package distillation_test
 
 import (
 	"bytes"
+	"embedded/pkg/embedded"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 	"testing"
 
 	"distillation/pkg/distillation"
-	"embedded/pkg/embedded"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -269,8 +270,8 @@ func (t *HeaterHandlerSuite) Test_RestAPI_ConfigureGlobal() {
 		}
 
 	}
-
 }
+
 func (t *HeaterHandlerSuite) Test_RestAPI_GetEnabled() {
 	args := []struct {
 		heaters   []embedded.HeaterConfig
@@ -576,7 +577,8 @@ func (t *HeaterHandlerSuite) Test_GetEnabled() {
 						ID:      "5",
 						Enabled: true,
 						Power:   0,
-					}},
+					},
+				},
 			},
 		},
 	}
@@ -636,7 +638,8 @@ func (t *HeaterHandlerSuite) TestConfigureGlobal_DisableEnabledHeater() {
 			ID:      "2",
 			Enabled: true,
 			Power:   99,
-		}}
+		},
+	}
 
 	globalConfig := distillation.HeaterConfigGlobal{
 		ID:      "1",
@@ -818,6 +821,7 @@ func (t *HeaterHandlerSuite) TestConfigure_EnableHeater() {
 		}
 	}
 }
+
 func (t *HeaterHandlerSuite) TestConfigure_CantEnableHeater() {
 	r := t.Require()
 	args := []struct {
@@ -895,7 +899,6 @@ func (t *HeaterHandlerSuite) TestConfigure_CantEnableHeater() {
 			r.Nil(err)
 		}
 	}
-
 }
 
 func (t *HeaterHandlerSuite) TestConfigureGlobal() {
@@ -986,7 +989,6 @@ func (t *HeaterHandlerSuite) TestConfigureGlobal() {
 		}
 
 	}
-
 }
 
 func (t *HeaterHandlerSuite) TestNew_GetGetGlobal() {

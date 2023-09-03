@@ -13,6 +13,7 @@ import (
 
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -97,7 +98,6 @@ func (p *ProcessClientSuite) Test_Config() {
 	t.NotNil(err)
 	t.ErrorContains(err, distillation.RoutesProcessConfigPhase)
 	t.ErrorContains(err, process.ErrNoSuchPhase.Error())
-
 }
 
 func (p *ProcessClientSuite) Test_PhaseCount() {

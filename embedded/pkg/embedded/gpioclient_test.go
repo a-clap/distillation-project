@@ -14,6 +14,7 @@ import (
 
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 )

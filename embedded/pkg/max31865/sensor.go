@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"embedded/pkg/avg"
+
 	"github.com/a-clap/logging"
 )
 

@@ -132,7 +132,6 @@ func (h *Heater) enable() {
 					}
 				}
 			}
-
 		}
 		_ = h.heating.Set(false)
 		close(h.fin)

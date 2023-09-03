@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"osservice"
+
 	"gui/backend/ds"
 	"gui/backend/gpio"
 	"gui/backend/heater"
@@ -65,6 +67,20 @@ func WithPhaseClient(c phases.Client) Option {
 func WithLoadSaver(c loadSaver.LoadSaver) Option {
 	return func(b *Backend) error {
 		loadSaver.Init(c)
+		return nil
+	}
+}
+
+func WithTime(ts osservice.Time) Option {
+	return func(b *Backend) error {
+		b.time = ts
+		return nil
+	}
+}
+
+func WithNet(net osservice.Net) Option {
+	return func(b *Backend) error {
+		b.net = net
 		return nil
 	}
 }

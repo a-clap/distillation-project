@@ -6,12 +6,13 @@
 package pt
 
 import (
+	"distillation/pkg/distillation"
 	"sync/atomic"
 	"time"
 
-	"distillation/pkg/distillation"
-	"golang.org/x/exp/slices"
 	"gui/backend/parameters"
+
+	"golang.org/x/exp/slices"
 )
 
 type Client interface {
@@ -35,16 +36,14 @@ type ptHandler struct {
 	err       chan<- error
 }
 
-var (
-	handler = &ptHandler{
-		client:    nil,
-		listeners: make([]Listener, 0),
-		running:   atomic.Bool{},
-		sensors:   make(map[string]*parameters.PT),
-		interval:  1 * time.Second,
-		err:       nil,
-	}
-)
+var handler = &ptHandler{
+	client:    nil,
+	listeners: make([]Listener, 0),
+	running:   atomic.Bool{},
+	sensors:   make(map[string]*parameters.PT),
+	interval:  1 * time.Second,
+	err:       nil,
+}
 
 // Init prepare package to handle various requests
 func Init(c Client, err chan<- error, interval time.Duration) error {
@@ -125,13 +124,13 @@ func Get() []parameters.PT {
 	sensors := make([]parameters.PT, 0, len(handler.sensors))
 	for _, s := range handler.sensors {
 		sensors = append(sensors, *s)
-
 	}
 	slices.SortFunc(sensors, func(i, j parameters.PT) bool {
 		return i.ID < j.ID
 	})
 	return sensors
 }
+
 func SetName(id string, name string) error {
 	cfg, ok := handler.sensors[id]
 	if !ok {
@@ -150,6 +149,7 @@ func SetName(id string, name string) error {
 	notifyConfig(*cfg)
 	return err
 }
+
 func Enable(id string, enable bool) error {
 	cfg, ok := handler.sensors[id]
 	if !ok {

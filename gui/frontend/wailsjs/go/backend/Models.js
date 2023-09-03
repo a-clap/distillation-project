@@ -65,3 +65,7 @@ export function TemperatureErrorCodeWrongID() {
 export function TemperaturePhaseStatus() {
   return window['go']['backend']['Models']['TemperaturePhaseStatus']();
 }
+
+export function Update() {
+  return window['go']['backend']['Models']['Update']();
+}

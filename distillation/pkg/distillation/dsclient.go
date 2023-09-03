@@ -7,10 +7,11 @@ package distillation
 
 import (
 	"context"
+	"embedded/pkg/restclient"
 	"time"
 
 	"distillation/pkg/distillation/distillationproto"
-	"embedded/pkg/restclient"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

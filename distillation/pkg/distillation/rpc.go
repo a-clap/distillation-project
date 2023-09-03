@@ -6,14 +6,14 @@
 package distillation
 
 import (
-	"time"
-
-	"distillation/pkg/distillation/distillationproto"
-	"distillation/pkg/process"
 	"embedded/pkg/ds18b20"
 	"embedded/pkg/embedded"
 	"embedded/pkg/gpio"
 	"embedded/pkg/max31865"
+	"time"
+
+	"distillation/pkg/distillation/distillationproto"
+	"distillation/pkg/process"
 )
 
 func gpioConfigToRPC(config *GPIOConfig) *distillationproto.GPIOConfig {
@@ -167,16 +167,17 @@ func rpcToProcessPhaseCount(cnt *distillationproto.ProcessPhaseCount) ProcessPha
 }
 
 func rpcToProcessPhaseConfig(cfg *distillationproto.ProcessPhaseConfig) ProcessPhaseConfig {
-	c := ProcessPhaseConfig{PhaseConfig: process.PhaseConfig{
-		Next: process.MoveToNextConfig{
-			Type:            process.MoveToNextType(cfg.Next.Type),
-			SensorID:        cfg.Next.SensorID,
-			SensorThreshold: float64(cfg.Next.SensorThreshold),
-			TimeLeft:        cfg.Next.TimeLeft,
+	c := ProcessPhaseConfig{
+		PhaseConfig: process.PhaseConfig{
+			Next: process.MoveToNextConfig{
+				Type:            process.MoveToNextType(cfg.Next.Type),
+				SensorID:        cfg.Next.SensorID,
+				SensorThreshold: float64(cfg.Next.SensorThreshold),
+				TimeLeft:        cfg.Next.TimeLeft,
+			},
+			Heaters: make([]process.HeaterPhaseConfig, len(cfg.Heaters)),
+			GPIO:    make([]process.GPIOConfig, len(cfg.GPIO)),
 		},
-		Heaters: make([]process.HeaterPhaseConfig, len(cfg.Heaters)),
-		GPIO:    make([]process.GPIOConfig, len(cfg.GPIO)),
-	},
 	}
 	for i, heater := range cfg.Heaters {
 		c.Heaters[i] = process.HeaterPhaseConfig{
@@ -201,6 +202,7 @@ func rpcToGPIOPhaseConfig(gp *distillationproto.GPIOPhaseConfig) process.GPIOCon
 		Inverted:   gp.Inverted,
 	}
 }
+
 func gpioPhaseConfigToRpc(gp process.GPIOConfig) *distillationproto.GPIOPhaseConfig {
 	return &distillationproto.GPIOPhaseConfig{
 		ID:         gp.ID,
@@ -212,6 +214,7 @@ func gpioPhaseConfigToRpc(gp process.GPIOConfig) *distillationproto.GPIOPhaseCon
 		Enabled:    gp.Enabled,
 	}
 }
+
 func processPhaseConfigToRpc(number int, config ProcessPhaseConfig) *distillationproto.ProcessPhaseConfig {
 	cfg := &distillationproto.ProcessPhaseConfig{
 		Number: &distillationproto.PhaseNumber{Number: int32(number)},
@@ -311,7 +314,8 @@ func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
 			Temperature: &distillationproto.MoveToNextStatusTemperature{
 				SensorID:        status.Next.Temperature.SensorID,
 				SensorThreshold: float32(status.Next.Temperature.SensorThreshold),
-			}},
+			},
+		},
 		Heaters:     make([]*distillationproto.HeaterPhaseStatus, len(status.Heaters)),
 		Temperature: make([]*distillationproto.TemperaturePhaseStatus, len(status.Temperature)),
 		GPIO:        make([]*distillationproto.GPIOPhaseStatus, len(status.GPIO)),
@@ -341,5 +345,4 @@ func processStatusToRPC(status ProcessStatus) *distillationproto.ProcessStatus {
 	copy(s.Errors, status.Errors)
 
 	return s
-
 }

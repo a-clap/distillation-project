@@ -4,21 +4,22 @@ import (
 	"embed"
 	"flag"
 	"log"
-	"os"
+
+	"gui/backend"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"gui/backend"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 var (
-	mock = flag.Bool("mock", false, "use mocks")
-	// addr = flag.String("addr", "bananapi-zero.local:50002", "the distillation port")
-	addr = flag.String("addr", "localhost:50002", "the distillation port")
+	mock   = flag.Bool("mock", true, "use mocks")
+	addr   = flag.String("addr", "bananapi-zero.local", "host address")
+	dist   = flag.Int("dist", 50002, "the distillation service port")
+	osPort = flag.Int("os", 50003, "the os service port")
 )
 
 func main() {
@@ -28,15 +29,8 @@ func main() {
 	if *mock {
 		opts = mockClients()
 	} else {
-		opts = getopts(*addr)
+		opts = getopts(*addr, *dist, *osPort)
 	}
-
-	p, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	opts = append(opts, backend.WithLoadSaver(&saver{path: p}))
 
 	// Create backend
 	back, err := backend.New(

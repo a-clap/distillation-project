@@ -1,8 +1,9 @@
 package backend
 
 import (
-	"github.com/a-clap/logging"
 	"gui/backend/wifi"
+
+	"github.com/a-clap/logging"
 )
 
 type WifiConnected struct {
@@ -11,10 +12,7 @@ type WifiConnected struct {
 }
 
 func (b *Backend) WifiAPList() []string {
-	logger.Debug("WifiAPList")
-
 	aps, err := wifi.AP()
-
 	if err != nil {
 		logger.Error("WifiAPList", logging.String("error", err.Error()))
 		b.eventEmitter.OnError(ErrWIFIAPList)
@@ -26,14 +24,10 @@ func (b *Backend) WifiAPList() []string {
 }
 
 func (b *Backend) WifiIsConnected() WifiConnected {
-	logger.Debug("WifiIsConnected")
-
 	conn, ap, err := wifi.Connected()
-
 	if err != nil {
 		logger.Error("WifiIsConnected", logging.String("error", err.Error()))
 		b.eventEmitter.OnError(ErrWifiIsConnected)
-
 		return WifiConnected{}
 	}
 
@@ -44,7 +38,6 @@ func (b *Backend) WifiIsConnected() WifiConnected {
 }
 
 func (b *Backend) WifiConnect(ap, psk string) {
-	logger.Debug("WifiConnect", logging.String("ap", ap))
 	_ = wifi.Disconnect()
 
 	if err := wifi.Connect(ap, psk); err != nil {

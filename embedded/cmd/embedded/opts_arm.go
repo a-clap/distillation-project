@@ -2,6 +2,7 @@ package main
 
 import (
 	"embedded/pkg/embedded"
+
 	"github.com/a-clap/logging"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -31,7 +32,6 @@ func setupLogging() {
 
 	heaterLogger := logging.GetLogger("heater")
 	heaterLogger.AddRotateFileHandler(cfg, logging.DebugLevel, "/var/log/embedded/heater.log", rot)
-
 }
 
 func getOpts(configPath string) ([]embedded.Option, []error) {

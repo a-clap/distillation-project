@@ -1,5 +1,9 @@
 package backend
 
+import (
+	"errors"
+)
+
 const (
 	ErrDSSetCorrection = iota + 10
 	ErrDSEnable
@@ -7,12 +11,14 @@ const (
 	ErrDSSetResolution
 	ErrDSSetName
 )
+
 const (
 	ErrPTSetCorrection = iota + 20
 	ErrPTEnable
 	ErrPTSetSamples
 	ErrPTSetName
 )
+
 const (
 	ErrGPIOSetActiveLevel = iota + 30
 	ErrGPIOSetState
@@ -52,3 +58,5 @@ const (
 	ErrConnPT
 	ErrConnPhase
 )
+
+var ErrNotImplemented = errors.New("function not implemented")

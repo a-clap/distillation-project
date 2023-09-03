@@ -6,11 +6,11 @@
 package ds
 
 import (
+	"distillation/pkg/distillation"
+	"embedded/pkg/ds18b20"
 	"sync/atomic"
 	"time"
 
-	"distillation/pkg/distillation"
-	"embedded/pkg/ds18b20"
 	"gui/backend/parameters"
 
 	"golang.org/x/exp/slices"
@@ -41,17 +41,15 @@ type dsHandler struct {
 	err       chan<- error
 }
 
-var (
-	handler = &dsHandler{
-		client:    nil,
-		listeners: make([]Listener, 0),
-		running:   atomic.Bool{},
-		sensors:   make(map[string]*config),
-		interval:  1 * time.Second,
-		finish:    nil,
-		err:       nil,
-	}
-)
+var handler = &dsHandler{
+	client:    nil,
+	listeners: make([]Listener, 0),
+	running:   atomic.Bool{},
+	sensors:   make(map[string]*config),
+	interval:  1 * time.Second,
+	finish:    nil,
+	err:       nil,
+}
 
 // Init prepare package to handle various requests
 func Init(c Client, err chan<- error, interval time.Duration) error {
@@ -85,7 +83,7 @@ func Stop() {
 
 // Run provides temperature updates
 func Run() {
-	if handler.running.Load() == false {
+	if !handler.running.Load() {
 		handler.finish = make(chan struct{})
 		handler.running.Store(true)
 		update()
@@ -141,7 +139,6 @@ func Get() []parameters.DS {
 	sensors := make([]parameters.DS, 0, len(handler.sensors))
 	for _, s := range handler.sensors {
 		sensors = append(sensors, s.DS)
-
 	}
 	slices.SortFunc(sensors, func(i, j parameters.DS) bool {
 		return i.ID < j.ID
@@ -268,7 +265,6 @@ func update() {
 			select {
 			case <-handler.finish:
 				handler.running.Store(false)
-				break
 			case <-time.After(handler.interval):
 				temps, err := handler.client.Temperatures()
 				if err != nil {
