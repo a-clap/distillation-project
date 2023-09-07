@@ -1,9 +1,31 @@
-import { PhasesSetConfig, PhasesSetGlobalGPIO, PhasesSetPhaseCount } from "../../wailsjs/go/backend/Backend";
-import { distillation, process } from "../../wailsjs/go/models";
-import Parameter, { writeCallbackType } from "./Parameter";
-import { useNameStore } from "../stores/names";
-import { ErrorListener } from "./ErrorListener";
-import { AppErrorCodes } from "../stores/error_codes";
+// MIT License
+//
+// Copyright (c) 2023 a-clap
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import {PhasesSetConfig, PhasesSetGlobalGPIO, PhasesSetPhaseCount} from "../../wailsjs/go/backend/Backend";
+import {distillation, process} from "../../wailsjs/go/models";
+import Parameter, {writeCallbackType} from "./Parameter";
+import {useNameStore} from "../stores/names";
+import {ErrorListener} from "./ErrorListener";
+import {AppErrorCodes} from "../stores/error_codes";
 
 declare type Notify = (args: any) => void;
 
@@ -78,6 +100,7 @@ class GPIOConfig {
 export class HeaterPhaseConfig {
     id: string;
     power: Parameter;
+
     constructor(heater: process.HeaterPhaseConfig, writeCallback: Notify, args: any) {
         let callback = function (_: any) {
             writeCallback(args)
@@ -109,23 +132,20 @@ export class ProcessPhaseConfig {
         this.heaters_ = []
         this.gpios_ = []
 
-        if (heaters != null) {
-            heaters.forEach((v: process.HeaterPhaseConfig) => {
-                this.heaters_.push(new HeaterPhaseConfig(v, this.update, this))
-            })
-        }
-        if (gpios != null) {
-            gpios.forEach((v: process.GPIOConfig) => {
-                let [newName, got] = useNameStore().id_to_name(v.sensor_id)
-                if (got) {
-                    v.sensor_id = newName
-                } else {
-                    ErrorListener.sendError(AppErrorCodes.SensorIDNotFound)
-                }
+        heaters.forEach((v: process.HeaterPhaseConfig) => {
+            this.heaters_.push(new HeaterPhaseConfig(v, this.update, this))
+        })
 
-                this.gpios_.push(new GPIOConfig(v, this.update, this))
-            })
-        }
+        gpios.forEach((v: process.GPIOConfig) => {
+            let [newName, got] = useNameStore().id_to_name(v.sensor_id)
+            if (got) {
+                v.sensor_id = newName
+            } else {
+                ErrorListener.sendError(AppErrorCodes.SensorIDNotFound)
+            }
+
+            this.gpios_.push(new GPIOConfig(v, this.update, this))
+        })
 
     }
 
@@ -229,7 +249,7 @@ export class Phases {
         this.gpios = []
         this.sensors = []
         let sensorNames: string[] = []
-        if(sensors) {
+        if (sensors) {
             sensors.forEach((v) => {
                 let [name, got] = useNameStore().id_to_name(v)
                 if (got) {
