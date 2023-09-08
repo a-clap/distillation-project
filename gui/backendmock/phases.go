@@ -47,12 +47,12 @@ func (p *PhasesClient) ConfigureGlobalGPIO(configs []process.GPIOConfig) ([]proc
 
 func (p *PhasesClient) Init(count uint) {
 	p.Config.PhaseNumber = count
-	p.Config.Sensors = []string{"s1", "s2", "s3"}
+	p.Config.Sensors = []string{"ds_1", "ds_2", "ds_3"}
 	p.Config.Phases = make([]process.PhaseConfig, count)
 	for i := range p.Config.Phases {
 		p.Config.Phases[i].Next = process.MoveToNextConfig{
 			Type:            process.ByTime,
-			SensorID:        "DS_1",
+			SensorID:        "ds_1",
 			SensorThreshold: 1.23,
 			TimeLeft:        10,
 		}
@@ -60,7 +60,7 @@ func (p *PhasesClient) Init(count uint) {
 		for j := range p.Config.Phases[i].GPIO {
 			p.Config.Phases[i].GPIO[j] = process.GPIOConfig{
 				ID:         fmt.Sprintf("gpio %v", j),
-				SensorID:   "DS_2",
+				SensorID:   "ds_2",
 				TLow:       1.23,
 				THigh:      4.56,
 				Hysteresis: 3.17,

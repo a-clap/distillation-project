@@ -50,7 +50,7 @@ func mockClients() []backend.Option {
 	dsClient.DS = append(dsClient.DS,
 		distillation.DSConfig{DSSensorConfig: embedded.DSSensorConfig{SensorConfig: ds18b20.SensorConfig{
 			Name:         "DS_1",
-			ID:           "1",
+			ID:           "ds_1",
 			Resolution:   ds18b20.Resolution9Bit,
 			Correction:   0,
 			PollInterval: 500,
@@ -58,7 +58,7 @@ func mockClients() []backend.Option {
 		}}},
 		distillation.DSConfig{DSSensorConfig: embedded.DSSensorConfig{SensorConfig: ds18b20.SensorConfig{
 			Name:         "DS_2",
-			ID:           "2",
+			ID:           "ds_2",
 			Resolution:   ds18b20.Resolution10Bit,
 			Correction:   0,
 			PollInterval: 1,
@@ -66,7 +66,7 @@ func mockClients() []backend.Option {
 		}}},
 		distillation.DSConfig{DSSensorConfig: embedded.DSSensorConfig{SensorConfig: ds18b20.SensorConfig{
 			Name:         "DS_3",
-			ID:           "3",
+			ID:           "ds_3",
 			Resolution:   ds18b20.Resolution11Bit,
 			Correction:   0,
 			PollInterval: 1,
@@ -74,7 +74,7 @@ func mockClients() []backend.Option {
 		}}},
 		distillation.DSConfig{DSSensorConfig: embedded.DSSensorConfig{SensorConfig: ds18b20.SensorConfig{
 			Name:         "DS_4",
-			ID:           "4",
+			ID:           "ds_4",
 			Resolution:   ds18b20.Resolution12Bit,
 			Correction:   0,
 			PollInterval: 1,
@@ -88,7 +88,7 @@ func mockClients() []backend.Option {
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
 				Name:         "PT_1",
-				ID:           "id_1",
+				ID:           "pt_1",
 				Correction:   0,
 				ASyncPoll:    false,
 				PollInterval: 1 * time.Second,
@@ -99,7 +99,7 @@ func mockClients() []backend.Option {
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
 				Name:         "PT_2",
-				ID:           "id_2",
+				ID:           "pt_2",
 				Correction:   10.0,
 				ASyncPoll:    true,
 				PollInterval: 1 * time.Second,
@@ -110,7 +110,7 @@ func mockClients() []backend.Option {
 			Enabled: false,
 			SensorConfig: max31865.SensorConfig{
 				Name:         "PT_3",
-				ID:           "id_3",
+				ID:           "pt_3",
 				Correction:   12.0,
 				ASyncPoll:    true,
 				PollInterval: 1 * time.Second,

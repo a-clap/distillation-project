@@ -23,10 +23,11 @@
 package phases
 
 import (
-	"distillation/pkg/distillation"
-	"distillation/pkg/process"
 	"sync/atomic"
 	"time"
+
+	"distillation/pkg/distillation"
+	"distillation/pkg/process"
 )
 
 // Client is an interface to read/set listed configs
@@ -210,6 +211,7 @@ func SetGlobalGPIO(conf []process.GPIOConfig) error {
 		return err
 	}
 	handler.phases.GlobalGPIO = c
+	notifyGlobalConfig(handler.phases)
 	return nil
 }
 
