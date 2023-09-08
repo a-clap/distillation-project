@@ -202,4 +202,3 @@ onMounted(() => {
   --el-checkbox-text-color: var(--el-color-danger);
 }
 </style>
-

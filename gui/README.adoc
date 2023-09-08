@@ -39,5 +39,3 @@ image::phases.png[]
 image::ds.png[]
 image::err.png[]
 image::logs.png[]
-
-

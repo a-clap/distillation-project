@@ -14,4 +14,3 @@ message SaveRequest {
   google.protobuf.StringValue key = 1;
   google.protobuf.BytesValue bytes = 2;
 }
-

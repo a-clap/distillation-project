@@ -30,5 +30,3 @@ message ConnectedReply {
   google.protobuf.BoolValue connected = 1;
   google.protobuf.StringValue ssid = 2;
 }
-
-

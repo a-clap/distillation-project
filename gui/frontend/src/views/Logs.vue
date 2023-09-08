@@ -11,7 +11,7 @@
     </el-container>
   </main>
 </template>
-  
+
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useErrorStore } from '../stores/errors';
@@ -74,5 +74,3 @@ h1 {
   margin: auto;
 }
 </style>
-  
-  

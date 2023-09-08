@@ -16,4 +16,3 @@ message Interface {
   google.protobuf.StringValue name = 1;
   google.protobuf.StringValue ipaddr = 2;
 }
-

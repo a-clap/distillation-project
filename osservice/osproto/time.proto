@@ -12,5 +12,3 @@ service Time {
   rpc NTP(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
   rpc SetNTP(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 }
-
-

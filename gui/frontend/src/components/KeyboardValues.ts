@@ -27,7 +27,7 @@ export class FloatValue implements KeyboardValue {
     set value(v: string) {
         this.value_ = v
     }
-    
+
     add(ch: string): void {
         let v = this.value
         if(this.firstKey) {
@@ -76,7 +76,7 @@ export class IntValue implements KeyboardValue {
     set value(v: string) {
         this.value_ = v
     }
-    
+
     add(ch: string): void {
         if (ch === '.') {
             return
@@ -126,7 +126,7 @@ export class StringValue implements KeyboardValue {
     set value(v: string) {
         this.value_ = v
     }
-    
+
     add(ch: string): void {
         if(this.firstKey) {
             this.firstKey = false

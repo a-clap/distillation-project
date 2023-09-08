@@ -14,11 +14,11 @@ export default class Parameter {
         this.writeCallback = writeCallback
     }
     set view(s: string){
-        
+
     }
 
     get view(): string {
-        if (typeof this.value === 'number') { 
+        if (typeof this.value === 'number') {
             if(this.isFloat) {
                 return this.value.toFixed(2 )
             }

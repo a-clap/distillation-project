@@ -42,4 +42,3 @@ export class PT100 {
         return this.enable_
     }
 }
-

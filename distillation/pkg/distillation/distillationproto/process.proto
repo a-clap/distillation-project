@@ -115,4 +115,3 @@ message MoveToNextStatus {
   int64 TimeLeft = 2;
   MoveToNextStatusTemperature Temperature = 3;
 }
-

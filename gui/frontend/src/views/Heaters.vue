@@ -30,4 +30,3 @@ h1 {
     margin-bottom: 1.5rem;
 }
 </style>
-
