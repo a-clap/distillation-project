@@ -58,6 +58,10 @@ export function NotifyUpdate() {
   return window['go']['backend']['Events']['NotifyUpdate']();
 }
 
-export function NotifyUpdateFinish() {
-  return window['go']['backend']['Events']['NotifyUpdateFinish']();
+export function NotifyUpdateNextState() {
+  return window['go']['backend']['Events']['NotifyUpdateNextState']();
+}
+
+export function NotifyUpdateStatus() {
+  return window['go']['backend']['Events']['NotifyUpdateStatus']();
 }

@@ -128,8 +128,10 @@
     "pulling_updates": "Pobieram dostępne aktualizacje...",
     "release_name": "Nowa wersja: ",
     "start_update": "Rozpocznij aktualizację",
-    "stop_update": "Zatrzymaj aktualizację"
-
+    "stop_update": "Zatrzymaj aktualizację",
+    "update_commit": "Potwierdź",
+    "update_cancel": "Anuluj",
+    "update_success": "AKTUALIZACJA UDANA"
   },
   "loader": {
     "loading": "Ładuję..."

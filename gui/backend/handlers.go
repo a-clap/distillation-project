@@ -24,6 +24,7 @@ package backend
 
 import (
 	"context"
+
 	"distillation/pkg/distillation"
 	"distillation/pkg/process"
 
@@ -134,6 +135,10 @@ func (e *eventEmitter) OnUpdate(u Update) {
 	runtime.EventsEmit(e.ctx, NotifyUpdate, u)
 }
 
-func (e *eventEmitter) OnUpdateFinished(u UpdateFinished) {
-	runtime.EventsEmit(e.ctx, NotifyUpdateFinish, u)
+func (e *eventEmitter) OnUpdateStatus(u UpdateStateStatus) {
+	runtime.EventsEmit(e.ctx, NotifyUpdateStatus, u)
+}
+
+func (e *eventEmitter) UpdateNextState(u UpdateNextState) {
+	runtime.EventsEmit(e.ctx, NotifyUpdateNextState, u)
 }

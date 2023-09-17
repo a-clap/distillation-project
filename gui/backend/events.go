@@ -22,7 +22,7 @@
 
 package backend
 
-// Events is just way to return constants in UI
+// Events are just way to return constants in UI
 type Events struct{}
 
 const (
@@ -40,7 +40,8 @@ const (
 	NotifyPhasesStatus      = "rcv:phase_status"
 	NotifyGlobalConfig      = "rcv:global_config"
 	NotifyUpdate            = "rcv:update"
-	NotifyUpdateFinish      = "rcv:update_finish"
+	NotifyUpdateStatus      = "rcv:update_status"
+	NotifyUpdateNextState   = "rcv:update_next_state"
 )
 
 func (Events) NotifyHeaters() string {
@@ -99,6 +100,9 @@ func (Events) NotifyUpdate() string {
 	return NotifyUpdate
 }
 
-func (Events) NotifyUpdateFinish() string {
-	return NotifyUpdateFinish
+func (Events) NotifyUpdateStatus() string {
+	return NotifyUpdateStatus
+}
+func (Events) NotifyUpdateNextState() string {
+	return NotifyUpdateNextState
 }

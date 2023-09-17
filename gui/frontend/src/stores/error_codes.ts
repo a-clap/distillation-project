@@ -27,7 +27,9 @@ export enum AppErrorCodes {
     SensorIDNotFound = 102,
     NTPFailed = 103,
     WifiConnect = 110,
-    CheckUpdates,
-    StartUpdate
+    CheckUpdates = 111,
+    StartUpdate = 112,
+    UpdateFail = 113,
+    UpdateAlreadyInstalled = 114,
 
 }

@@ -88,8 +88,7 @@ func (c *Client) ContinueUpdate() (bool, string) {
 	if c.artifacts.Current == nil {
 		return false, ""
 	}
-	c.updateFromState(c.artifacts.Current.State, c.artifacts.Current.DeploymentInstructions)
-	return true, c.artifacts.Current.DeploymentInstructions.Artifact.Name
+	return true, c.artifacts.Current.Instructions.Artifact.Name
 }
 
 // verify is responsible for checking if Client is provided with correct options
@@ -331,7 +330,12 @@ func (c *Client) Update(artifactName string) error {
 		return err
 	}
 
-	c.updateFromState(Downloading, instructions)
+	startState := Downloading
+	if c.artifacts.Current != nil && c.artifacts.Current.Instructions.Artifact.Name == artifactName {
+		startState = c.artifacts.Current.State
+	}
+
+	c.updateFromState(startState, instructions)
 
 	return nil
 }
@@ -344,25 +348,25 @@ func (c *Client) StopUpdate() error {
 	if !c.IsDuringUpdate() {
 		return nil
 	}
-
+	c.updating.Store(false)
 	return nil
 }
 
-func (c *Client) updateFromState(state DeploymentStatus, ins *DeploymentInstructions) {
+func (c *Client) updateFromState(state DeploymentStatus, ins DeploymentInstructions) {
 	c.stopUpdating = make(chan struct{})
 	c.updating.Store(true)
 
 	c.artifacts.Current = &CurrentDeployment{
-		State:                  state,
-		DeploymentInstructions: ins,
+		State:        state,
+		Instructions: ins,
 	}
 	go c.handleUpdate()
 }
 
 func (c *Client) handleUpdate() {
 	var (
-		artifactName   = c.artifacts.Current.DeploymentInstructions.Artifact.Name
-		srcURL         = c.artifacts.Current.DeploymentInstructions.Artifact.Source.URI
+		artifactName   = c.artifacts.Current.Instructions.Artifact.Name
+		srcURL         = c.artifacts.Current.Instructions.Artifact.Source.URI
 		err            error
 		downloadedFile string
 	)
@@ -458,7 +462,7 @@ func (c *Client) handleSuccess(artifactName string) {
 
 	// Remove just installed artifact from Archive
 	c.artifacts.Archive = slices.DeleteFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
-		return c.artifacts.Current.Artifact.Name == instructions.Artifact.Name
+		return c.artifacts.Current.Instructions.Artifact.Name == instructions.Artifact.Name
 	})
 
 	// And current artifact itself
@@ -588,11 +592,11 @@ func (c *Client) Verify(data []byte, sig []byte) error {
 }
 
 // getInstructions finds proper instructions in internal DeploymentInstructions
-func (c *Client) getInstructions(artifactName string) (*DeploymentInstructions, error) {
+func (c *Client) getInstructions(artifactName string) (DeploymentInstructions, error) {
 	// Maybe we are using current artifact
 	if c.artifacts.Current != nil &&
-		c.artifacts.Current.DeploymentInstructions.Artifact.Name == artifactName {
-		return c.artifacts.Current.DeploymentInstructions, nil
+		c.artifacts.Current.Instructions.Artifact.Name == artifactName {
+		return c.artifacts.Current.Instructions, nil
 	}
 
 	idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
@@ -600,9 +604,9 @@ func (c *Client) getInstructions(artifactName string) (*DeploymentInstructions, 
 	})
 
 	if idx == -1 {
-		return nil, fmt.Errorf("artifact %v not found", artifactName)
+		return DeploymentInstructions{}, fmt.Errorf("artifact %v not found", artifactName)
 	}
-	return &c.artifacts.Archive[idx], nil
+	return c.artifacts.Archive[idx], nil
 }
 
 // maybeDecodeBase64 checks if it is possible to decode string with base64 encoding

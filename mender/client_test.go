@@ -1073,8 +1073,8 @@ func (ms *MenderTestSuite) TestUpdate() {
 	// Client should store this data
 	expectedSaveData := mender.Artifacts{
 		Current: &mender.CurrentDeployment{
-			State:                  mender.PauseBeforeCommitting,
-			DeploymentInstructions: &deployArtifact,
+			State:        mender.PauseBeforeCommitting,
+			Instructions: deployArtifact,
 		},
 		Archive: []mender.DeploymentInstructions{deployArtifact},
 	}
@@ -1154,7 +1154,7 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	arti := mender.Artifacts{
 		Current: &mender.CurrentDeployment{
 			State: mender.PauseBeforeCommitting,
-			DeploymentInstructions: &mender.DeploymentInstructions{
+			Instructions: mender.DeploymentInstructions{
 				ID: deployID,
 				Artifact: mender.DeploymentArtifact{
 					Name: artifactName,
@@ -1206,6 +1206,8 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 
 	req.True(updating)
 	req.EqualValues(artifactName, name)
+
+	req.Nil(client.Update(name))
 
 	// Wait for NextState
 	select {

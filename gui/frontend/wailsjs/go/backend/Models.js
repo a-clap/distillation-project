@@ -69,3 +69,11 @@ export function TemperaturePhaseStatus() {
 export function Update() {
   return window['go']['backend']['Models']['Update']();
 }
+
+export function UpdateNextState() {
+  return window['go']['backend']['Models']['UpdateNextState']();
+}
+
+export function UpdateStateStatus() {
+  return window['go']['backend']['Models']['UpdateStateStatus']();
+}

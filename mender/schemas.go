@@ -32,8 +32,8 @@ type DeploymentInstructions struct {
 }
 
 type CurrentDeployment struct {
-	State DeploymentStatus `json:"state"`
-	*DeploymentInstructions
+	State        DeploymentStatus       `json:"state"`
+	Instructions DeploymentInstructions `json:"deployment_instructions"`
 }
 
 type Artifacts struct {

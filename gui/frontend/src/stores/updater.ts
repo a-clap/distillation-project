@@ -21,36 +21,67 @@
 // SOFTWARE.
 
 import {defineStore} from "pinia";
-import {NotifyUpdate} from "../../wailsjs/go/backend/Events";
-import {CheckUpdates, StartUpdate, StopUpdate} from "../../wailsjs/go/backend/Backend";
+import {NotifyUpdate, NotifyUpdateNextState, NotifyUpdateStatus} from "../../wailsjs/go/backend/Events";
+import {CheckUpdates, ContinueUpdate, MoveToNextState, StartUpdate, StopUpdate} from "../../wailsjs/go/backend/Backend";
 import {backend} from "../../wailsjs/go/models";
+import {ErrorListener} from "../types/ErrorListener";
+import {AppErrorCodes} from "./error_codes";
+
+enum MenderStatus {
+    Downloading = 1,
+    PauseBeforeInstalling,
+    Installing,
+    PauseBeforeRebooting,
+    Rebooting,
+    PauseBeforeCommitting,
+    Success,
+    Failure,
+    AlreadyInstalled,
+}
+
 
 export const useUpdaterStore = defineStore('updater', {
     state: () => {
         return {
             updating: false as boolean,
             new_update: false as boolean,
-            release: "" as string,
-            state: 0 as number,
+            releases: [] as string[],
             downloading: 0 as number,
             installing: 0 as number,
             reboot: false as boolean,
-            reboot_in: 0 as number,
+            rebooting: 0 as number,
+            commit: false as boolean,
+            message: "" as string,
         }
     },
     actions: {
         init() {
             NotifyUpdate().then((ev: string) => {
                 return runtime.EventsOn(ev, (...args: any) => {
-                    this.handle(...args);
-                });
+                    this.update(...args);
+                })
+            })
+            NotifyUpdateStatus().then((ev: string) => {
+                return runtime.EventsOn(ev, (...args: any) => {
+                    this.updateStatus(...args);
+                })
+            })
+            NotifyUpdateNextState().then((ev: string) => {
+                return runtime.EventsOn(ev, (...args: any) => {
+                    this.nextState(...args);
+                })
+            })
+
+            ContinueUpdate().catch((error) => {
+                console.log(error)
             })
         },
         checkUpdate(): Promise<void> {
             return new Promise((resolve, reject) => {
-                CheckUpdates().then((data: backend.CheckUpdateData) => {
-                    this.new_update = data.new_update
-                    this.release = data.releases[0]
+                CheckUpdates().then((data: backend.UpdateData) => {
+                    this.releases = data.releases
+                    this.new_update = this.releases.length > 0
+                    console.log(data.releases)
                     return data.error_code == 0 ? resolve() : reject(data.error_code)
                 }).catch((error) => {
                     this.new_update = false
@@ -59,34 +90,72 @@ export const useUpdaterStore = defineStore('updater', {
             })
         },
         startUpdate() {
-            StartUpdate(this.release).catch((error) => {
+            StartUpdate(this.releases[0]).catch((error) => {
                 console.log(error)
             })
         },
         stopUpdate() {
-            StopUpdate().catch((error) => {
+            StopUpdate().catch((error): void => {
                 console.log(error)
             })
         },
-        handle(...args: any) {
-            let u = new backend.Update(args[0])
-            this.updating = u.updating
-            this.downloading = u.downloading
-            this.installing = u.installing
 
-            if (u.rebooting > 0 && !this.reboot) {
-                this.reboot = true
-                this.reboot_in = 0
-                let reboot_timer = setInterval(() => {
-                    this.reboot_in += 10
-                    if (this.reboot_in == 100) {
-
-                        clearInterval(reboot_timer)
-                    }
-                }, 1000)
+        updateStatus(...args: any): void {
+            let status = new backend.UpdateStateStatus(args[0])
+            if (status.state == MenderStatus.Downloading) {
+                this.downloading = status.progress
+            } else if (status.state == MenderStatus.Installing) {
+                this.downloading = 100
+                this.installing = status.progress
             }
 
-            console.log(u)
+        },
+        nextState(...args: any): void {
+            let next = new backend.UpdateNextState(args[0])
+            if (next.state == MenderStatus.Rebooting) {
+                if (!this.reboot) {
+                    this.reboot = true
+                    this.rebooting = 0
+                    let reboot_timer = setInterval(() => {
+                        this.rebooting += 10
+                        if (this.rebooting == 100) {
+                            clearInterval(reboot_timer)
+                            MoveToNextState(true).catch((error): void => {
+                                console.log(error)
+                            })
+                        }
+                    }, 1000)
+                }
+            } else if (next.state == MenderStatus.Success) {
+                this.message = "blabla"
+                this.commit = true
+            } else if (next.state == MenderStatus.Failure || next.state == MenderStatus.AlreadyInstalled) {
+                let err = next.state == MenderStatus.Failure ? AppErrorCodes.UpdateFail : AppErrorCodes.UpdateAlreadyInstalled;
+                ErrorListener.sendError(err)
+            } else {
+                MoveToNextState(true).catch((error) => {
+                    console.log(error)
+                })
+            }
+        },
+        cleanup(): void {
+            this.releases = []
+            this.commit = false
+            this.updating = false
+        },
+        submit(): void {
+            MoveToNextState(true).catch((error): void => {
+                console.log(error)
+            })
+            this.cleanup()
+        },
+        update(...args: any): void {
+            let u = new backend.Update(args[0])
+            this.updating = u.updating
+
+            if (!this.updating) {
+                this.cleanup()
+            }
         }
     }
 })

@@ -29,4 +29,6 @@ export function NotifyPhasesValidate():Promise<string>;
 
 export function NotifyUpdate():Promise<string>;
 
-export function NotifyUpdateFinish():Promise<string>;
+export function NotifyUpdateNextState():Promise<string>;
+
+export function NotifyUpdateStatus():Promise<string>;

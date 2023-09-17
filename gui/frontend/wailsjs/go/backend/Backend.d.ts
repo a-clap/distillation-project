@@ -6,9 +6,11 @@ import {mender} from '../models';
 import {process} from '../models';
 import {distillation} from '../models';
 
-export function CheckUpdates():Promise<backend.CheckUpdateData>;
+export function CheckUpdates():Promise<backend.UpdateData>;
 
 export function Commit(arg1:boolean):Promise<void>;
+
+export function ContinueUpdate():Promise<void>;
 
 export function DSEnable(arg1:string,arg2:boolean):Promise<void>;
 
@@ -39,6 +41,8 @@ export function HeatersGet():Promise<Array<parameters.Heater>>;
 export function ListInterfaces():Promise<Array<backend.NetInterface>>;
 
 export function LoadParameters():Promise<void>;
+
+export function MoveToNextState(arg1:boolean):Promise<void>;
 
 export function NTPGet():Promise<boolean>;
 
@@ -77,8 +81,6 @@ export function PhasesSetGlobalGPIO(arg1:Array<process.GPIOConfig>):Promise<void
 export function PhasesSetPhaseCount(arg1:number):Promise<void>;
 
 export function PhasesValidateConfig():Promise<void>;
-
-export function Reboot(arg1:boolean):Promise<void>;
 
 export function SaveParameters():Promise<void>;
 

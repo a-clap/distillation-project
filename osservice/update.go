@@ -29,7 +29,8 @@ import (
 var _ Update = (*updateOs)(nil)
 
 type updateOs struct {
-	client *mender.Client
+	client    *mender.Client
+	connected bool
 }
 
 func newUpdateOs(c *mender.Client) *updateOs {
@@ -38,23 +39,53 @@ func newUpdateOs(c *mender.Client) *updateOs {
 	}
 }
 
+func (u *updateOs) lazyInit() error {
+	if !u.connected {
+		if err := u.client.Connect(); err != nil {
+			return err
+		}
+
+		if err := u.client.UpdateInventory(); err != nil {
+			return err
+		}
+		u.connected = true
+	}
+
+	return nil
+}
+
 func (u *updateOs) ContinueUpdate() (bool, string) {
+	if err := u.lazyInit(); err != nil {
+		return false, ""
+	}
 	return u.client.ContinueUpdate()
 }
 
 func (u *updateOs) PullReleases() (bool, error) {
+	if err := u.lazyInit(); err != nil {
+		return false, err
+	}
 	return u.client.PullReleases()
 }
 
 func (u *updateOs) AvailableReleases() ([]string, error) {
+	if err := u.lazyInit(); err != nil {
+		return nil, err
+	}
 	return u.client.AvailableReleases(), nil
 }
 
 func (u *updateOs) Update(artifactName string, callbacks UpdateCallbacks) error {
+	if err := u.lazyInit(); err != nil {
+		return err
+	}
 	u.client.Callbacks = callbacks
 	return u.client.Update(artifactName)
 }
 
 func (u *updateOs) StopUpdate() error {
+	if err := u.lazyInit(); err != nil {
+		return err
+	}
 	return u.client.StopUpdate()
 }

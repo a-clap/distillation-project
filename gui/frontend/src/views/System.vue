@@ -20,7 +20,7 @@
 <!-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE -->
 <!-- SOFTWARE. -->
 
-<template>
+<template xmlns="http://www.w3.org/1999/html">
   <main>
     <h1>{{ $t('system.title') }}</h1>
     <el-tabs v-model="activated" type="card" tabPosition="left" class="demo-tabs">
@@ -84,16 +84,18 @@
           <el-button :disabled=updaterStore.updating type="primary" :icon="Refresh" size="large" @click=checkUpdate>
             {{ $t(('system.check_update')) }}
           </el-button>
-          <h3 v-if="updaterStore.new_update"> {{ $t(('system.release_name')) + updaterStore.release }}</h3>
-          <el-button v-if="updaterStore.new_update" :disabled=updaterStore.updating type="primary" :icon="Download"
-                     size="large" @click=updaterStore.startUpdate()>
-            {{ $t(('system.start_update')) }}
-          </el-button>
-          <section v-if="updaterStore.updating" class="bars">
-            <el-button :icon="CircleClose" size="large" @click=updaterStore.stopUpdate() type="danger">
+          <h3 v-if="updaterStore.new_update"> {{ $t(('system.release_name')) + release }} </h3>
+          <section v-if="updaterStore.new_update">
+            <el-button :disabled=updaterStore.updating type="success" :icon="Download" size="large"
+                       @click=updaterStore.startUpdate()>
+              {{ $t(('system.start_update')) }}
+            </el-button>
+            <el-button :disabled=!updaterStore.updating type="danger" :icon="CircleClose" size="large"
+                       @click=updaterStore.stopUpdate()>
               {{ $t(('system.stop_update')) }}
             </el-button>
-
+          </section>
+          <section v-if="updaterStore.updating" class="bars">
             <h3>{{ $t(('system.downloading')) }}</h3>
             <el-progress :stroke-width=20 :percentage=updaterStore.downloading :color="colors"
                          :format="(p: number) => {return p +`%`}"/>
@@ -103,7 +105,7 @@
                          :format="(p: number) => {return p +`%`}"/>
 
             <h3>{{ $t(('system.rebooting')) }}</h3>
-            <el-progress :stroke-width=20 :percentage=updaterStore.reboot_in :color="colors"
+            <el-progress :stroke-width=20 :percentage=updaterStore.rebooting :color="colors"
                          :format="(p: number) => {return p +`%`}"/>
           </section>
         </section>
@@ -134,6 +136,8 @@ const activated = ref('update')
 const dsStore = useDSStore()
 const ptStore = usePTStore()
 const updaterStore = useUpdaterStore()
+
+const release = ref('')
 
 const ntpEnabled = ref(false)
 const ntp = computed({
@@ -186,6 +190,10 @@ function checkUpdate() {
   Loader.show(AppErrorCodes.CheckUpdates, 5000, msg)
 
   updaterStore.checkUpdate().then(() => {
+    if (updaterStore.releases.length > 0) {
+      release.value = updaterStore.releases[0]
+    }
+
     Loader.close()
   }).catch(function (error) {
     if (error === parseInt(error, 10)) {
@@ -282,11 +290,10 @@ h1 {
 .update-interface, .bars {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
 
   * {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 }
 

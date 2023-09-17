@@ -10,6 +10,10 @@ export function Commit(arg1) {
   return window['go']['backend']['Backend']['Commit'](arg1);
 }
 
+export function ContinueUpdate() {
+  return window['go']['backend']['Backend']['ContinueUpdate']();
+}
+
 export function DSEnable(arg1, arg2) {
   return window['go']['backend']['Backend']['DSEnable'](arg1, arg2);
 }
@@ -68,6 +72,10 @@ export function ListInterfaces() {
 
 export function LoadParameters() {
   return window['go']['backend']['Backend']['LoadParameters']();
+}
+
+export function MoveToNextState(arg1) {
+  return window['go']['backend']['Backend']['MoveToNextState'](arg1);
 }
 
 export function NTPGet() {
@@ -144,10 +152,6 @@ export function PhasesSetPhaseCount(arg1) {
 
 export function PhasesValidateConfig() {
   return window['go']['backend']['Backend']['PhasesValidateConfig']();
-}
-
-export function Reboot(arg1) {
-  return window['go']['backend']['Backend']['Reboot'](arg1);
 }
 
 export function SaveParameters() {

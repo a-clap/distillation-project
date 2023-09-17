@@ -24,9 +24,10 @@ package backend
 
 import (
 	"context"
+	"time"
+
 	"embedded/pkg/ds18b20"
 	"osservice"
-	"time"
 
 	embeddedgpio "embedded/pkg/gpio"
 	"gui/backend/ds"
@@ -90,6 +91,8 @@ func (b *Backend) Startup(ctx context.Context) {
 	if errs := loadSaver.Load(); errs != nil {
 		logger.Warn("Parameters Load errors", logging.Reflect("errors", errs))
 	}
+
+	b.ContinueUpdate()
 }
 
 func (b *Backend) handleErrors() {

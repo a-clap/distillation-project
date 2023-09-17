@@ -1,21 +1,5 @@
 export namespace backend {
 
-	export class CheckUpdateData {
-	    new_update: boolean;
-	    releases: string[];
-	    error_code: number;
-
-	    static createFrom(source: any = {}) {
-	        return new CheckUpdateData(source);
-	    }
-
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.new_update = source["new_update"];
-	        this.releases = source["releases"];
-	        this.error_code = source["error_code"];
-	    }
-	}
 
 	export class NetInterface {
 	    name: string;
@@ -86,13 +70,9 @@ export namespace backend {
 		}
 	}
 	export class Update {
-	    new_update: boolean;
-	    version: string;
 	    updating: boolean;
-	    downloading: number;
-	    installing: number;
-	    rebooting: number;
-	    commit: boolean;
+	    release: string;
+	    success: boolean;
 
 	    static createFrom(source: any = {}) {
 	        return new Update(source);
@@ -100,13 +80,49 @@ export namespace backend {
 
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.new_update = source["new_update"];
-	        this.version = source["version"];
 	        this.updating = source["updating"];
-	        this.downloading = source["downloading"];
-	        this.installing = source["installing"];
-	        this.rebooting = source["rebooting"];
-	        this.commit = source["commit"];
+	        this.release = source["release"];
+	        this.success = source["success"];
+	    }
+	}
+	export class UpdateData {
+	    releases: string[];
+	    error_code: number;
+
+	    static createFrom(source: any = {}) {
+	        return new UpdateData(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.releases = source["releases"];
+	        this.error_code = source["error_code"];
+	    }
+	}
+	export class UpdateNextState {
+	    state: number;
+
+	    static createFrom(source: any = {}) {
+	        return new UpdateNextState(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.state = source["state"];
+	    }
+	}
+	export class UpdateStateStatus {
+	    state: number;
+	    progress: number;
+
+	    static createFrom(source: any = {}) {
+	        return new UpdateStateStatus(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.state = source["state"];
+	        this.progress = source["progress"];
 	    }
 	}
 	export class WifiConnected {

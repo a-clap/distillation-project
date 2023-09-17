@@ -26,8 +26,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"mender"
 	"time"
+
+	"mender"
 
 	"osservice/osproto"
 

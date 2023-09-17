@@ -24,10 +24,11 @@ package backendmock
 
 import (
 	"fmt"
-	"mender"
-	"osservice"
 	"sync/atomic"
 	"time"
+
+	"mender"
+	"osservice"
 )
 
 type Update struct {
@@ -44,7 +45,7 @@ var (
 )
 
 func (u *Update) ContinueUpdate() (bool, string) {
-	return false, ""
+	return true, releases[0]
 }
 
 func (u *Update) PullReleases() (bool, error) {
@@ -81,19 +82,21 @@ func (u *Update) StopUpdate() error {
 
 func (u *Update) update() {
 	updateState := func(state mender.DeploymentStatus, maxProgress int) {
-		progress := 0
-		for u.updating.Load() && progress < maxProgress {
-			select {
-			case <-u.stop:
-				u.updating.Store(false)
-			case <-time.After(stepDelay):
-				progress++
-				u.callbacks.Update(state, progress)
+		if u.callbacks.NextState(state) {
+			progress := 0
+			for u.updating.Load() && progress < maxProgress {
+				select {
+				case <-u.stop:
+					u.updating.Store(false)
+				case <-time.After(stepDelay):
+					progress++
+					u.callbacks.Update(state, progress)
+				}
 			}
 		}
 	}
 
-	for _, state := range []mender.DeploymentStatus{mender.Downloading, mender.Installing, mender.Rebooting} {
+	for _, state := range []mender.DeploymentStatus{mender.Downloading, mender.Installing, mender.Rebooting, mender.Success} {
 		updateState(state, 100)
 	}
 
