@@ -1071,12 +1071,9 @@ func (ms *MenderTestSuite) TestUpdate() {
 	})
 
 	// Client should store this data
-	expectedSaveData := mender.Artifacts{
-		Current: &mender.CurrentDeployment{
-			State:        mender.PauseBeforeCommitting,
-			Instructions: deployArtifact,
-		},
-		Archive: []mender.DeploymentInstructions{deployArtifact},
+	expectedSaveData := &mender.CurrentDeployment{
+		State:        mender.PauseBeforeCommitting,
+		Instructions: deployArtifact,
 	}
 
 	mockLoadSaver.EXPECT().Save(gomock.Any(), expectedSaveData).Return(nil)
@@ -1151,22 +1148,19 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 	mockCallbacks := mocks.NewMockCallbacks(ctrl)
 	mockLoadSaver := mocks.NewMockLoadSaver(ctrl)
 
-	arti := mender.Artifacts{
-		Current: &mender.CurrentDeployment{
-			State: mender.PauseBeforeCommitting,
-			Instructions: mender.DeploymentInstructions{
-				ID: deployID,
-				Artifact: mender.DeploymentArtifact{
-					Name: artifactName,
-					Source: mender.DeploymentSource{
-						URI:    "https://aws.my_update_bucket.com/image_123",
-						Expire: "2016-03-11T13:03:17.063493443Z",
-					},
-					Compatible: []string{"device"},
+	arti := &mender.CurrentDeployment{
+		State: mender.PauseBeforeCommitting,
+		Instructions: mender.DeploymentInstructions{
+			ID: deployID,
+			Artifact: mender.DeploymentArtifact{
+				Name: artifactName,
+				Source: mender.DeploymentSource{
+					URI:    "https://aws.my_update_bucket.com/image_123",
+					Expire: "2016-03-11T13:03:17.063493443Z",
 				},
+				Compatible: []string{"device"},
 			},
 		},
-		Archive: nil,
 	}
 
 	mockLoadSaver.EXPECT().Load(gomock.Any()).Return(arti)

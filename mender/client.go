@@ -570,11 +570,11 @@ func (c *Client) loadArtifacts() {
 		return
 	}
 
-	_ = json.Unmarshal(rawBytes, &c.artifacts)
+	_ = json.Unmarshal(rawBytes, &c.artifacts.Current)
 }
 
 func (c *Client) saveArtifacts() error {
-	if err := c.LoadSaver.Save(artifactsKey, c.artifacts); err != nil {
+	if err := c.LoadSaver.Save(artifactsKey, c.artifacts.Current); err != nil {
 		return fmt.Errorf("failed to save artifacts: %w", err)
 	}
 	return nil
