@@ -25,13 +25,14 @@ package main
 import (
 	"flag"
 	"log"
-	"mender"
-	"mender/pkg/signer"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
 	"time"
+
+	"mender"
+	"mender/pkg/signer"
 
 	"osservice"
 )
@@ -67,14 +68,6 @@ func main() {
 		Build()
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if err := client.Connect(); err != nil {
-		log.Println("Connect: ", err)
-	} else {
-		if err = client.UpdateInventory(); err != nil {
-			log.Println("UpdateInventory:", err)
-		}
 	}
 
 	configFile := path.Join(*configDir, "osservice.yaml")

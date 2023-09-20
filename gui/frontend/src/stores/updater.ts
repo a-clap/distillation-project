@@ -81,7 +81,6 @@ export const useUpdaterStore = defineStore('updater', {
                 CheckUpdates().then((data: backend.UpdateData) => {
                     this.releases = data.releases
                     this.new_update = this.releases.length > 0
-                    console.log(data.releases)
                     return data.error_code == 0 ? resolve() : reject(data.error_code)
                 }).catch((error) => {
                     this.new_update = false

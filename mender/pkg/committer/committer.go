@@ -85,7 +85,6 @@ func (c *Committer) kill() error {
 	}
 
 	err := c.runner.Kill()
-	close(c.finish)
 
 	c.runner = nil
 
@@ -94,7 +93,6 @@ func (c *Committer) kill() error {
 
 func (c *Committer) handle(outPipe, errPipe io.ReadCloser) error {
 	if err := c.runner.Start(); err != nil {
-		_ = c.kill()
 		return err
 	}
 

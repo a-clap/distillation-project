@@ -92,7 +92,6 @@ func (b *Backend) Startup(ctx context.Context) {
 		logger.Warn("Parameters Load errors", logging.Reflect("errors", errs))
 	}
 
-	b.ContinueUpdate()
 }
 
 func (b *Backend) handleErrors() {

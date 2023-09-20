@@ -23,8 +23,6 @@
 package backend
 
 import (
-	"log"
-
 	"mender"
 	"osservice"
 
@@ -101,7 +99,6 @@ func (b *Backend) StartUpdate(name string) {
 }
 
 func (b *Backend) Update(status mender.DeploymentStatus, progress int) {
-	log.Println(status, progress)
 	st := UpdateStateStatus{
 		State:    status,
 		Progress: progress,

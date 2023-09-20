@@ -26,6 +26,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"mender"
@@ -168,6 +169,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 		select {
 		case <-time.After(time.Hour):
 		case err = <-errs:
+			log.Println("error: ", err)
 			u := &osproto.UpdateResponse{
 				Error: wrapperspb.String(err.Error()),
 			}
@@ -187,6 +189,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 
 			waitingForResponse.Store(true)
 			if err = server.Send(u); err != nil {
+				log.Println("error: ", err)
 				running.Store(false)
 			}
 
