@@ -132,7 +132,7 @@ import NetInterface = backend.NetInterface;
 
 const currentDate = ref(new Date())
 const currentTime = ref(new Date())
-const activated = ref('update')
+const activated = ref('names')
 const dsStore = useDSStore()
 const ptStore = usePTStore()
 const updaterStore = useUpdaterStore()

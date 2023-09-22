@@ -131,7 +131,8 @@
     "stop_update": "Zatrzymaj aktualizację",
     "update_commit": "Potwierdź",
     "update_cancel": "Anuluj",
-    "update_success": "AKTUALIZACJA UDANA"
+    "update_success": "AKTUALIZACJA UDANA",
+    "success_message": "Aktualna wersja: "
   },
   "loader": {
     "loading": "Ładuję..."
@@ -169,10 +170,18 @@
     "80": "Błąd połączenia z czujnikami",
     "81": "Błąd połączenia z czujnikami",
     "82": "Błąd połączenia z czujnikami",
+    "90": "Błąd pobrania aktualizacji, spróbuj ponownie za chwilę",
+    "92": "Błąd uruchomienia aktualizacji",
+    "93": "Błąd w trakcie aktualizacji",
+    "94": "Zatrzymano aktualizację",
     "100": "Wewnętrzny błąd czujnika PT100 - czy jest prawidłowo podłączony?",
     "101": "Wewnętrzny błąd czujnika DS18B20 - czy jest prawidłowo podłączony?",
     "102": "Nie znaleziono zapisanych czujników",
     "103": "Nieudane przestawienie źródła czasu",
-    "110": "Błąd połączenia z WIfi"
+    "110": "Błąd połączenia z WIfi",
+    "111": "Błąd pobrania aktualizacji, spróbuj ponownie za chwilę",
+    "112": "Błąd uruchomienia aktualizacji",
+    "113": "Błąd w trakcie aktualizacji",
+    "114": "Aktualizacja już jest zainstalowana"
   }
 }

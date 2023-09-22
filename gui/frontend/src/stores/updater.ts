@@ -26,6 +26,7 @@ import {CheckUpdates, ContinueUpdate, MoveToNextState, StartUpdate, StopUpdate} 
 import {backend} from "../../wailsjs/go/models";
 import {ErrorListener} from "../types/ErrorListener";
 import {AppErrorCodes} from "./error_codes";
+import {i18n} from "../i18n";
 
 enum MenderStatus {
     Downloading = 1,
@@ -126,7 +127,7 @@ export const useUpdaterStore = defineStore('updater', {
                     }, 1000)
                 }
             } else if (next.state == MenderStatus.Success) {
-                this.message = "blabla"
+                this.message = i18n.global.t('system.success_message') + this.releases[0]
                 this.commit = true
             } else if (next.state == MenderStatus.Failure || next.state == MenderStatus.AlreadyInstalled) {
                 let err = next.state == MenderStatus.Failure ? AppErrorCodes.UpdateFail : AppErrorCodes.UpdateAlreadyInstalled;
