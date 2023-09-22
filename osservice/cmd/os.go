@@ -35,6 +35,8 @@ import (
 	"mender/pkg/signer"
 
 	"osservice"
+
+	"golang.org/x/exp/slog"
 )
 
 var (
@@ -47,6 +49,14 @@ var (
 
 func main() {
 	flag.Parse()
+
+	textHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource:   true,
+		Level:       slog.LevelDebug,
+		ReplaceAttr: nil,
+	})
+
+	slog.SetDefault(slog.New(textHandler))
 
 	pem, err := os.ReadFile(*PEMFile)
 	if err != nil {
@@ -66,6 +76,7 @@ func main() {
 		WithStore(menderStore).
 		WithStdIOInterface().
 		Build()
+
 	if err != nil {
 		log.Fatal(err)
 	}

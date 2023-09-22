@@ -26,7 +26,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"mender"
@@ -37,6 +36,7 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"go.uber.org/atomic"
 	"golang.org/x/exp/slices"
+	"golang.org/x/exp/slog"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -57,20 +57,26 @@ type Update interface {
 var _ UpdateCallbacks = (*osUpdateCallbacks)(nil)
 
 func (o *Os) PullReleases(context.Context, *empty.Empty) (*wrappers.BoolValue, error) {
+	slog.Debug("PullReleases")
 	release, err := o.update.PullReleases()
 	if err != nil {
+		slog.Error("PullReleases", slog.String("error", err.Error()))
 		return nil, err
 	}
 
+	slog.Debug("PullReleases", slog.Bool("release", release))
 	return wrapperspb.Bool(release), nil
 }
 
 func (o *Os) AvailableReleases(context.Context, *empty.Empty) (*osproto.Releases, error) {
+	slog.Debug("AvailableReleases")
 	releases, err := o.update.AvailableReleases()
 	if err != nil {
+		slog.Error("AvailableReleases", slog.String("error", err.Error()))
 		return nil, err
 	}
 
+	slog.Debug("AvailableReleases", slog.Group("releases", releases))
 	protoReleases := &osproto.Releases{Releases: make([]*wrappers.StringValue, len(releases))}
 	for i, release := range releases {
 		protoReleases.Releases[i] = wrapperspb.String(release)
@@ -80,7 +86,10 @@ func (o *Os) AvailableReleases(context.Context, *empty.Empty) (*osproto.Releases
 }
 
 func (o *Os) ContinueUpdate(context.Context, *empty.Empty) (*osproto.UpdateInformation, error) {
+	slog.Debug("ContinueUpdate")
 	release, name := o.update.ContinueUpdate()
+
+	slog.Debug("ContinueUpdate", slog.Bool("release", release), slog.String("name", name))
 
 	return &osproto.UpdateInformation{
 		DuringUpdate: wrapperspb.Bool(release),
@@ -89,6 +98,8 @@ func (o *Os) ContinueUpdate(context.Context, *empty.Empty) (*osproto.UpdateInfor
 }
 
 func (o *Os) Update(server osproto.Update_UpdateServer) error {
+	slog.Debug("Update")
+
 	type updateStatus struct {
 		status   mender.DeploymentStatus
 		progress int
@@ -140,7 +151,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 		for {
 			req, err := server.Recv()
 			if !running.Load() {
-				fmt.Println("closing client")
+				slog.Info("closing client")
 				break
 			}
 
@@ -150,7 +161,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 			}
 
 			if req.Stop != nil {
-				fmt.Println("req stop")
+				slog.Info("received stop")
 				_ = o.update.StopUpdate()
 				errs <- ErrForceStop
 				break
@@ -167,9 +178,9 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 
 	for running.Load() {
 		select {
-		case <-time.After(time.Hour):
+		case <-time.After(3 * time.Minute):
 		case err = <-errs:
-			log.Println("error: ", err)
+			slog.Error("error: ", slog.String("error", err.Error()))
 			u := &osproto.UpdateResponse{
 				Error: wrapperspb.String(err.Error()),
 			}
@@ -189,7 +200,7 @@ func (o *Os) Update(server osproto.Update_UpdateServer) error {
 
 			waitingForResponse.Store(true)
 			if err = server.Send(u); err != nil {
-				log.Println("error: ", err)
+				slog.Error("error sending", slog.String("error", err.Error()))
 				running.Store(false)
 			}
 
