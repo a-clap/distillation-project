@@ -70,7 +70,7 @@ func main() {
 	}
 
 	client, err := mender.NewBuilder().
-		WithTimeout(time.Second).
+		WithTimeout(5*time.Second).
 		WithSignerVerifier(menderSigner).
 		WithServer(*menderServer, *menderToken).
 		WithStore(menderStore).
