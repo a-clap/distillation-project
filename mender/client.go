@@ -244,7 +244,7 @@ func (c *Client) PullReleases() (newRelease bool, err error) {
 		"device_type":   {info.DeviceType},
 	}
 
-	var artifact DeploymentInstructions
+	var artifact MenderDeploymentInstructions
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
 	defer cancel()
@@ -352,13 +352,21 @@ func (c *Client) StopUpdate() error {
 	return nil
 }
 
-func (c *Client) updateFromState(state DeploymentStatus, ins DeploymentInstructions) {
+func (c *Client) updateFromState(state DeploymentStatus, ins MenderDeploymentInstructions) {
 	c.stopUpdating = make(chan struct{})
 	c.updating.Store(true)
 
 	c.artifacts.Current = &CurrentDeployment{
-		State:        state,
-		Instructions: ins,
+		State: state,
+		Instructions: Instructions{
+			ID: ins.ID,
+			Artifact: Artifact{
+				ID:         ins.Artifact.ID,
+				Name:       ins.Artifact.Name,
+				Source:     ins.Artifact.Source,
+				Compatible: ins.Artifact.Compatible,
+			},
+		},
 	}
 	go c.handleUpdate()
 }
@@ -461,7 +469,7 @@ func (c *Client) handleSuccess(artifactName string) {
 	}
 
 	// Remove just installed artifact from Archive
-	c.artifacts.Archive = slices.DeleteFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
+	c.artifacts.Archive = slices.DeleteFunc(c.artifacts.Archive, func(instructions MenderDeploymentInstructions) bool {
 		return c.artifacts.Current.Instructions.Artifact.Name == instructions.Artifact.Name
 	})
 
@@ -591,20 +599,31 @@ func (c *Client) Verify(data []byte, sig []byte) error {
 	return c.Signer.Verify(data, sig)
 }
 
-// getInstructions finds proper instructions in internal DeploymentInstructions
-func (c *Client) getInstructions(artifactName string) (DeploymentInstructions, error) {
+// getInstructions finds proper instructions in internal MenderDeploymentInstructions
+func (c *Client) getInstructions(artifactName string) (MenderDeploymentInstructions, error) {
 	// Maybe we are using current artifact
 	if c.artifacts.Current != nil &&
 		c.artifacts.Current.Instructions.Artifact.Name == artifactName {
-		return c.artifacts.Current.Instructions, nil
+
+		ins := MenderDeploymentInstructions{
+			ID: c.artifacts.Current.Instructions.ID,
+			Artifact: MenderDeploymentArtifact{
+				ID:         c.artifacts.Current.Instructions.Artifact.ID,
+				Name:       c.artifacts.Current.Instructions.Artifact.Name,
+				Source:     c.artifacts.Current.Instructions.Artifact.Source,
+				Compatible: c.artifacts.Current.Instructions.Artifact.Compatible,
+			},
+		}
+
+		return ins, nil
 	}
 
-	idx := slices.IndexFunc(c.artifacts.Archive, func(instructions DeploymentInstructions) bool {
+	idx := slices.IndexFunc(c.artifacts.Archive, func(instructions MenderDeploymentInstructions) bool {
 		return instructions.Artifact.Name == artifactName
 	})
 
 	if idx == -1 {
-		return DeploymentInstructions{}, fmt.Errorf("artifact %v not found", artifactName)
+		return MenderDeploymentInstructions{}, fmt.Errorf("artifact %v not found", artifactName)
 	}
 	return c.artifacts.Archive[idx], nil
 }

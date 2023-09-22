@@ -19,24 +19,36 @@ type DeploymentSource struct {
 	Expire string `json:"expire,omitempty"`
 }
 
-type DeploymentArtifact struct {
+type MenderDeploymentArtifact struct {
 	ID         string           `json:"id,omitempty"`
 	Name       string           `json:"artifact_name"`
 	Source     DeploymentSource `json:"source"`
 	Compatible []string         `json:"device_types_compatible"`
 }
 
-type DeploymentInstructions struct {
-	ID       string             `json:"id"`
-	Artifact DeploymentArtifact `json:"artifact"`
+type MenderDeploymentInstructions struct {
+	ID       string                   `json:"id"`
+	Artifact MenderDeploymentArtifact `json:"artifact"`
+}
+
+type Artifact struct {
+	ID         string           `json:"id"`
+	Name       string           `json:"name"`
+	Source     DeploymentSource `json:"source"`
+	Compatible []string         `json:"compatible"`
+}
+
+type Instructions struct {
+	ID       string   `json:"id"`
+	Artifact Artifact `json:"artifact"`
 }
 
 type CurrentDeployment struct {
-	State        DeploymentStatus       `json:"state"`
-	Instructions DeploymentInstructions `json:"deployment_instructions"`
+	State        DeploymentStatus `json:"state"`
+	Instructions Instructions     `json:"instructions"`
 }
 
 type Artifacts struct {
-	Current *CurrentDeployment       `json:"current"`
-	Archive []DeploymentInstructions `json:"archive"`
+	Current *CurrentDeployment             `json:"current"`
+	Archive []MenderDeploymentInstructions `json:"archive"`
 }

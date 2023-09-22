@@ -606,9 +606,9 @@ func (ms *MenderTestSuite) TestSendStatus() {
 
 		handle.Handle("/api/devices/v1/deployments/device/deployments/next", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			writer.WriteHeader(http.StatusOK)
-			body, _ := json.Marshal(mender.DeploymentInstructions{
+			body, _ := json.Marshal(mender.MenderDeploymentInstructions{
 				ID: arg.deployID,
-				Artifact: mender.DeploymentArtifact{
+				Artifact: mender.MenderDeploymentArtifact{
 					Name: "my-app-0.1",
 					Source: mender.DeploymentSource{
 						URI:    "https://aws.my_update_bucket.com/image_123",
@@ -759,9 +759,9 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 			name:       "StatusOK",
 			devInfo:    device.Info{DeviceType: "fake_device2", ArtifactName: "11.1.31"},
 			statusCode: http.StatusOK,
-			body: mustMarshal(mender.DeploymentInstructions{
+			body: mustMarshal(mender.MenderDeploymentInstructions{
 				ID: "w81s4fae-7dec-11d0-a765-00a0c91e6bf6",
-				Artifact: mender.DeploymentArtifact{
+				Artifact: mender.MenderDeploymentArtifact{
 					Name: "my-app-0.1",
 					Source: mender.DeploymentSource{
 						URI:    "https://aws.my_update_bucket.com/image_123",
@@ -782,9 +782,9 @@ func (ms *MenderTestSuite) TestCheckDeployment() {
 			name:       "Incompatible device",
 			devInfo:    device.Info{DeviceType: "fake_device2", ArtifactName: "11.1.31"},
 			statusCode: http.StatusOK,
-			body: mustMarshal(mender.DeploymentInstructions{
+			body: mustMarshal(mender.MenderDeploymentInstructions{
 				ID: "w81s4fae-7dec-11d0-a765-00a0c91e6bf6",
-				Artifact: mender.DeploymentArtifact{
+				Artifact: mender.MenderDeploymentArtifact{
 					Name: "my-app-0.1",
 					Source: mender.DeploymentSource{
 						URI:    "https://aws.my_update_bucket.com/image_123",
@@ -900,9 +900,9 @@ func (ms *MenderTestSuite) TestUpdate() {
 		artifactName = "my-app-0.1"
 	)
 
-	deployArtifact := mender.DeploymentInstructions{
+	deployArtifact := mender.MenderDeploymentInstructions{
 		ID: deployID,
-		Artifact: mender.DeploymentArtifact{
+		Artifact: mender.MenderDeploymentArtifact{
 			Name: artifactName,
 			Source: mender.DeploymentSource{
 				URI:    "https://aws.my_update_bucket.com/image_123",
@@ -1072,8 +1072,16 @@ func (ms *MenderTestSuite) TestUpdate() {
 
 	// Client should store this data
 	expectedSaveData := &mender.CurrentDeployment{
-		State:        mender.PauseBeforeCommitting,
-		Instructions: deployArtifact,
+		State: mender.PauseBeforeCommitting,
+		Instructions: mender.Instructions{
+			ID: deployArtifact.ID,
+			Artifact: mender.Artifact{
+				ID:         deployArtifact.Artifact.ID,
+				Name:       deployArtifact.Artifact.Name,
+				Source:     deployArtifact.Artifact.Source,
+				Compatible: deployArtifact.Artifact.Compatible,
+			},
+		},
 	}
 
 	mockLoadSaver.EXPECT().Save(gomock.Any(), expectedSaveData).Return(nil)
@@ -1150,9 +1158,9 @@ func (ms *MenderTestSuite) TestContinueUpdateAfterReboot() {
 
 	arti := &mender.CurrentDeployment{
 		State: mender.PauseBeforeCommitting,
-		Instructions: mender.DeploymentInstructions{
+		Instructions: mender.Instructions{
 			ID: deployID,
-			Artifact: mender.DeploymentArtifact{
+			Artifact: mender.Artifact{
 				Name: artifactName,
 				Source: mender.DeploymentSource{
 					URI:    "https://aws.my_update_bucket.com/image_123",
