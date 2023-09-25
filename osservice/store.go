@@ -50,5 +50,13 @@ func (l *configStoreOs) Load(key string) []byte {
 	if v == nil {
 		return []byte{}
 	}
-	return v.([]byte)
+	switch t := v.(type) {
+	case string:
+		return []byte(t)
+	case []byte:
+		return t
+
+	}
+
+	return nil
 }
