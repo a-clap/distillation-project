@@ -46,7 +46,7 @@ type Committer struct {
 
 var (
 	findErrorRE = regexp.MustCompile(`^ERR`)
-	ErrNotFound = errors.New("string doesn't match")
+	ErrFound    = errors.New("errors match")
 )
 
 func New(options ...Option) *Committer {
@@ -116,7 +116,7 @@ func (c *Committer) handle(outPipe, errPipe io.ReadCloser) error {
 			running.Store(false)
 		case line := <-reader:
 			errString, err = findErr(line)
-			if !errors.Is(err, ErrNotFound) {
+			if errors.Is(err, ErrFound) {
 				err = fmt.Errorf("commit :%w", errors.New(errString))
 				running.Store(false)
 			}
@@ -159,7 +159,8 @@ func handlePipes(finish chan struct{}, pipes ...io.ReadCloser) chan string {
 
 func findErr(line string) (string, error) {
 	if findErrorRE.MatchString(line) {
-		return line, nil
+		return line, ErrFound
 	}
-	return "", ErrNotFound
+
+	return "", nil
 }
