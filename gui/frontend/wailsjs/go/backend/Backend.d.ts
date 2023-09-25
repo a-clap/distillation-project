@@ -10,7 +10,7 @@ export function CheckUpdates():Promise<backend.UpdateData>;
 
 export function Commit(arg1:boolean):Promise<void>;
 
-export function ContinueUpdate():Promise<void>;
+export function ContinueUpdate():Promise<string>;
 
 export function DSEnable(arg1:string,arg2:boolean):Promise<void>;
 

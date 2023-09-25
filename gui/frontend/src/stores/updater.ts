@@ -73,9 +73,15 @@ export const useUpdaterStore = defineStore('updater', {
                 })
             })
 
-            ContinueUpdate().catch((error) => {
-                console.log(error)
-            })
+            setTimeout(() => {
+                ContinueUpdate().then((res: string) => {
+                    this.releases = [res]
+                }).catch
+                ((error) => {
+                    console.log(error)
+                })
+            }, 500)
+
         },
         checkUpdate(): Promise<void> {
             return new Promise((resolve, reject) => {

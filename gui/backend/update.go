@@ -51,12 +51,14 @@ type Update struct {
 
 var _ osservice.UpdateCallbacks = (*Backend)(nil)
 
-func (b *Backend) ContinueUpdate() {
+func (b *Backend) ContinueUpdate() string {
 	logger.Debug("try: ContinueUpdate")
 	if finish, release := b.updater.ContinueUpdate(); finish {
 		logger.Debug("Continuing", logging.String("release", release))
 		b.StartUpdate(release)
+		return release
 	}
+	return ""
 }
 
 func (b *Backend) CheckUpdates() UpdateData {

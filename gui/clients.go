@@ -23,17 +23,18 @@
 package main
 
 import (
-	"distillation/pkg/distillation"
 	"fmt"
 	"log"
-	"osservice"
 	"time"
+
+	"distillation/pkg/distillation"
+	"osservice"
 
 	"gui/backend"
 )
 
 const (
-	defaultTimeout = time.Second
+	defaultTimeout = 5 * time.Second
 )
 
 func getopts(host string, distPort int, osPort int) []backend.Option {
