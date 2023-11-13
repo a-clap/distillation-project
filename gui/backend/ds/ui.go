@@ -6,10 +6,11 @@
 package ds
 
 import (
-	"distillation/pkg/distillation"
-	"embedded/pkg/ds18b20"
 	"sync/atomic"
 	"time"
+
+	"distillation/pkg/distillation"
+	"embedded/pkg/ds18b20"
 
 	"gui/backend/parameters"
 
@@ -140,8 +141,14 @@ func Get() []parameters.DS {
 	for _, s := range handler.sensors {
 		sensors = append(sensors, s.DS)
 	}
-	slices.SortFunc(sensors, func(i, j parameters.DS) bool {
-		return i.ID < j.ID
+	slices.SortStableFunc(sensors, func(i, j parameters.DS) int {
+		if i.ID > j.ID {
+			return 1
+		}
+		if i.ID < j.ID {
+			return -1
+		}
+		return 0
 	})
 	return sensors
 }

@@ -12,9 +12,9 @@ import (
 	"embedded/pkg/embedded/embeddedproto"
 	"embedded/pkg/restclient"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type DS18B20Client struct {

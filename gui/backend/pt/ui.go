@@ -6,9 +6,10 @@
 package pt
 
 import (
-	"distillation/pkg/distillation"
 	"sync/atomic"
 	"time"
+
+	"distillation/pkg/distillation"
 
 	"gui/backend/parameters"
 
@@ -125,8 +126,14 @@ func Get() []parameters.PT {
 	for _, s := range handler.sensors {
 		sensors = append(sensors, *s)
 	}
-	slices.SortFunc(sensors, func(i, j parameters.PT) bool {
-		return i.ID < j.ID
+	slices.SortStableFunc(sensors, func(i, j parameters.PT) int {
+		if i.ID > j.ID {
+			return 1
+		}
+		if i.ID < j.ID {
+			return -1
+		}
+		return 0
 	})
 	return sensors
 }

@@ -39,16 +39,36 @@ func notifyValidate(v distillation.ProcessConfigValidation) {
 
 func notifyStatus(s distillation.ProcessStatus) {
 	// Sort sensors
-	slices.SortFunc(s.Temperature, func(i, j process.TemperaturePhaseStatus) bool {
-		return i.ID < j.ID
+	slices.SortStableFunc(s.Temperature, func(i, j process.TemperaturePhaseStatus) int {
+		if i.ID > j.ID {
+			return 1
+		}
+		if i.ID < j.ID {
+			return -1
+		}
+		return 0
 	})
+
 	// Sort GPIO
-	slices.SortFunc(s.GPIO, func(i, j process.GPIOPhaseStatus) bool {
-		return i.ID < j.ID
+	slices.SortStableFunc(s.GPIO, func(i, j process.GPIOPhaseStatus) int {
+		if i.ID > j.ID {
+			return 1
+		}
+		if i.ID < j.ID {
+			return -1
+		}
+		return 0
+
 	})
 	// And heaters
-	slices.SortFunc(s.Heaters, func(i, j process.HeaterPhaseStatus) bool {
-		return i.ID < j.ID
+	slices.SortStableFunc(s.Heaters, func(i, j process.HeaterPhaseStatus) int {
+		if i.ID > j.ID {
+			return 1
+		}
+		if i.ID < j.ID {
+			return -1
+		}
+		return 0
 	})
 	for _, listener := range handler.listeners {
 		listener.OnStatusChange(s)

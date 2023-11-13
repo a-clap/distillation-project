@@ -7,8 +7,8 @@ import (
 	"embedded/pkg/embedded/embeddedproto"
 
 	"github.com/a-clap/logging"
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type RPC struct {

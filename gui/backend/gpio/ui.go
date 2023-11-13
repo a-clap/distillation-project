@@ -81,8 +81,14 @@ func Get() []parameters.GPIO {
 	for _, s := range handler.gpio {
 		sensors = append(sensors, *s)
 	}
-	slices.SortFunc(sensors, func(i, j parameters.GPIO) bool {
-		return i.ID < j.ID
+	slices.SortStableFunc(sensors, func(i, j parameters.GPIO) int {
+		if i.ID > j.ID {
+			return 1
+		}
+		if i.ID < j.ID {
+			return -1
+		}
+		return 0
 	})
 	return sensors
 }
