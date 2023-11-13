@@ -153,13 +153,6 @@ func (t *HeaterSuite) TestHeater_New() {
 		r.ErrorIs(err, heater.ErrNoHeating)
 	}
 	{
-		// no ticker interface
-		heating := new(HeatingMock)
-		h, err := heater.New(heater.WithHeating(heating))
-		r.Nil(h)
-		r.ErrorIs(err, heater.ErrNoTicker)
-	}
-	{
 		// err on heating open interface
 		heating := new(HeatingMock)
 		ticker := new(TickerMock)

@@ -63,7 +63,7 @@ func New(options ...Option) (*Heater, error) {
 	}
 
 	if heater.ticker == nil {
-		return nil, fmt.Errorf("New: %w", ErrNoTicker)
+		heater.ticker = newTimeTicker()
 	}
 
 	if err := heater.heating.Open(); err != nil {
