@@ -7,13 +7,19 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"sync"
+	"sync/atomic"
+	"syscall"
 	"time"
 
 	"embedded/pkg/gpio"
 )
 
-func main() {
-	out, err := gpio.Output(gpio.GetBananaPin(gpio.PWR_LED), "", false)
+func heartbeat(pin gpio.Pin, closeCh chan struct{}, wg *sync.WaitGroup) {
+	wg.Add(1)
+	out, err := gpio.Output(pin, "", false)
 	if err != nil {
 		panic(err)
 	}
@@ -40,13 +46,56 @@ func main() {
 		},
 	}
 
-	for {
+	running := atomic.Bool{}
+	running.Store(true)
+	for running.Load() {
+
 		for _, state := range states {
 			err = out.Set(state.value)
 			if err != nil {
 				log.Println(err)
 			}
-			<-time.After(state.delay)
+
+			select {
+			case <-time.After(state.delay):
+			case <-closeCh:
+				running.Store(false)
+
+			}
+
+			if !running.Load() {
+				break
+			}
 		}
 	}
+	wg.Done()
+
+}
+
+func main() {
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT)
+
+	wg := sync.WaitGroup{}
+
+	pwr := gpio.GetBananaPin(gpio.PWR_LED)
+	ch := make(chan struct{})
+
+	for _, pin := range []gpio.Pin{
+		gpio.GetBananaPin(gpio.CON2_P40),
+		gpio.GetBananaPin(gpio.CON2_P22),
+		gpio.GetBananaPin(gpio.CON2_P38),
+		pwr,
+	} {
+		go heartbeat(pin, ch, &wg)
+	}
+
+	log.Println("Running, waiting for CTRL+C")
+
+	<-sig
+	close(ch)
+
+	wg.Wait()
+
+	log.Println("Finished")
 }
