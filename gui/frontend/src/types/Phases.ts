@@ -110,6 +110,27 @@ export class HeaterPhaseConfig {
     }
 }
 
+function toProcessGPIOConfig(value: GPIOConfig): process.GPIOConfig {
+    let gpio = new process.GPIOConfig()
+
+    let [id, got] = useNameStore().name_to_id(value.sensor_id)
+    if (got) {
+        gpio.sensor_id = id
+    } else {
+        gpio.sensor_id = value.sensor_id
+        ErrorListener.sendError(AppErrorCodes.SensorIDNotFound)
+    }
+
+    gpio.enabled = value.enable
+    gpio.id = value.id
+    gpio.t_low = Number(value.t_low.value)
+    gpio.t_high = Number(value.t_high.value)
+    gpio.hysteresis = Number(value.hysteresis.value)
+    gpio.inverted = value.inverted
+
+    return gpio
+}
+
 
 export class ProcessPhaseConfig {
     private id: number;
@@ -178,22 +199,7 @@ export class ProcessPhaseConfig {
         })
         // GPIO
         p.gpios.forEach((value: GPIOConfig) => {
-            let gpio = new process.GPIOConfig()
-            let [id, got] = useNameStore().name_to_id(value.sensor_id)
-            if (got) {
-                gpio.sensor_id = id
-            } else {
-                gpio.sensor_id = value.sensor_id
-                ErrorListener.sendError(AppErrorCodes.SensorIDNotFound)
-            }
-
-            gpio.enabled = value.enable
-            gpio.id = value.id
-            gpio.t_low = Number(value.t_low.value)
-            gpio.t_high = Number(value.t_high.value)
-            gpio.hysteresis = Number(value.hysteresis.value)
-            gpio.inverted = value.inverted
-
+            let gpio = toProcessGPIOConfig(value)
             cfg.gpio.push(gpio)
         })
 
@@ -263,29 +269,27 @@ export class Phases {
         }
         this.sensors = sensorNames
 
-        if (gpios != null) {
-            gpios.forEach((v: process.GPIOConfig) => {
-                this.gpios.push(new GPIOConfig(v, self.update, self))
-            })
-        }
+        gpios.forEach((v: process.GPIOConfig) => {
+            let [newName, got] = useNameStore().id_to_name(v.sensor_id)
+            if (got) {
+                v.sensor_id = newName
+            } else {
+                ErrorListener.sendError(AppErrorCodes.SensorIDNotFound)
+            }
+
+            this.gpios.push(new GPIOConfig(v, self.update, this))
+        })
+
         this.phaseCount = new Parameter(phases.length, false, this.setPhaseCount)
     }
 
     update(p: Phases) {
         let gpios: process.GPIOConfig[] = []
         p.gpios.forEach((v) => {
-            let g = new process.GPIOConfig()
-            g.enabled = v.enable
-            g.id = v.id
-            g.sensor_id = v.sensor_id
-            g.t_low = Number(v.t_low.value)
-            g.t_high = Number(v.t_high.value)
-            g.hysteresis = Number(v.hysteresis.value)
-            g.inverted = v.inverted
-
-            gpios.push(g)
+            let gpio = toProcessGPIOConfig(v)
+            gpios.push(gpio)
         })
-        console.log(gpios)
+
         PhasesSetGlobalGPIO(gpios)
     }
 
