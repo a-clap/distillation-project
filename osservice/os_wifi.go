@@ -6,7 +6,7 @@ import (
 	"osservice/osproto"
 	"osservice/pkg/wifi"
 
-	"github.com/golang/protobuf/ptypes/empty"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 

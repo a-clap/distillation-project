@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"google.golang.org/protobuf/types/known/emptypb"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -26,7 +25,7 @@ func (o *Os) Now(context.Context, *empty.Empty) (*timestamp.Timestamp, error) {
 	return timestamppb.New(t), nil
 }
 
-func (o *Os) NTP(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (o *Os) NTP(context.Context, *empty.Empty) (*wrapperspb.BoolValue, error) {
 	t, err := o.time.NTP()
 	if err != nil {
 		return nil, err
@@ -35,10 +34,10 @@ func (o *Os) NTP(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 }
 
 func (o *Os) SetNow(_ context.Context, ts *timestamp.Timestamp) (*empty.Empty, error) {
-	return &emptypb.Empty{}, o.time.SetNow(ts.AsTime())
+	return &empty.Empty{}, o.time.SetNow(ts.AsTime())
 }
 
 func (o *Os) SetNTP(_ context.Context, value *wrapperspb.BoolValue) (*empty.Empty, error) {
 	err := o.time.SetNTP(value.GetValue())
-	return &emptypb.Empty{}, err
+	return &empty.Empty{}, err
 }

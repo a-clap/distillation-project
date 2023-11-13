@@ -32,11 +32,11 @@ import (
 
 	"osservice/osproto"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"go.uber.org/atomic"
 	"golang.org/x/exp/slices"
 	"golang.org/x/exp/slog"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
