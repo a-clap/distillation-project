@@ -10,9 +10,9 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	empty "github.com/golang/protobuf/ptypes/empty"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (

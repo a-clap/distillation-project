@@ -8,8 +8,8 @@ import (
 	"distillation/pkg/distillation/distillationproto"
 	"distillation/pkg/process"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type RPC struct {

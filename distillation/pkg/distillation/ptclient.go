@@ -7,14 +7,15 @@ package distillation
 
 import (
 	"context"
-	"embedded/pkg/restclient"
 	"time"
+
+	"embedded/pkg/restclient"
 
 	"distillation/pkg/distillation/distillationproto"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type PTClient struct {
